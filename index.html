@@ -148,9 +148,9 @@ td .num{margin-right:4px}
 .cal.list .slot .sh{font-size:14px;color:var(--muted)}
 .cal.list .slot .sh b{font-size:15px}
 .cal.list .slot .r{flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px 10px}
-.cal.list .slot .rt{flex:0 0 76px;font-size:12px}
+.cal.list .slot .rt{flex:0 0 124px;font-size:12px}
 .cal.list .slot select{flex:1 1 200px;max-width:340px}
-.cal.list .slot .w{flex-basis:100%;padding-left:86px}
+.cal.list .slot .w{flex-basis:100%;padding-left:134px}
 .who{font-size:14px;font-weight:500;min-width:0}
 .cal.list .slot .who{flex:1 1 200px}
 .adm{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
@@ -204,6 +204,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
           <span class="small" style="font-weight:500;color:var(--muted)">Cultos a gerar</span>
           <div class="checks" id="g-cultos"></div>
         </div>
+        <div class="full checks"><label><input type="checkbox" id="g-manter"> Manter o que já está preenchido e só completar os espaços vazios</label></div>
         <div class="row full">
           <button class="btn" type="submit" id="btn-gerar">Gerar escala</button>
           <button class="btn danger" type="button" id="btn-limpar" data-act="limpar">Limpar automáticas</button>
@@ -242,7 +243,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       <h2>Quem prega quanto</h2>
       <p class="hint">O número em destaque é o total de todos os meses gerados. As datas são do mês que está aberto acima.</p>
       <div class="tablewrap"><table>
-        <thead><tr><th>Pessoa</th><th>Função</th><th>Pregação</th><th>Avisos</th></tr></thead>
+        <thead><tr><th>Pessoa</th><th>Função</th><th>Pregação</th><th>Avisos</th><th>Contato visitantes</th></tr></thead>
         <tbody id="resumo"></tbody>
       </table></div>
     </div>
@@ -280,6 +281,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
           <div class="checks" id="pe-papeis">
             <label><input type="checkbox" id="pe-p-preg" value="preg" checked> Pregação</label>
             <label><input type="checkbox" id="pe-p-avisos" value="avisos" checked> Avisos</label>
+            <label><input type="checkbox" id="pe-p-visit" value="visit" checked> Contato visitantes</label>
           </div>
         </div>
         <div class="full" style="display:flex;flex-direction:column;gap:6px">
@@ -307,7 +309,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
               <label><input type="checkbox" value="1"> 1ª</label><label><input type="checkbox" value="2"> 2ª</label><label><input type="checkbox" value="3"> 3ª</label><label><input type="checkbox" value="4"> 4ª</label><label><input type="checkbox" value="5"> 5ª</label>
             </div>
           </div>
-          <label class="l" for="x-papel">Atividade<select id="x-papel"><option value="preg">Pregação</option><option value="avisos">Avisos</option></select></label>
+          <label class="l" for="x-papel">Atividade<select id="x-papel"><option value="preg">Pregação</option><option value="avisos">Avisos</option><option value="visit">Contato visitantes</option></select></label>
           <label class="l" for="x-func">Função exigida<select id="x-func"><option value="">Qualquer função</option><option>Pastor</option><option>Presbítero</option><option>Diácono</option></select></label>
           <label class="l" for="x-pessoa">Pessoa exigida<select id="x-pessoa"></select></label>
           <div class="row full"><button class="btn" type="submit">Adicionar regra</button></div>
@@ -362,12 +364,12 @@ var wk=function(s){return Math.ceil(parseInt(s.slice(8),10)/7);};
 var TODAY=iso(new Date());
 
 /* ---------- estado ---------- */
-var PAPEIS=['preg','avisos'];
-var PNOME={preg:'Pregação',avisos:'Avisos'};
+var PAPEIS=['preg','avisos','visit'];
+var PNOME={preg:'Pregação',avisos:'Avisos',visit:'Contato visitantes'};
 function exemplo(){
   var R='Igreja Central',V='Congregação Exemplo';
   return {
-    v:2, example:true, stale:false,
+    v:3, example:true, stale:false,
     cultos:[
       {id:'c1',igreja:R,desc:'Culto da manhã',dia:0,hora:'09:00'},
       {id:'c2',igreja:R,desc:'Culto da noite',dia:0,hora:'19:00'},
@@ -375,14 +377,14 @@ function exemplo(){
       {id:'c4',igreja:R,desc:'Culto de oração',dia:3,hora:'19:30'}
     ],
     pessoas:[
-      {id:'p1',nome:'Marcos Almeida',funcao:'Pastor',igreja:R,cultos:['c1','c2','c4'],papeis:['preg','avisos']},
-      {id:'p8',nome:'Elias Barbosa',funcao:'Pastor',igreja:R,cultos:['c1','c2'],papeis:['preg','avisos']},
-      {id:'p2',nome:'Paulo Ferreira',funcao:'Presbítero',igreja:R,cultos:['c1','c2','c4'],papeis:['preg','avisos']},
-      {id:'p3',nome:'Roberto Lima',funcao:'Presbítero',igreja:R,cultos:['c1','c2'],papeis:['preg','avisos']},
-      {id:'p4',nome:'André Costa',funcao:'Diácono',igreja:R,cultos:['c1','c2','c4'],papeis:['avisos']},
-      {id:'p5',nome:'Tiago Nunes',funcao:'Presbítero',igreja:V,cultos:['c3'],papeis:['preg','avisos']},
-      {id:'p6',nome:'Lucas Martins',funcao:'Diácono',igreja:V,cultos:['c3'],papeis:['avisos']},
-      {id:'p7',nome:'Samuel Rocha',funcao:'Presbítero',igreja:V,cultos:['c1','c3'],papeis:['preg','avisos']}
+      {id:'p1',nome:'Marcos Almeida',funcao:'Pastor',igreja:R,cultos:['c1','c2','c4'],papeis:['preg','avisos','visit']},
+      {id:'p8',nome:'Elias Barbosa',funcao:'Pastor',igreja:R,cultos:['c1','c2'],papeis:['preg','avisos','visit']},
+      {id:'p2',nome:'Paulo Ferreira',funcao:'Presbítero',igreja:R,cultos:['c1','c2','c4'],papeis:['preg','avisos','visit']},
+      {id:'p3',nome:'Roberto Lima',funcao:'Presbítero',igreja:R,cultos:['c1','c2'],papeis:['preg','avisos','visit']},
+      {id:'p4',nome:'André Costa',funcao:'Diácono',igreja:R,cultos:['c1','c2','c4'],papeis:['avisos','visit']},
+      {id:'p5',nome:'Tiago Nunes',funcao:'Presbítero',igreja:V,cultos:['c3'],papeis:['preg','avisos','visit']},
+      {id:'p6',nome:'Lucas Martins',funcao:'Diácono',igreja:V,cultos:['c3'],papeis:['avisos','visit']},
+      {id:'p7',nome:'Samuel Rocha',funcao:'Presbítero',igreja:V,cultos:['c1','c3'],papeis:['preg','avisos','visit']}
     ],
     regras:{
       indisp:[{id:'i1',pid:'p4',de:addDays(TODAY,7),ate:addDays(TODAY,20),obs:'viagem'}],
@@ -409,12 +411,14 @@ function rangeBounds(){
 function normalize(o){
   var b=exemplo();
   var s=JSON.parse(JSON.stringify(o||{}));
-  s.v=2; s.example=!!s.example; s.stale=!!s.stale;
+  var antes=+s.v||0;
+  s.v=3; s.example=!!s.example; s.stale=!!s.stale;
   s.cultos=Array.isArray(s.cultos)?s.cultos:[];
   s.pessoas=Array.isArray(s.pessoas)?s.pessoas:[];
   s.pessoas.forEach(function(p){
     p.cultos=Array.isArray(p.cultos)?p.cultos:[];
     p.papeis=Array.isArray(p.papeis)&&p.papeis.length?p.papeis:['preg','avisos'];
+    if(antes<3&&p.papeis.indexOf('visit')<0){p.papeis.push('visit');}
   });
   var r=s.regras||{};
   s.regras={indisp:Array.isArray(r.indisp)?r.indisp:[],exige:Array.isArray(r.exige)?r.exige:[]};
@@ -582,14 +586,14 @@ function conflicts(pid,date,cid,papel,escala,ignoreKey){
 
 /* recalcula o que não foi ajustado à mão, de `from` até `to`, nos cultos escolhidos (null = todos).
    Devolve os espaços que ficaram sem candidato. */
-function generate(from,to,cids){
+function generate(from,to,cids,keep){
   var e={};
   Object.keys(S.escala).forEach(function(k){
     var a=k.split('|'),it=S.escala[k];
-    if(a[0]>=from&&a[0]<=to&&!it.manual&&(!cids||cids.indexOf(a[1])>=0)){return;}
+    if(!keep&&a[0]>=from&&a[0]<=to&&!it.manual&&(!cids||cids.indexOf(a[1])>=0)){return;}
     if(cultoById(a[1])&&pessoaById(it.p)){e[k]=it;}
   });
-  var cnt={preg:{},avisos:{}},tot={};
+  var cnt={},tot={};PAPEIS.forEach(function(x){cnt[x]={};});
   Object.keys(e).forEach(function(k){
     var p=k.split('|')[2],id=e[k].p;
     cnt[p][id]=(cnt[p][id]||0)+1;tot[id]=(tot[id]||0)+1;
@@ -644,7 +648,7 @@ function renderGerarCultos(){
 
 function rowHTML(date,c,papel){
   var key=mk(date,c.id,papel),it=S.escala[key],has=Object.keys(S.escala).length>0;
-  var lab=viewMode==='lista'?(papel==='preg'?'Pregador':'Avisos'):PNOME[papel];
+  var lab=viewMode==='lista'?(papel==='preg'?'Pregador':PNOME[papel]):PNOME[papel];
   if(!EDIT){
     var pp=it&&pessoaById(it.p);
     return {empty:false,html:'<div class="r"><div class="rt">'+lab+'</div><div class="who">'+(pp?esc(pp.nome)+' <span class="small muted">('+esc(pp.funcao)+')</span>':'<span class="muted">A definir</span>')+'</div></div>'};
@@ -715,7 +719,7 @@ function renderEscala(){
     }).join('');
     rows+='<tr><td>'+esc(p.nome)+'</td><td>'+chip(p.funcao)+'</td>'+cells+'</tr>';
   });
-  $('resumo').innerHTML=rows||'<tr><td colspan="4" class="empty">Cadastre pessoas para ver o resumo.</td></tr>';
+  $('resumo').innerHTML=rows||'<tr><td colspan="5" class="empty">Cadastre pessoas para ver o resumo.</td></tr>';
 }
 
 function textoDoMes(){
@@ -753,10 +757,10 @@ function gerar(){
   if(!cids.length){setMsg('Marque pelo menos um culto para gerar.');return;}
   S.periodo={de:de,ate:ate};
   S.periodos=mergeRanges(S.periodos.concat([{de:de,ate:ate}]));
-  var v=generate(de,ate,cids),total=slotsIn(de,ate,cids).length;
+  var v=generate(de,ate,cids,$('g-manter').checked),total=slotsIn(de,ate,cids).length;
   var d=parse(de);view={y:d.getFullYear(),m:d.getMonth()};
   touch();render();
-  setMsg('Escala gerada para '+cids.length+' culto(s): '+total+' espaços de pregação e avisos'+(v.length?', '+v.length+' sem pessoa disponível.':', todos preenchidos.'));
+  setMsg('Escala gerada para '+cids.length+' culto(s): '+total+' espaços de escala'+(v.length?', '+v.length+' sem pessoa disponível.':', todos preenchidos.'));
 }
 
 /* ---------- tela: cadastros e regras ---------- */
@@ -786,7 +790,7 @@ function renderPessoas(){
   var l=S.pessoas.slice().sort(function(a,b){return FUNCS.indexOf(a.funcao)-FUNCS.indexOf(b.funcao)||a.nome.localeCompare(b.nome);});
   $('lista-pessoas').innerHTML=l.length?l.map(function(p){
     var tags=p.cultos.map(cultoById).filter(Boolean).map(function(c){return '<span class="chip tag">'+DIAS3[c.dia]+' '+esc(c.hora)+'</span>';}).join('');
-    var at=p.papeis.map(function(x){return PNOME[x];}).join(' e ');
+    var at=p.papeis.map(function(x){return PNOME[x];}).join(', ');
     return '<li><div class="main"><span><b>'+esc(p.nome)+'</b> '+chip(p.funcao)+'</span><span class="small muted">'+esc(p.igreja||'Sem igreja')+' · '+at+'</span><span class="tags">'+(tags||'<span class="small muted">Sem cultos</span>')+'</span></div>'
       +'<div class="row"><button class="btn sec mini" data-act="edit-pessoa" data-id="'+esc(p.id)+'">Editar</button><button class="btn danger mini" data-act="del-pessoa" data-id="'+esc(p.id)+'">Remover</button></div></li>';
   }).join(''):'<li class="empty">Nenhuma pessoa cadastrada ainda.</li>';
@@ -844,7 +848,7 @@ document.addEventListener('click',function(e){
     editPessoa=id;$('pe-nome').value=p.nome;$('pe-func').value=p.funcao;
     renderPessoaForm();$('pe-igreja').value=p.igreja;
     Array.prototype.forEach.call(document.querySelectorAll('#pe-cultos input'),function(i){i.checked=p.cultos.indexOf(i.value)>=0;});
-    $('pe-p-preg').checked=p.papeis.indexOf('preg')>=0;$('pe-p-avisos').checked=p.papeis.indexOf('avisos')>=0;
+    $('pe-p-preg').checked=p.papeis.indexOf('preg')>=0;$('pe-p-avisos').checked=p.papeis.indexOf('avisos')>=0;$('pe-p-visit').checked=p.papeis.indexOf('visit')>=0;
     $('pe-titulo').textContent='Editar pessoa';$('pe-salvar').textContent='Salvar alterações';$('pe-cancelar').hidden=false;
     $('form-pessoa').scrollIntoView({block:'nearest'});$('pe-nome').focus();
   }else if(act==='del-pessoa'){
