@@ -240,8 +240,9 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
 
     <div class="panel">
       <h2>Quem prega quanto</h2>
+      <p class="hint">O número em destaque é o total de todos os meses gerados. As datas são do mês que está aberto acima.</p>
       <div class="tablewrap"><table>
-        <thead><tr><th>Pessoa</th><th>Função</th><th>Pregação (mês)</th><th>Avisos (mês)</th></tr></thead>
+        <thead><tr><th>Pessoa</th><th>Função</th><th>Pregação</th><th>Avisos</th></tr></thead>
         <tbody id="resumo"></tbody>
       </table></div>
     </div>
@@ -710,7 +711,7 @@ function renderEscala(){
       var ds=Object.keys(S.escala).filter(function(k){var a=k.split('|');return a[2]===pp&&S.escala[k].p===p.id&&a[0].slice(0,7)===ym;})
         .map(function(k){return k.split('|')[0];}).sort();
       var all=Object.keys(S.escala).filter(function(k){return k.split('|')[2]===pp&&S.escala[k].p===p.id;}).length;
-      return '<td><b class="num">'+ds.length+'</b> <span class="small muted">(total '+all+')</span> '+ds.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' ')+'</td>';
+      return '<td><b class="num">'+all+'</b> <span class="small muted">(neste mês: '+ds.length+')</span> '+ds.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' ')+'</td>';
     }).join('');
     rows+='<tr><td>'+esc(p.nome)+'</td><td>'+chip(p.funcao)+'</td>'+cells+'</tr>';
   });
