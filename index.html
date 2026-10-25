@@ -290,7 +290,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
 
   <!-- REGRAS -->
   <section id="tab-regras" class="tabpane" hidden style="flex-direction:column;gap:18px">
-    <div class="notice">A escala é sempre equilibrada: pregação e avisos são distribuídos por igual entre quem participa de cada culto. As regras abaixo são as exceções.</div>
+    <div class="notice">A escala é sempre equilibrada: pregação e avisos são distribuídos por igual entre quem participa de cada culto. Só pastores podem ser escalados em dois cultos no mesmo dia (por exemplo, manhã e noite), e nunca em cultos no mesmo horário. As regras abaixo são as exceções.</div>
     <div class="grid2">
       <div class="panel">
         <h2>Exigir função em um culto</h2>
@@ -543,6 +543,14 @@ function conflicts(pid,date,cid,papel,escala,ignoreKey){
     if(o===papel){return;}
     var k=mk(date,cid,o);
     if(k!==ignoreKey&&escala[k]&&escala[k].p===pid){out.push('Já tem outra atividade neste culto');}
+  });
+  var ch=cultoById(cid);
+  Object.keys(escala).forEach(function(k){
+    var a=k.split('|');
+    if(k===ignoreKey||a[0]!==date||a[1]===cid||escala[k].p!==pid){return;}
+    var o=cultoById(a[1]);
+    if(p.funcao!=='Pastor'){out.push('Só pastor pode ter dois cultos no mesmo dia');}
+    else if(o&&ch&&o.hora===ch.hora){out.push('Horário coincide com outro culto neste dia');}
   });
   var xs=exigeDe(date,cid,papel);
   if(xs.length){
