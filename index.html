@@ -205,6 +205,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
         <div class="row full">
           <button class="btn" type="submit" id="btn-gerar">Gerar escala</button>
           <button class="btn danger" type="button" id="btn-limpar" data-act="limpar">Limpar automáticas</button>
+          <button class="btn danger" type="button" id="btn-limpar-tudo" data-act="limpar-tudo">Limpar tudo</button>
         </div>
       </form>
       <div id="msg" class="hint" aria-live="polite"></div>
@@ -802,7 +803,7 @@ function resetPessoa(){editPessoa=null;$('form-pessoa').reset();$('pe-titulo').t
 document.addEventListener('click',function(e){
   var b=e.target.closest('[data-act]');if(!b){return;}
   var act=b.dataset.act,id=b.dataset.id;
-  if(act.indexOf('del-')===0||act==='zero'||act==='limpar'){if(!arm(b)){return;}disarm(b);}
+  if(act.indexOf('del-')===0||act==='zero'||act==='limpar'||act==='limpar-tudo'){if(!arm(b)){return;}disarm(b);}
   if(act==='edit-culto'){
     var c=cultoById(id);if(!c){return;}
     editCulto=id;$('c-igreja').value=c.igreja;$('c-desc').value=c.desc||'';$('c-dia').value=c.dia;$('c-hora').value=c.hora;
@@ -834,6 +835,10 @@ document.addEventListener('click',function(e){
   else if(act==='zero'){
     S.cultos=[];S.pessoas=[];S.escala={};S.regras.indisp=[];S.regras.exige=[];S.example=false;S.stale=false;
     resetCulto();resetPessoa();touch();render();setMsg('Tudo limpo. Cadastre os cultos e depois as pessoas.');
+  }else if(act==='limpar-tudo'){
+    var sel2=selectedCultos();
+    Object.keys(S.escala).forEach(function(k){var a=k.split('|');if(a[0]>=S.periodo.de&&a[0]<=S.periodo.ate&&sel2.indexOf(a[1])>=0){delete S.escala[k];}});
+    touch();render();setMsg('Escala dos cultos marcados removida, incluindo os ajustes manuais.');
   }else if(act==='limpar'){
     var sel=selectedCultos();
     Object.keys(S.escala).forEach(function(k){var a=k.split('|');if(!S.escala[k].manual&&a[0]>=S.periodo.de&&a[0]<=S.periodo.ate&&sel.indexOf(a[1])>=0){delete S.escala[k];}});
