@@ -133,6 +133,8 @@ textarea.txt{width:100%;min-height:200px;font:13px/1.5 ui-monospace,Menlo,Consol
 .brand{display:flex;align-items:center;gap:14px}
 .brand img{width:59px;height:44px;flex:none}
 .slot.dia{border-left-color:var(--accent);background:var(--surface);border-top:1px dashed var(--line)}
+.oanse-sel{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 200px}
+.oanse-sel .w{font-size:12px;color:var(--bad)}
 .slot .r{display:flex;flex-direction:column;gap:2px}
 .slot .rt{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:flex;gap:6px;align-items:baseline}
 .slot .sh{margin-bottom:2px}
@@ -187,6 +189,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <button role="tab" data-tab="cultos" aria-selected="false">Cultos</button>
     <button role="tab" data-tab="pessoas" aria-selected="false">Pessoas</button>
     <button role="tab" data-tab="regras" aria-selected="false">Regras</button>
+    <button role="tab" data-tab="oanse" aria-selected="false">OANSE</button>
   </nav>
 
   <div id="banner"></div>
@@ -333,6 +336,41 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
   </section>
 
+  <!-- OANSE -->
+  <section id="tab-oanse" class="tabpane" hidden style="flex-direction:column;gap:18px">
+    <div class="grid2">
+      <div class="panel">
+        <h2 id="vol-titulo">Novo voluntário</h2>
+        <form class="f" id="form-vol">
+          <label class="l full" for="vol-nome">Nome<input type="text" id="vol-nome" required maxlength="80" autocomplete="off"></label>
+          <div class="row full"><button class="btn" type="submit" id="vol-salvar">Adicionar voluntário</button><button class="btn sec" type="button" id="vol-cancelar" hidden>Cancelar edição</button></div>
+        </form>
+        <h3>Importar uma lista de nomes</h3>
+        <p class="hint">Carregue um arquivo de texto (.txt) com um nome por linha, ou cole a lista abaixo. Nomes repetidos são ignorados.</p>
+        <label class="l" for="vol-arquivo">Arquivo de texto<input type="file" id="vol-arquivo" accept=".txt,.csv,text/plain"></label>
+        <label class="l" for="vol-lista">Lista de nomes<textarea id="vol-lista" class="txt" style="min-height:120px" placeholder="Maria Silva&#10;João Souza"></textarea></label>
+        <div class="row"><button class="btn sec" type="button" id="vol-importar">Adicionar nomes da lista</button></div>
+        <div class="hint" id="vol-msg" aria-live="polite"></div>
+      </div>
+      <div class="panel">
+        <div class="row sp"><h2>Voluntários OANSE</h2><span class="hint" id="vol-total"></span></div>
+        <ul class="list" id="lista-vols"></ul>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Voluntários por culto</h2>
+      <p class="hint">Quantos voluntários cada culto precisa. Para cultos com "Mogi" no nome da igreja, a sugestão é 4 no culto da manhã e 2 nos demais. Use 0 para um culto sem OANSE. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
+      <div class="f" id="vagas-lista"></div>
+    </div>
+    <div class="panel">
+      <div class="row sp"><h2>Quem serve quanto</h2><span class="hint" id="vol-mes"></span></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Voluntário</th><th>Total</th><th>Datas no mês aberto</th></tr></thead>
+        <tbody id="vol-dist"></tbody>
+      </table></div>
+    </div>
+  </section>
+
   <footer class="bk">
     <span>Os dados ficam salvos no servidor e todos veem a versão mais recente. Se quiser, guarde uma cópia de segurança.</span>
     <button class="btn sec mini" id="bk-baixar" type="button">Baixar backup</button>
@@ -397,7 +435,8 @@ function exemplo(){
     },
     escala:{},
     periodo:{de:TODAY,ate:addDays(TODAY,89)},
-    periodos:[{de:TODAY,ate:addDays(TODAY,89)}]
+    periodos:[{de:TODAY,ate:addDays(TODAY,89)}],
+    oanse:{voluntarios:[],vagas:{},escala:{}}
   };
 }
 function mergeRanges(list){
@@ -426,6 +465,9 @@ function normalize(o){
   s.regras={indisp:Array.isArray(r.indisp)?r.indisp:[],exige:Array.isArray(r.exige)?r.exige:[]};
   s.regras.exige.forEach(function(x){if(!Array.isArray(x.sems)){x.sems=x.sem?[x.sem]:[];}delete x.sem;x.papel=x.papel||'preg';x.func=x.func||'';x.pid=x.pid||'';});
   s.escala=s.escala&&typeof s.escala==='object'?s.escala:{};
+  var oo=s.oanse||{};
+  s.oanse={voluntarios:(Array.isArray(oo.voluntarios)?oo.voluntarios:[]).filter(function(v){return v&&v.id&&v.nome;}),vagas:(oo.vagas&&typeof oo.vagas==='object')?oo.vagas:{},escala:(oo.escala&&typeof oo.escala==='object')?oo.escala:{}};
+  Object.keys(s.oanse.escala).forEach(function(k){var it=s.oanse.escala[k];if(!it||!Array.isArray(it.ps)){delete s.oanse.escala[k];return;}if(!Array.isArray(it.m)){it.m=it.ps.map(function(){return false;});}});
   Object.keys(s.escala).forEach(function(k){var a=k.split('|');if(a.length<3||(a[2]==='visit'&&a[1]!=='*')){delete s.escala[k];}});
   s.periodo=s.periodo&&s.periodo.de&&s.periodo.ate?s.periodo:b.periodo;
   var rs=(Array.isArray(s.periodos)?s.periodos:[]).concat([s.periodo]);
@@ -710,7 +752,7 @@ function cultoHTML(date,c){
   var head=viewMode==='lista'?'<b>'+esc(c.igreja)+(c.desc?' · '+esc(c.desc):'')+'</b><span>'+esc(c.hora)+'</span>'
     :'<b>'+esc(c.hora)+'</b><span title="'+esc(c.desc||'')+'">'+esc(igShort(c.igreja))+'</span>';
   return '<div class="slot'+(vazio?' vazio':'')+'"><div class="sh">'+head+'</div>'
-    +rows.map(function(r){return r.html;}).join('')+'</div>';
+    +rows.map(function(r){return r.html;}).join('')+oanseHTML(date,c)+'</div>';
 }
 
 function renderBanner(){
@@ -772,6 +814,7 @@ function textoDoMes(){
         var it=S.escala[mk(d,c.id,pp)],p=it&&pessoaById(it.p);
         out+='   '+PNOME[pp]+': '+(p?p.nome+' ('+FABR[p.funcao]+')':'a definir')+'\n';
       });
+      if(vagasDe(c)>0){var oe=S.oanse.escala[d+'|'+c.id],nm=oe?oe.ps.filter(Boolean).map(function(id){var v=volById(id);return v?v.nome:'';}).filter(Boolean):[];out+='   OANSE: '+(nm.length?nm.join(', '):'a definir')+'\n';}
     });
   }
   return out.trim();
@@ -794,10 +837,211 @@ function gerar(){
   S.periodo={de:de,ate:ate};
   S.periodos=mergeRanges(S.periodos.concat([{de:de,ate:ate}]));
   var v=generate(de,ate,cids,$('g-manter').checked),total=slotsIn(de,ate,cids).length;
+  var vo=generateOanse(de,ate,cids,$('g-manter').checked);
   var d=parse(de);view={y:d.getFullYear(),m:d.getMonth()};
   touch();render();
-  setMsg('Escala gerada para '+cids.length+' culto(s): '+total+' espaços de escala'+(v.length?', '+v.length+' sem pessoa disponível.':', todos preenchidos.'));
+  setMsg('Escala gerada para '+cids.length+' culto(s): '+total+' espaços de escala'+(v.length?', '+v.length+' sem pessoa disponível.':', todos preenchidos.')+(vo?' OANSE: '+vo+' vaga(s) sem voluntário.':''));
 }
+
+/* ---------- OANSE: voluntários e escala por culto ---------- */
+var editVol=null;
+function nomeKey(n){return String(n).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();}
+function limpaNome(n){return String(n).replace(/\s+/g,' ').trim();}
+function volById(id){return S.oanse.voluntarios.find(function(v){return v.id===id;});}
+function vagasDe(c){
+  var v=S.oanse.vagas[c.id];
+  if(typeof v==='number'){return v;}
+  if(/mogi/i.test(c.igreja)){return parseInt(String(c.hora).slice(0,2),10)<12?4:2;}
+  return 0;
+}
+function oanseEntry(e,key,n){
+  var it=e[key]||{ps:[],m:[]};
+  while(it.ps.length<n){it.ps.push('');it.m.push(false);}
+  if(it.ps.length>n){it.ps.length=n;it.m.length=n;}
+  return it;
+}
+
+/* completa as vagas dos cultos escolhidos. Devolve quantas vagas ficaram sem voluntário. */
+function generateOanse(from,to,cids,keep){
+  var O=S.oanse,V=O.voluntarios,e={};
+  Object.keys(O.escala).forEach(function(k){
+    var a=k.split('|'),it=O.escala[k];
+    if(!cultoById(a[1])){return;}
+    var inScope=a[0]>=from&&a[0]<=to&&(!cids||cids.indexOf(a[1])>=0);
+    var ps=(it.ps||[]).map(function(id){return volById(id)?id:'';});
+    var m=it.m||[];
+    if(inScope&&!keep){ps=ps.map(function(id,i){return m[i]?id:'';});}
+    e[k]={ps:ps,m:ps.map(function(id,i){return !!(id&&m[i]);})};
+  });
+  var tot={},dates={};
+  function note(id,d){tot[id]=(tot[id]||0)+1;(dates[id]=dates[id]||[]).push(dnum(d));}
+  Object.keys(e).forEach(function(k){var d=k.split('|')[0];e[k].ps.forEach(function(id){if(id){note(id,d);}});});
+  function gapOf(id,dn){var m=-1e9;(dates[id]||[]).forEach(function(x){if(x<dn&&x>m){m=x;}});return dn-m;}
+  var vazios=0,end=addDays(from,400);if(to<end){end=to;}
+  for(var d=from;d<=end;d=addDays(d,1)){
+    if(!inRanges(d)){continue;}
+    var w=parse(d).getDay(),dn=dnum(d);
+    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagasDe(c)>0;})
+      .sort(function(a,b){return a.hora.localeCompare(b.hora);})
+      .forEach(function(c){
+        var key=d+'|'+c.id,n=vagasDe(c),it=oanseEntry(e,key,n);e[key]=it;
+        for(var i=0;i<n;i++){
+          if(it.ps[i]){continue;}
+          var emDia={};
+          Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
+          var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0;});
+          var livres=cand.filter(function(v){return !emDia[v.id];});
+          if(livres.length){cand=livres;}
+          if(!cand.length){vazios++;continue;}
+          cand.sort(function(a,b){
+            var ta=tot[a.id]||0,tb=tot[b.id]||0;if(ta!==tb){return ta-tb;}
+            var ga=gapOf(a.id,dn),gb=gapOf(b.id,dn);if(ga!==gb){return gb-ga;}
+            return ((V.indexOf(a)+dn)%V.length)-((V.indexOf(b)+dn)%V.length);
+          });
+          it.ps[i]=cand[0].id;it.m[i]=false;note(cand[0].id,d);
+        }
+      });
+  }
+  Object.keys(e).forEach(function(k){if(!e[k].ps.some(Boolean)){delete e[k];}});
+  O.escala=e;
+  return vazios;
+}
+
+/* linha da escala de cada culto */
+function oanseHTML(date,c){
+  var n=vagasDe(c);if(n<=0){return '';}
+  var key=date+'|'+c.id,it=oanseEntry(S.oanse.escala,key,n);
+  if(!S.oanse.escala[key]){it={ps:it.ps.slice(),m:it.m.slice()};}
+  if(!EDIT){
+    var nomes=it.ps.filter(Boolean).map(function(id){var v=volById(id);return v?esc(v.nome):'';}).filter(Boolean);
+    return '<div class="r"><div class="rt">OANSE</div><div class="who">'+(nomes.length?nomes.join(', '):'<span class="muted">A definir</span>')+'</div></div>';
+  }
+  var sels='',avisos=[],vistos={};
+  var outros={};
+  Object.keys(S.oanse.escala).forEach(function(k){var a=k.split('|');if(a[0]===date&&a[1]!==c.id){S.oanse.escala[k].ps.forEach(function(id){if(id){outros[id]=1;}});}});
+  for(var i=0;i<n;i++){
+    var cur=it.ps[i],o='<option value="">'+(cur?'— deixar automático —':'— sem voluntário —')+'</option>';
+    S.oanse.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);}).forEach(function(v){
+      var rep=it.ps.some(function(x,j){return j!==i&&x===v.id;});
+      o+='<option value="'+esc(v.id)+'"'+(cur===v.id?' selected':'')+'>'+esc(v.nome)+(rep?' ⚠':'')+'</option>';
+    });
+    sels+='<select data-oanse="'+esc(key+'|'+i)+'" aria-label="OANSE vaga '+(i+1)+' de '+esc(DIAS3[c.dia]+' '+br(date)+' '+c.hora+' '+c.igreja)+'">'+o+'</select>';
+  }
+  var falta=it.ps.filter(function(x){return !x;}).length;
+  var dup=it.ps.some(function(x,j){return x&&it.ps.indexOf(x)!==j;});
+  var dia=it.ps.some(function(x){return x&&outros[x];});
+  if(dup){avisos.push('Voluntário repetido neste culto');}
+  if(dia){avisos.push('Já serve em outro culto neste dia');}
+  if(falta&&Object.keys(S.oanse.escala).length){avisos.push('Faltam '+falta+' voluntário(s)');}
+  return '<div class="r"><div class="rt">OANSE ('+n+')</div><div class="oanse-sel">'+sels+(avisos.length?'<div class="w">'+esc(avisos.join(' · '))+'</div>':'')+'</div></div>';
+}
+function onPickOanse(ref,val){
+  var a=ref.split('|'),key=a[0]+'|'+a[1],i=+a[2],c=cultoById(a[1]);
+  if(!c){return;}
+  var n=vagasDe(c),it=oanseEntry(S.oanse.escala,key,n);
+  S.oanse.escala[key]=it;
+  it.ps[i]=val;it.m[i]=val!=='';
+  var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
+  var v=generateOanse(a[0],rangeBounds().ate,cids,false);
+  S.example=false;touch();render();
+  setMsg('OANSE recalculada a partir de '+br(a[0])+'.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
+}
+
+/* aba OANSE */
+function renderOanse(){
+  var V=S.oanse.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
+  $('lista-vols').innerHTML=V.length?V.map(function(v){
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b></div><div class="row"><button class="btn sec mini" data-act="edit-vol" data-id="'+esc(v.id)+'">Editar</button><button class="btn danger mini" data-act="del-vol" data-id="'+esc(v.id)+'">Remover</button></div></li>';
+  }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
+  $('vol-total').textContent=V.length?V.length+' voluntário(s)':'';
+  var cs=sortedCultos();
+  $('vagas-lista').innerHTML=cs.length?cs.map(function(c){
+    return '<label class="l" for="vaga-'+esc(c.id)+'">'+esc(cultoLabel(c))+'<input type="number" min="0" max="30" id="vaga-'+esc(c.id)+'" data-vaga="'+esc(c.id)+'" value="'+vagasDe(c)+'"></label>';
+  }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
+  var ym=view.y+'-'+pad(view.m+1);
+  $('vol-dist').innerHTML=V.length?V.map(function(v){
+    var all=0,mes=[];
+    Object.keys(S.oanse.escala).forEach(function(k){
+      var a=k.split('|');
+      if(S.oanse.escala[k].ps.indexOf(v.id)>=0){all++;if(a[0].slice(0,7)===ym){mes.push(a[0]);}}
+    });
+    mes.sort();
+    return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
+  }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
+  $('vol-mes').textContent=MESES[view.m]+' '+view.y;
+}
+function resetVol(){editVol=null;$('form-vol').reset();$('vol-titulo').textContent='Novo voluntário';$('vol-salvar').textContent='Adicionar voluntário';$('vol-cancelar').hidden=true;}
+function delVol(id){
+  S.oanse.voluntarios=S.oanse.voluntarios.filter(function(v){return v.id!==id;});
+  Object.keys(S.oanse.escala).forEach(function(k){
+    var it=S.oanse.escala[k];
+    it.ps=it.ps.map(function(x,i){if(x===id){it.m[i]=false;return '';}return x;});
+    if(!it.ps.some(Boolean)){delete S.oanse.escala[k];}
+  });
+  if(editVol===id){resetVol();}
+  changed();
+}
+function editVolStart(id){
+  var v=volById(id);if(!v){return;}
+  editVol=id;$('vol-nome').value=v.nome;$('vol-titulo').textContent='Editar voluntário';$('vol-salvar').textContent='Salvar alterações';$('vol-cancelar').hidden=false;
+  $('form-vol').scrollIntoView({block:'nearest'});$('vol-nome').focus();
+}
+function parseNomes(txt){
+  return String(txt).split(/\r?\n/).map(function(l){return limpaNome(l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,''));}).filter(Boolean);
+}
+function addNomes(lista){
+  var have={};S.oanse.voluntarios.forEach(function(v){have[nomeKey(v.nome)]=1;});
+  var add=0,dup=0;
+  lista.forEach(function(n){
+    var k=nomeKey(n);
+    if(!k||n.length>80){return;}
+    if(have[k]){dup++;return;}
+    if(S.oanse.voluntarios.length>=300){return;}
+    have[k]=1;S.oanse.voluntarios.push({id:'v'+uid(),nome:n});add++;
+  });
+  return {add:add,dup:dup};
+}
+$('form-vol').addEventListener('submit',function(e){
+  e.preventDefault();
+  var nome=limpaNome($('vol-nome').value);if(!nome){return;}
+  var k=nomeKey(nome);
+  var igual=S.oanse.voluntarios.find(function(v){return nomeKey(v.nome)===k&&v.id!==editVol;});
+  if(igual){$('vol-msg').textContent='Esse nome já está cadastrado.';return;}
+  $('vol-msg').textContent='';
+  if(editVol){var v=volById(editVol);if(v){v.nome=nome;}}
+  else{S.oanse.voluntarios.push({id:'v'+uid(),nome:nome});}
+  resetVol();changed();
+});
+$('vol-cancelar').addEventListener('click',resetVol);
+$('vol-arquivo').addEventListener('change',function(e){
+  var f=e.target.files&&e.target.files[0];if(!f){return;}
+  function ler(enc){
+    var r=new FileReader();
+    r.onload=function(){
+      var t=String(r.result||'');
+      if(!enc&&t.indexOf('\uFFFD')>=0){ler('windows-1252');return;}
+      $('vol-lista').value=t;
+      $('vol-msg').textContent=parseNomes(t).length+' nome(s) lidos do arquivo. Confira e clique em “Adicionar nomes da lista”.';
+    };
+    r.onerror=function(){$('vol-msg').textContent='Não foi possível ler o arquivo.';};
+    if(enc){r.readAsText(f,enc);}else{r.readAsText(f);}
+  }
+  ler(null);e.target.value='';
+});
+$('vol-importar').addEventListener('click',function(){
+  var nomes=parseNomes($('vol-lista').value);
+  if(!nomes.length){$('vol-msg').textContent='Cole ou carregue uma lista com um nome por linha.';return;}
+  var r=addNomes(nomes);
+  $('vol-lista').value='';
+  $('vol-msg').textContent=r.add+' adicionado(s)'+(r.dup?', '+r.dup+' já existia(m)':'')+'.';
+  if(r.add){changed();}
+});
+$('vagas-lista').addEventListener('input',function(e){
+  var t=e.target;if(!t.dataset||!t.dataset.vaga){return;}
+  var n=Math.max(0,Math.min(30,parseInt(t.value,10)||0));
+  S.oanse.vagas[t.dataset.vaga]=n;
+  S.stale=true;touch();renderBanner();renderEscala();
+});
 
 /* ---------- tela: cadastros e regras ---------- */
 var editCulto=null,editPessoa=null;
@@ -847,7 +1091,7 @@ function renderRegras(){
   }).join(''):'<li class="empty">Ninguém indisponível.</li>';
 }
 
-function render(){renderBanner();renderGerarCultos();renderEscala();renderCultos();renderPessoas();renderRegras();}
+function render(){renderBanner();renderGerarCultos();renderEscala();renderCultos();renderPessoas();renderRegras();renderOanse();}
 function changed(){S.stale=true;touch();render();}
 
 /* botões de duas etapas (sem janela de confirmação) */
@@ -877,6 +1121,8 @@ document.addEventListener('click',function(e){
     S.pessoas.forEach(function(p){p.cultos=p.cultos.filter(function(x){return x!==id;});});
     S.regras.exige=S.regras.exige.filter(function(x){return x.cid!==id;});
     Object.keys(S.escala).forEach(function(k){if(k.split('|')[1]===id){delete S.escala[k];}});
+    Object.keys(S.oanse.escala).forEach(function(k){if(k.split('|')[1]===id){delete S.oanse.escala[k];}});
+    delete S.oanse.vagas[id];
     if(editCulto===id){resetCulto();}
     changed();
   }else if(act==='edit-pessoa'){
@@ -895,16 +1141,21 @@ document.addEventListener('click',function(e){
     changed();
   }else if(act==='del-exige'){S.regras.exige=S.regras.exige.filter(function(x){return x.id!==id;});changed();}
   else if(act==='del-indisp'){S.regras.indisp=S.regras.indisp.filter(function(x){return x.id!==id;});changed();}
+  else if(act==='edit-vol'){editVolStart(id);}
+  else if(act==='del-vol'){delVol(id);}
   else if(act==='zero'){
+    S.oanse={voluntarios:[],vagas:{},escala:{}};resetVol();
     S.cultos=[];S.pessoas=[];S.escala={};S.regras.indisp=[];S.regras.exige=[];S.example=false;S.stale=false;
     resetCulto();resetPessoa();touch();render();setMsg('Tudo limpo. Cadastre os cultos e depois as pessoas.');
   }else if(act==='limpar-tudo'){
     var sel2=selectedCultos(),P=formPeriodo();
     Object.keys(S.escala).forEach(function(k){var a=k.split('|');if(a[0]>=P.de&&a[0]<=P.ate&&(a[1]==='*'?selDia(a[0],sel2):sel2.indexOf(a[1])>=0)){delete S.escala[k];}});
+    Object.keys(S.oanse.escala).forEach(function(k){var a=k.split('|');if(a[0]>=P.de&&a[0]<=P.ate&&sel2.indexOf(a[1])>=0){delete S.oanse.escala[k];}});
     touch();render();setMsg('Escala dos cultos marcados removida, incluindo os ajustes manuais.');
   }else if(act==='limpar'){
     var sel=selectedCultos(),P=formPeriodo();
     Object.keys(S.escala).forEach(function(k){var a=k.split('|');if(!S.escala[k].manual&&a[0]>=P.de&&a[0]<=P.ate&&(a[1]==='*'?selDia(a[0],sel):sel.indexOf(a[1])>=0)){delete S.escala[k];}});
+    Object.keys(S.oanse.escala).forEach(function(k){var a=k.split('|'),it=S.oanse.escala[k];if(a[0]>=P.de&&a[0]<=P.ate&&sel.indexOf(a[1])>=0){it.ps=it.ps.map(function(x,q){return it.m[q]?x:'';});if(!it.ps.some(Boolean)){delete S.oanse.escala[k];}}});
     touch();render();setMsg('Escala automática dos cultos marcados removida. Os ajustes manuais foram mantidos.');
   }
 });
@@ -952,7 +1203,7 @@ $('form-indisp').addEventListener('submit',function(e){
 
 /* escala */
 $('g-cultos').addEventListener('change',function(e){var t=e.target;if(t.value){unchecked[t.value]=!t.checked;}});
-$('cal').addEventListener('change',function(e){var t=e.target;if(t.matches&&t.matches('select[data-key]')){onPick(t.dataset.key,t.value);}});
+$('cal').addEventListener('change',function(e){var t=e.target;if(t.matches&&t.matches('select[data-key]')){onPick(t.dataset.key,t.value);}else if(t.matches&&t.matches('select[data-oanse]')){onPickOanse(t.dataset.oanse,t.value);}});
 $('form-gerar').addEventListener('submit',function(e){e.preventDefault();gerar();});
 function moveMonth(n){var d=new Date(view.y,view.m+n,1);view={y:d.getFullYear(),m:d.getMonth()};renderEscala();if(!$('texto-box').hidden){$('texto').value=textoDoMes();}}
 function setModo(m){viewMode=m;try{localStorage.setItem('escala-modo',m);}catch(e){}renderEscala();}
