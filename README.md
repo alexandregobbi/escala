@@ -1,4 +1,4 @@
-# Escala de Pregação
+# Escalas IBB
 
 Site com a escala de pregação e avisos dos cultos.
 
