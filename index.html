@@ -239,7 +239,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <h2>Quem prega quanto</h2>
       <div class="tablewrap"><table>
-        <thead><tr><th>Pessoa</th><th>Função</th><th>Pregação</th><th>Avisos</th></tr></thead>
+        <thead><tr><th>Pessoa</th><th>Função</th><th>Pregação (mês)</th><th>Avisos (mês)</th></tr></thead>
         <tbody id="resumo"></tbody>
       </table></div>
     </div>
@@ -389,8 +389,19 @@ function exemplo(){
       ]
     },
     escala:{},
-    periodo:{de:TODAY,ate:addDays(TODAY,89)}
+    periodo:{de:TODAY,ate:addDays(TODAY,89)},
+    periodos:[{de:TODAY,ate:addDays(TODAY,89)}]
   };
+}
+function mergeRanges(list){
+  var l=list.filter(function(r){return r&&r.de&&r.ate&&r.de<=r.ate;}).map(function(r){return {de:r.de,ate:r.ate};}).sort(function(a,b){return a.de<b.de?-1:a.de>b.de?1:0;});
+  var out=[];
+  l.forEach(function(r){var c=out[out.length-1];if(c&&r.de<=addDays(c.ate,1)){if(r.ate>c.ate){c.ate=r.ate;}}else{out.push(r);}});
+  return out;
+}
+function inRanges(d){return S.periodos.some(function(r){return d>=r.de&&d<=r.ate;});}
+function rangeBounds(){
+  var l=S.periodos;return {de:l[0].de,ate:l[l.length-1].ate};
 }
 function normalize(o){
   var b=exemplo();
@@ -408,6 +419,10 @@ function normalize(o){
   s.escala=s.escala&&typeof s.escala==='object'?s.escala:{};
   Object.keys(s.escala).forEach(function(k){if(k.split('|').length<3){delete s.escala[k];}});
   s.periodo=s.periodo&&s.periodo.de&&s.periodo.ate?s.periodo:b.periodo;
+  var rs=(Array.isArray(s.periodos)?s.periodos:[]).concat([s.periodo]);
+  var ds=Object.keys(s.escala).map(function(k){return k.split('|')[0];}).sort();
+  if(ds.length){rs.push({de:ds[0],ate:ds[ds.length-1]});}
+  s.periodos=mergeRanges(rs);
   return s;
 }
 var S=exemplo();
@@ -431,8 +446,9 @@ function restoreUI(){
 }
 function clampMonth(){
   var f=view.y+'-'+pad(view.m+1)+'-01',l=view.y+'-'+pad(view.m+1)+'-31';
-  if(l<S.periodo.de||f>S.periodo.ate){
-    var t=TODAY<S.periodo.de?S.periodo.de:(TODAY>S.periodo.ate?S.periodo.ate:TODAY),d=parse(t);
+  var B=rangeBounds();
+  if(l<B.de||f>B.ate){
+    var t=TODAY<B.de?B.de:(TODAY>B.ate?B.ate:TODAY),d=parse(t);
     view={y:d.getFullYear(),m:d.getMonth()};
   }
 }
@@ -575,7 +591,7 @@ function generate(from,to,cids){
     var p=k.split('|')[2],id=e[k].p;
     cnt[p][id]=(cnt[p][id]||0)+1;tot[id]=(tot[id]||0)+1;
   });
-  var slots=slotsIn(from,to,cids),vazios=[],n=S.pessoas.length,i=0;
+  var slots=slotsIn(from,to,cids).filter(function(s){return inRanges(s.date);}),vazios=[],n=S.pessoas.length,i=0;
   slots.forEach(function(s){
     i++;
     if(e[s.key]){return;}
@@ -676,7 +692,7 @@ function renderEscala(){
   var start=addDays(iso(first),-first.getDay()),end=addDays(iso(last),6-last.getDay());
   var h='',algum=false;
   for(var d=start;d<=end;d=addDays(d,1)){
-    var dt=parse(d),inM=dt.getMonth()===view.m,inP=d>=S.periodo.de&&d<=S.periodo.ate;
+    var dt=parse(d),inM=dt.getMonth()===view.m,inP=inRanges(d);
     var cs=inP?S.cultos.filter(function(c){return c.dia===dt.getDay();}).sort(function(a,b){return a.hora.localeCompare(b.hora);}):[];
     var cls='day'+(inM?'':' out')+(d===TODAY?' today':'')+((!cs.length||!inM)?' nosl':'');
     if(cs.length&&inM){algum=true;}
@@ -688,9 +704,11 @@ function renderEscala(){
   var rows='';
   S.pessoas.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);}).forEach(function(p){
     var cells=PAPEIS.map(function(pp){
-      var ds=Object.keys(S.escala).filter(function(k){var a=k.split('|');return a[2]===pp&&S.escala[k].p===p.id&&a[0]>=S.periodo.de&&a[0]<=S.periodo.ate;})
+      var ym=view.y+'-'+pad(view.m+1);
+      var ds=Object.keys(S.escala).filter(function(k){var a=k.split('|');return a[2]===pp&&S.escala[k].p===p.id&&a[0].slice(0,7)===ym;})
         .map(function(k){return k.split('|')[0];}).sort();
-      return '<td><b class="num">'+ds.length+'</b> '+ds.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' ')+'</td>';
+      var all=Object.keys(S.escala).filter(function(k){return k.split('|')[2]===pp&&S.escala[k].p===p.id;}).length;
+      return '<td><b class="num">'+ds.length+'</b> <span class="small muted">(total '+all+')</span> '+ds.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' ')+'</td>';
     }).join('');
     rows+='<tr><td>'+esc(p.nome)+'</td><td>'+chip(p.funcao)+'</td>'+cells+'</tr>';
   });
@@ -701,7 +719,7 @@ function textoDoMes(){
   var ym=view.y+'-'+pad(view.m+1);
   var out='*ESCALA – '+MESES[view.m]+'/'+view.y+'*\n';
   for(var d=ym+'-01';d.slice(0,7)===ym;d=addDays(d,1)){
-    if(d<S.periodo.de||d>S.periodo.ate){continue;}
+    if(!inRanges(d)){continue;}
     var dt=parse(d),cs=S.cultos.filter(function(c){return c.dia===dt.getDay();}).sort(function(a,b){return a.hora.localeCompare(b.hora);});
     if(!cs.length){continue;}
     out+='\n*'+DIAS3[dt.getDay()]+' '+brShort(d)+'*\n';
@@ -720,7 +738,7 @@ function onPick(key,val){
   var a=key.split('|'),date=a[0],cids=selectedCultos();
   if(cids.indexOf(a[1])<0){cids.push(a[1]);}
   if(val===''){delete S.escala[key];}else{S.escala[key]={p:val,manual:true};}
-  var v=generate(date,S.periodo.ate,cids);
+  var v=generate(date,rangeBounds().ate,cids);
   S.example=false;touch();render();
   setMsg('Escala recalculada a partir de '+br(date)+'.'+(v.length?' '+v.length+' espaço(s) ficaram sem pessoa que atenda às regras.':''));
 }
@@ -731,6 +749,7 @@ function gerar(){
   if(!S.cultos.length||!S.pessoas.length){setMsg('Cadastre ao menos um culto e uma pessoa antes de gerar.');return;}
   if(!cids.length){setMsg('Marque pelo menos um culto para gerar.');return;}
   S.periodo={de:de,ate:ate};
+  S.periodos=mergeRanges(S.periodos.concat([{de:de,ate:ate}]));
   var v=generate(de,ate,cids),total=slotsIn(de,ate,cids).length;
   var d=parse(de);view={y:d.getFullYear(),m:d.getMonth()};
   touch();render();
@@ -800,6 +819,7 @@ function disarm(b){b.dataset.armed='0';if(b.dataset.orig){b.textContent=b.datase
 function resetCulto(){editCulto=null;$('form-culto').reset();$('c-hora').value='19:00';$('c-titulo').textContent='Novo culto';$('c-salvar').textContent='Cadastrar culto';$('c-cancelar').hidden=true;}
 function resetPessoa(){editPessoa=null;$('form-pessoa').reset();$('pe-titulo').textContent='Nova pessoa';$('pe-salvar').textContent='Cadastrar pessoa';$('pe-cancelar').hidden=true;renderPessoaForm();}
 
+function formPeriodo(){return {de:$('p-de').value||S.periodo.de,ate:$('p-ate').value||S.periodo.ate};}
 document.addEventListener('click',function(e){
   var b=e.target.closest('[data-act]');if(!b){return;}
   var act=b.dataset.act,id=b.dataset.id;
@@ -836,12 +856,12 @@ document.addEventListener('click',function(e){
     S.cultos=[];S.pessoas=[];S.escala={};S.regras.indisp=[];S.regras.exige=[];S.example=false;S.stale=false;
     resetCulto();resetPessoa();touch();render();setMsg('Tudo limpo. Cadastre os cultos e depois as pessoas.');
   }else if(act==='limpar-tudo'){
-    var sel2=selectedCultos();
-    Object.keys(S.escala).forEach(function(k){var a=k.split('|');if(a[0]>=S.periodo.de&&a[0]<=S.periodo.ate&&sel2.indexOf(a[1])>=0){delete S.escala[k];}});
+    var sel2=selectedCultos(),P=formPeriodo();
+    Object.keys(S.escala).forEach(function(k){var a=k.split('|');if(a[0]>=P.de&&a[0]<=P.ate&&sel2.indexOf(a[1])>=0){delete S.escala[k];}});
     touch();render();setMsg('Escala dos cultos marcados removida, incluindo os ajustes manuais.');
   }else if(act==='limpar'){
-    var sel=selectedCultos();
-    Object.keys(S.escala).forEach(function(k){var a=k.split('|');if(!S.escala[k].manual&&a[0]>=S.periodo.de&&a[0]<=S.periodo.ate&&sel.indexOf(a[1])>=0){delete S.escala[k];}});
+    var sel=selectedCultos(),P=formPeriodo();
+    Object.keys(S.escala).forEach(function(k){var a=k.split('|');if(!S.escala[k].manual&&a[0]>=P.de&&a[0]<=P.ate&&sel.indexOf(a[1])>=0){delete S.escala[k];}});
     touch();render();setMsg('Escala automática dos cultos marcados removida. Os ajustes manuais foram mantidos.');
   }
 });
