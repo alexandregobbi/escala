@@ -1,8 +1,10 @@
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<!--ESCALA-START-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Escala de Pregação</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600&display=swap">
 <style>
 /* Layout: cabeçalho com status, abas, e calendário mensal que vira agenda no celular */
@@ -64,7 +66,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 form.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end}
 form.f .full{grid-column:1/-1}
 label.l{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500;color:var(--muted);min-width:0}
-input[type=text],input[type=number],input[type=date],input[type=time],select{font:inherit;color:var(--ink);background:var(--bg);
+input[type=text],input[type=password],input[type=number],input[type=date],input[type=time],select{font:inherit;color:var(--ink);background:var(--bg);
   border:1px solid var(--line);border-radius:4px;padding:8px 10px;min-width:0;width:100%}
 .btn{font:inherit;font-weight:600;border-radius:4px;padding:9px 14px;cursor:pointer;border:1px solid var(--accent);
   background:var(--accent);color:var(--accent-ink)}
@@ -150,8 +152,12 @@ td .num{margin-right:4px}
 .cal.list .slot .w{flex-basis:100%;padding-left:86px}
 .who{font-size:14px;font-weight:500;min-width:0}
 .cal.list .slot .who{flex:1 1 200px}
+.adm{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.adm input[type=password]{width:170px}
 footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(--muted);font-size:13px}
 </style>
+</head>
+<body>
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -160,7 +166,17 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
         <div class="sub">Pregação e avisos de cada culto em um só lugar</div>
       </div>
     </div>
-    <span id="status" class="status warn">Carregando…</span>
+    <div class="adm">
+      <span id="status" class="status warn">Carregando…</span>
+      <button class="btn sec mini" id="adm-abrir" type="button">Entrar como administrador</button>
+      <form id="adm-form" class="row" hidden>
+        <input type="password" id="adm-senha" autocomplete="current-password" placeholder="Senha" aria-label="Senha do administrador">
+        <button class="btn mini" type="submit">Entrar</button>
+        <button class="btn sec mini" type="button" id="adm-cancelar">Cancelar</button>
+      </form>
+      <button class="btn sec mini" id="adm-sair" type="button" hidden>Sair</button>
+      <span id="adm-msg" class="small" aria-live="polite"></span>
+    </div>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Seções">
@@ -311,7 +327,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
   </section>
 
   <footer class="bk">
-    <span>Os dados ficam dentro desta página: cada alteração publica uma nova versão. Se quiser, guarde uma cópia de segurança.</span>
+    <span>Os dados ficam salvos no servidor e todos veem a versão mais recente. Se quiser, guarde uma cópia de segurança.</span>
     <button class="btn sec mini" id="bk-baixar" type="button">Baixar backup</button>
     <button class="btn sec mini" id="bk-restaurar" type="button">Restaurar backup</button>
     <input type="file" id="bk-arquivo" accept="application/json,.json" hidden>
@@ -395,13 +411,14 @@ function normalize(o){
 }
 var S=exemplo();
 (function(){try{var t=$('dados').textContent;if(t&&t.trim()&&t.trim()!=='null'){S=normalize(JSON.parse(t));}}catch(e){}})();
-var EDIT=false, art=null, saving=false, dirty=false, timer=null, curTab='escala';
-var RESET=':root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}';
-var MA='<!'+'--ESCALA-',MB='--'+'>';
-var BODY0=null;
-try{var mm=document.body.innerHTML.match(new RegExp(MA+'START'+MB+'[\\s\\S]*'+MA+'END'+MB));BODY0=mm?mm[0]:null;}catch(e){}
-var UIKEY='escala-ui';
+var EDIT=false, saving=false, dirty=false, timer=null, curTab='escala', ver=0, PWD='', online=false;
+var PKEY='escala-admin', UIKEY='escala-ui';
 
+function api(method,body,pwd){
+  var h={'content-type':'application/json'};if(pwd){h['x-admin-password']=pwd;}
+  return fetch('/api/escala',{method:method,headers:h,cache:'no-store',body:body?JSON.stringify(body):undefined})
+    .then(function(r){return r.json().catch(function(){return {};}).then(function(j){j.status=r.status;return j;});});
+}
 function setStatus(t,cls){var el=$('status');el.textContent=t;el.className='status '+(cls||'');}
 function saveUI(){try{localStorage.setItem(UIKEY,JSON.stringify({tab:curTab,y:view.y,m:view.m,sy:window.scrollY||0}));}catch(e){}}
 function restoreUI(){
@@ -411,10 +428,12 @@ function restoreUI(){
   }catch(e){}
   return 0;
 }
-function docHTML(){
-  var data=JSON.stringify(S).replace(/</g,'\\u003c');
-  var body=BODY0.replace(/(<script type="application\/json" id="dados">)[\s\S]*?(<\/script>)/,function(m,a,b){return a+data+b;});
-  return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+RESET+'</style></head><body>'+body+'</body></html>';
+function clampMonth(){
+  var f=view.y+'-'+pad(view.m+1)+'-01',l=view.y+'-'+pad(view.m+1)+'-31';
+  if(l<S.periodo.de||f>S.periodo.ate){
+    var t=TODAY<S.periodo.de?S.periodo.de:(TODAY>S.periodo.ate?S.periodo.ate:TODAY),d=parse(t);
+    view={y:d.getFullYear(),m:d.getMonth()};
+  }
 }
 function touch(){
   if(!EDIT){return;}
@@ -422,14 +441,26 @@ function touch(){
   clearTimeout(timer);timer=setTimeout(flush,700);
 }
 function flush(){
-  if(!art||!BODY0){setStatus('Não foi possível salvar','bad');return;}
+  if(!EDIT){return;}
   if(saving){timer=setTimeout(flush,400);return;}
   saving=true;dirty=false;saveUI();
-  var html;
-  try{html=docHTML();}catch(e){saving=false;setStatus('Não foi possível salvar','bad');return;}
-  Promise.resolve().then(function(){return art.publish(html);})
-    .then(function(){setStatus('Salvo','ok');},function(e){setStatus(e&&e.code==='conflict'?'Atualizando…':'Não foi possível salvar','bad');})
-    .then(function(){saving=false;if(dirty){timer=setTimeout(flush,400);}});
+  api('PUT',{v:ver,data:S},PWD).then(function(r){
+    if(r.status===200){ver=r.v;setStatus('Salvo','ok');}
+    else if(r.status===409){dirty=false;setStatus('Alterada em outro aparelho. Recarregando…','bad');return load(true).then(function(){render();});}
+    else if(r.status===401){logout();setStatus('Senha não confere. Entre de novo.','bad');}
+    else if(r.status===503){setStatus('Servidor sem banco de dados configurado','bad');}
+    else{setStatus('Não foi possível salvar','bad');}
+  },function(){setStatus('Sem conexão: não foi possível salvar','bad');})
+  .then(function(){saving=false;if(dirty){timer=setTimeout(flush,400);}});
+}
+function load(force){
+  return api('GET').then(function(r){
+    if(r.status===200){
+      online=true;
+      if(r.data){S=normalize(r.data);}
+      ver=r.v||0;
+    }else{online=false;}
+  },function(){online=false;});
 }
 function showTab(name){
   curTab=name;
@@ -441,28 +472,32 @@ function applyMode(){
   document.querySelector('nav.tabs').hidden=ro;
   ['panel-gerar','banner','status','cal-hint'].forEach(function(id){$(id).hidden=ro;});
   document.querySelector('footer.bk').hidden=ro;
+  $('adm-abrir').hidden=!ro||!$('adm-form').hidden;
+  $('adm-sair').hidden=ro;
+  if(!ro){setStatus(S.example?'Exemplo: edite qualquer coisa para começar':'Salvo',S.example?'warn':'ok');}
   if(ro){curTab='escala';}
-  else{setStatus(S.example?'Exemplo: edite qualquer coisa para começar':'Salvo',S.example?'warn':'ok');}
+}
+function logout(){
+  PWD='';EDIT=false;try{localStorage.removeItem(PKEY);}catch(e){}
+  applyMode();render();showTab('escala');
 }
 function boot(){
   var sy=restoreUI();
-  (function(){
-    var f=view.y+'-'+pad(view.m+1)+'-01',l=view.y+'-'+pad(view.m+1)+'-31';
-    if(l<S.periodo.de||f>S.periodo.ate){
-      var t=TODAY<S.periodo.de?S.periodo.de:(TODAY>S.periodo.ate?S.periodo.ate:TODAY),d=parse(t);
-      view={y:d.getFullYear(),m:d.getMonth()};
-    }
-  })();
-  if(S.example&&!Object.keys(S.escala).length){generate(S.periodo.de,S.periodo.ate,null);}
-  applyMode();render();showTab(curTab);
-  if(sy){setTimeout(function(){window.scrollTo(0,sy);},60);}
-  var c=window.claude;
-  if(!c||!c.use){return;}
-  Promise.all([c.use('user').catch(function(){return null;}),c.use('artifact').catch(function(){return null;})]).then(function(r){
-    art=r[1];
-    EDIT=!!(r[0]&&r[0].isOwner&&r[0].isOwner());
-    applyMode();render();showTab(curTab);
+  try{PWD=localStorage.getItem(PKEY)||'';}catch(e){PWD='';}
+  clampMonth();applyMode();render();showTab(curTab);
+  load().then(function(){
+    if(PWD&&online){return api('POST',{action:'login'},PWD).then(function(r){
+      if(r.status===200){EDIT=true;}else{PWD='';try{localStorage.removeItem(PKEY);}catch(e){}}
+    },function(){});}
+  }).then(function(){
+    if(S.example&&!Object.keys(S.escala).length){generate(S.periodo.de,S.periodo.ate,null);}
+    clampMonth();applyMode();render();showTab(curTab);
+    if(sy){window.scrollTo(0,sy);}
   });
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible'&&!EDIT&&online){load().then(function(){render();});}
+  });
+  setInterval(function(){if(document.visibilityState==='visible'&&!EDIT&&online){load().then(function(){render();});}},90000);
 }
 
 /* ---------- motor de regras ---------- */
@@ -871,13 +906,13 @@ document.querySelector('nav.tabs').addEventListener('click',function(e){
 });
 
 /* backup */
-var dl=null;
-$('bk-baixar').hidden=true;
-if(window.claude&&window.claude.use){window.claude.use('downloads').then(function(d){dl=d;$('bk-baixar').hidden=!d;},function(){});}
 $('bk-baixar').addEventListener('click',function(){
-  if(!dl){return;}
-  dl.save({filename:'escala-pregacao-backup-'+TODAY+'.json',data:JSON.stringify(S,null,1)})
-    .then(function(){$('bk-msg').textContent='Backup salvo.';},function(){$('bk-msg').textContent='O backup não foi salvo.';});
+  var blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});
+  var url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='escala-backup-'+TODAY+'.json';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url);},2000);
+  $('bk-msg').textContent='Backup baixado.';
 });
 $('bk-restaurar').addEventListener('click',function(){$('bk-arquivo').click();});
 $('bk-arquivo').addEventListener('change',function(e){
@@ -890,9 +925,28 @@ $('bk-arquivo').addEventListener('change',function(e){
   r.readAsText(f);e.target.value='';
 });
 
+/* administrador */
+$('adm-abrir').addEventListener('click',function(){$('adm-form').hidden=false;$('adm-abrir').hidden=true;$('adm-senha').focus();});
+$('adm-cancelar').addEventListener('click',function(){$('adm-form').hidden=true;$('adm-abrir').hidden=false;$('adm-msg').textContent='';});
+$('adm-form').addEventListener('submit',function(e){
+  e.preventDefault();
+  var pw=$('adm-senha').value;if(!pw){return;}
+  $('adm-msg').textContent='Verificando…';
+  api('POST',{action:'login'},pw).then(function(r){
+    if(r.status===200){
+      PWD=pw;EDIT=true;try{localStorage.setItem(PKEY,pw);}catch(e2){}
+      $('adm-senha').value='';$('adm-form').hidden=true;$('adm-msg').textContent='';
+      load().then(function(){if(S.example&&!Object.keys(S.escala).length){generate(S.periodo.de,S.periodo.ate,null);}clampMonth();applyMode();render();showTab(curTab);});
+    }else if(r.status===401){$('adm-msg').textContent='Senha incorreta.';}
+    else if(r.status===503){$('adm-msg').textContent='O servidor ainda não tem a senha ou o banco configurados.';}
+    else{$('adm-msg').textContent='Não foi possível entrar. Tente de novo.';}
+  },function(){$('adm-msg').textContent='Sem conexão com o servidor.';});
+});
+$('adm-sair').addEventListener('click',logout);
+
 boot();
 })();
 
 </script>
-<!--ESCALA-END-->
-</body></html>
+</body>
+</html>
