@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Escalas IBB</title>
-
 <link rel="icon" href="logo.png" type="image/png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600&display=swap">
 <style>
@@ -143,6 +142,9 @@ details.ms[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
 details.ms summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ms-pane{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:6px 8px;display:flex;flex-direction:column;gap:4px;margin-top:4px}
 .ms-pane label{display:flex;align-items:center;gap:6px;font-size:13px}
+.ms-pane .gr{display:flex;flex-direction:column;gap:4px}
+.ms-pane .grt{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:4px}
+.ms-pane label[hidden]{display:none}
 .ms-foot{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px}
 .oanse-sel .w{font-size:12px;color:var(--bad)}
 .slot .r{display:flex;flex-direction:column;gap:2px}
@@ -200,6 +202,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <button role="tab" data-tab="pessoas" aria-selected="false">Pessoas</button>
     <button role="tab" data-tab="regras" aria-selected="false">Regras</button>
     <button role="tab" data-tab="oanse" aria-selected="false">OANSE</button>
+    <button role="tab" data-tab="familias" aria-selected="false">Famílias</button>
   </nav>
 
   <div id="banner"></div>
@@ -372,6 +375,47 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       <p class="hint">Quantos voluntários cada culto precisa. Para cultos com "Mogi" no nome da igreja, a sugestão é 4 no culto da manhã e 2 nos demais. Use 0 para um culto sem OANSE. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
       <div class="f" id="vagas-lista"></div>
     </div>
+    <div class="grid2">
+      <div class="panel">
+        <h2>Exigir voluntários em um culto</h2>
+        <p class="hint">Exemplo: no 1º domingo do mês, no culto da manhã, sempre estes voluntários. Eles entram primeiro e os demais lugares são distribuídos por igual.</p>
+        <form class="f" id="form-ox">
+          <label class="l full" for="ox-culto">Culto<select id="ox-culto"></select></label>
+          <div class="l full" role="group" aria-labelledby="ox-sem-t">
+            <span id="ox-sem-t">Semanas do mês (sem marcar nenhuma, vale para todas)</span>
+            <div class="checks" id="ox-sems"><label><input type="checkbox" value="1"> 1ª</label><label><input type="checkbox" value="2"> 2ª</label><label><input type="checkbox" value="3"> 3ª</label><label><input type="checkbox" value="4"> 4ª</label><label><input type="checkbox" value="5"> 5ª</label></div>
+          </div>
+          <div class="l full" role="group" aria-labelledby="ox-vol-t">
+            <span id="ox-vol-t">Voluntários exigidos</span>
+            <div class="ms-pane" id="ox-vols"></div>
+          </div>
+          <div class="row full"><button class="btn" type="submit">Adicionar regra</button></div>
+          <div class="hint full" id="ox-msg" aria-live="polite"></div>
+        </form>
+        <ul class="list" id="lista-ox"></ul>
+      </div>
+      <div class="panel">
+        <h2>Indisponibilidades</h2>
+        <p class="hint">Períodos em que um voluntário não pode servir.</p>
+        <form class="f" id="form-oi">
+          <label class="l full" for="oi-vol">Voluntário<select id="oi-vol"></select></label>
+          <label class="l" for="oi-de">De<input type="date" id="oi-de" required></label>
+          <label class="l" for="oi-ate">Até<input type="date" id="oi-ate" required></label>
+          <label class="l full" for="oi-obs">Motivo (opcional)<input type="text" id="oi-obs" placeholder="Ex.: viagem"></label>
+          <div class="row full"><button class="btn" type="submit">Adicionar indisponibilidade</button></div>
+        </form>
+        <ul class="list" id="lista-oi"></ul>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Escala da OANSE</h2>
+      <p class="hint">Apaga somente a OANSE, incluindo as escolhas manuais. Pregação, avisos e contato com visitantes não são alterados.</p>
+      <div class="row">
+        <button class="btn danger" type="button" id="oanse-limpar-mes" data-act="oanse-limpar-mes">Limpar OANSE do mês aberto</button>
+        <button class="btn danger" type="button" id="oanse-limpar-tudo" data-act="oanse-limpar-tudo">Limpar toda a escala da OANSE</button>
+      </div>
+      <div class="hint" id="oanse-msg" aria-live="polite"></div>
+    </div>
     <div class="panel">
       <div class="row sp"><h2>Quem serve quanto</h2><span class="hint" id="vol-mes"></span></div>
       <div class="tablewrap"><table>
@@ -379,6 +423,25 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
         <tbody id="vol-dist"></tbody>
       </table></div>
     </div>
+  </section>
+
+  <!-- FAMÍLIAS -->
+  <section id="tab-familias" class="tabpane grid2" hidden>
+    <div class="panel">
+      <h2 id="fam-titulo">Nova família</h2>
+      <p class="hint">Ligue as pessoas da mesma família, mesmo que sirvam em funções diferentes. A pregação e os avisos não mudam. O contato com visitantes e a OANSE tentam colocar a família para servir no mesmo dia, sem desequilibrar a distribuição.</p>
+      <form class="f" id="form-fam">
+        <label class="l full" for="fam-nome">Nome da família (opcional)<input type="text" id="fam-nome" maxlength="60" placeholder="Ex.: Família Silva"></label>
+        <label class="l full" for="fam-busca">Buscar<input type="text" id="fam-busca" autocomplete="off" placeholder="Digite parte do nome"></label>
+        <div class="l full" role="group" aria-labelledby="fam-mem-t">
+          <span id="fam-mem-t">Membros (escolha pelo menos dois)</span>
+          <div class="ms-pane" id="fam-membros"></div>
+        </div>
+        <div class="row full"><button class="btn" type="submit" id="fam-salvar">Cadastrar família</button><button class="btn sec" type="button" id="fam-cancelar" hidden>Cancelar edição</button></div>
+        <div class="hint full" id="fam-msg" aria-live="polite"></div>
+      </form>
+    </div>
+    <div class="panel"><h2>Famílias cadastradas</h2><ul class="list" id="lista-fams"></ul></div>
   </section>
 
   <footer class="bk">
@@ -389,6 +452,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <span id="bk-msg" aria-live="polite"></span>
   </footer>
 </div>
+
 <script type="application/json" id="dados">{"cultos":[{"desc":"IBB Sera - manhã","dia":0,"hora":"10:00","id":"ccq996lu","igreja":"IBB Serra"},{"desc":"IBB Sera - noite","dia":0,"hora":"18:00","id":"c7akdaad","igreja":"IBB Serra"},{"desc":"IBB Suzano","dia":0,"hora":"18:00","id":"cp6mtohg","igreja":"IBB Suzano"}],"escala":{"2026-11-01|c7akdaad|avisos":{"manual":false,"p":"pgysrxs4"},"2026-11-01|c7akdaad|preg":{"manual":false,"p":"p3ir08h4"},"2026-11-01|ccq996lu|avisos":{"manual":false,"p":"px9tyxtn"},"2026-11-01|ccq996lu|preg":{"manual":false,"p":"p3ir08h4"},"2026-11-01|cp6mtohg|preg":{"manual":false,"p":"p1a2ops7"},"2026-11-08|c7akdaad|avisos":{"manual":false,"p":"p819dy3q"},"2026-11-08|c7akdaad|preg":{"manual":false,"p":"p3ir08h4"},"2026-11-08|ccq996lu|avisos":{"manual":false,"p":"p3q32ebe"},"2026-11-08|ccq996lu|preg":{"manual":false,"p":"p3ir08h4"},"2026-11-08|cp6mtohg|preg":{"manual":false,"p":"p1a2ops7"},"2026-11-15|c7akdaad|avisos":{"manual":false,"p":"pzzzdc2i"},"2026-11-15|c7akdaad|preg":{"manual":false,"p":"p3ir08h4"},"2026-11-15|ccq996lu|avisos":{"manual":false,"p":"p2cas43u"},"2026-11-15|ccq996lu|preg":{"manual":false,"p":"p3ir08h4"},"2026-11-15|cp6mtohg|preg":{"manual":false,"p":"p1a2ops7"},"2026-11-22|c7akdaad|avisos":{"manual":false,"p":"pgysrxs4"},"2026-11-22|c7akdaad|preg":{"manual":true,"p":"pzr8q4df"},"2026-11-22|ccq996lu|avisos":{"manual":false,"p":"pzr8q4df"},"2026-11-22|ccq996lu|preg":{"manual":false,"p":"p1a2ops7"},"2026-11-22|cp6mtohg|preg":{"manual":false,"p":"p1a2ops7"},"2026-11-29|c7akdaad|avisos":{"manual":false,"p":"pzzzdc2i"},"2026-11-29|c7akdaad|preg":{"manual":false,"p":"p819dy3q"},"2026-11-29|ccq996lu|avisos":{"manual":false,"p":"px9tyxtn"},"2026-11-29|ccq996lu|preg":{"manual":false,"p":"p3q32ebe"},"2026-11-29|cp6mtohg|preg":{"manual":false,"p":"p1a2ops7"},"2026-12-06|c7akdaad|avisos":{"manual":false,"p":"pzr8q4df"},"2026-12-06|c7akdaad|preg":{"manual":false,"p":"p3ir08h4"},"2026-12-06|ccq996lu|avisos":{"manual":false,"p":"p2cas43u"},"2026-12-06|ccq996lu|preg":{"manual":false,"p":"p3ir08h4"},"2026-12-06|cp6mtohg|preg":{"manual":false,"p":"p1a2ops7"},"2026-12-13|c7akdaad|avisos":{"manual":false,"p":"p819dy3q"},"2026-12-13|c7akdaad|preg":{"manual":false,"p":"p3ir08h4"},"2026-12-13|ccq996lu|avisos":{"manual":false,"p":"p3q32ebe"},"2026-12-13|ccq996lu|preg":{"manual":false,"p":"p3ir08h4"},"2026-12-13|cp6mtohg|preg":{"manual":false,"p":"p1a2ops7"},"2026-12-20|c7akdaad|avisos":{"manual":false,"p":"pgysrxs4"},"2026-12-20|c7akdaad|preg":{"manual":false,"p":"p3ir08h4"},"2026-12-20|ccq996lu|avisos":{"manual":false,"p":"px9tyxtn"},"2026-12-20|ccq996lu|preg":{"manual":false,"p":"p3ir08h4"},"2026-12-20|cp6mtohg|preg":{"manual":false,"p":"p1a2ops7"},"2026-12-27|c7akdaad|avisos":{"manual":false,"p":"pzzzdc2i"},"2026-12-27|c7akdaad|preg":{"manual":false,"p":"pgysrxs4"},"2026-12-27|ccq996lu|avisos":{"manual":false,"p":"p2cas43u"},"2026-12-27|ccq996lu|preg":{"manual":false,"p":"p1a2ops7"},"2026-12-27|cp6mtohg|preg":{"manual":false,"p":"p1a2ops7"},"2027-01-03|c7akdaad|avisos":{"manual":false,"p":"p3q32ebe"},"2027-01-03|c7akdaad|preg":{"manual":false,"p":"p3ir08h4"},"2027-01-03|ccq996lu|avisos":{"manual":false,"p":"pzr8q4df"},"2027-01-03|ccq996lu|preg":{"manual":false,"p":"p3ir08h4"},"2027-01-03|cp6mtohg|preg":{"manual":false,"p":"p1a2ops7"},"2027-01-10|c7akdaad|avisos":{"manual":false,"p":"p819dy3q"},"2027-01-10|c7akdaad|preg":{"manual":false,"p":"p3ir08h4"},"2027-01-10|ccq996lu|avisos":{"manual":false,"p":"p819dy3q"},"2027-01-10|ccq996lu|preg":{"manual":false,"p":"p3ir08h4"},"2027-01-10|cp6mtohg|preg":{"manual":false,"p":"p1a2ops7"},"2027-01-17|c7akdaad|avisos":{"manual":false,"p":"pzzzdc2i"},"2027-01-17|c7akdaad|preg":{"manual":false,"p":"p3ir08h4"},"2027-01-17|ccq996lu|avisos":{"manual":false,"p":"px9tyxtn"},"2027-01-17|ccq996lu|preg":{"manual":false,"p":"p3ir08h4"},"2027-01-17|cp6mtohg|preg":{"manual":false,"p":"p1a2ops7"}},"example":false,"periodo":{"ate":"2027-01-21","de":"2026-11-01"},"pessoas":[{"cultos":["ccq996lu","c7akdaad"],"funcao":"Pastor","id":"p3ir08h4","igreja":"IBB Serra","nome":"Leandro Tarrataca","papeis":["preg"]},{"cultos":["ccq996lu","c7akdaad","cp6mtohg"],"funcao":"Pastor","id":"p1a2ops7","igreja":"IBB Serra","nome":"Wagner Digenova","papeis":["preg"]},{"cultos":["ccq996lu","c7akdaad"],"funcao":"Presbítero","id":"pzr8q4df","igreja":"IBB Serra","nome":"Alexandre Gobbi","papeis":["preg","avisos"]},{"cultos":["ccq996lu","c7akdaad"],"funcao":"Presbítero","id":"p3q32ebe","igreja":"IBB Serra","nome":"Thiago Amato","papeis":["preg","avisos"]},{"cultos":["ccq996lu","c7akdaad"],"funcao":"Presbítero","id":"p819dy3q","igreja":"IBB Serra","nome":"Junior Tarrataca","papeis":["preg","avisos"]},{"cultos":["ccq996lu"],"funcao":"Presbítero","id":"p2cas43u","igreja":"IBB Serra","nome":"Humberto Junior","papeis":["preg","avisos"]},{"cultos":["c7akdaad"],"funcao":"Presbítero","id":"pgysrxs4","igreja":"IBB Serra","nome":"Paulo Ricardo","papeis":["preg","avisos"]},{"cultos":["ccq996lu","c7akdaad"],"funcao":"Diácono","id":"px9tyxtn","igreja":"IBB Serra","nome":"Eduardo Galvao","papeis":["avisos"]},{"cultos":["c7akdaad"],"funcao":"Diácono","id":"pzzzdc2i","igreja":"IBB Serra","nome":"Ricardo Caca","papeis":["avisos"]}],"regras":{"exige":[{"cid":"*","func":"Presbítero","id":"xmwqy1e7","papel":"avisos","pid":"","sems":[2]},{"cid":"ccq996lu","func":"","id":"xez45szb","papel":"preg","pid":"p1a2ops7","sems":[4]},{"cid":"ccq996lu","func":"","id":"xthhun3b","papel":"preg","pid":"p3ir08h4","sems":[1,2,3]},{"cid":"c7akdaad","func":"","id":"x0acc0yr","papel":"preg","pid":"p3ir08h4","sems":[1,2,3]}],"indisp":[]},"stale":false,"v":2}</script>
 <script>
 (function(){
@@ -446,7 +510,8 @@ function exemplo(){
     escala:{},
     periodo:{de:TODAY,ate:addDays(TODAY,89)},
     periodos:[{de:TODAY,ate:addDays(TODAY,89)}],
-    oanse:{voluntarios:[],vagas:{},escala:{}}
+    oanse:{voluntarios:[],vagas:{},escala:{},indisp:[],exige:[]},
+    familias:[]
   };
 }
 function mergeRanges(list){
@@ -476,7 +541,10 @@ function normalize(o){
   s.regras.exige.forEach(function(x){if(!Array.isArray(x.sems)){x.sems=x.sem?[x.sem]:[];}delete x.sem;x.papel=x.papel||'preg';x.func=x.func||'';x.pid=x.pid||'';});
   s.escala=s.escala&&typeof s.escala==='object'?s.escala:{};
   var oo=s.oanse||{};
-  s.oanse={voluntarios:(Array.isArray(oo.voluntarios)?oo.voluntarios:[]).filter(function(v){return v&&v.id&&v.nome;}),vagas:(oo.vagas&&typeof oo.vagas==='object')?oo.vagas:{},escala:(oo.escala&&typeof oo.escala==='object')?oo.escala:{}};
+  s.oanse={voluntarios:(Array.isArray(oo.voluntarios)?oo.voluntarios:[]).filter(function(v){return v&&v.id&&v.nome;}),vagas:(oo.vagas&&typeof oo.vagas==='object')?oo.vagas:{},escala:(oo.escala&&typeof oo.escala==='object')?oo.escala:{},
+    indisp:(Array.isArray(oo.indisp)?oo.indisp:[]).filter(function(i){return i&&i.vid&&i.de&&i.ate;}),
+    exige:(Array.isArray(oo.exige)?oo.exige:[]).filter(function(x){return x&&x.id&&Array.isArray(x.vids);}).map(function(x){return {id:x.id,cid:x.cid||'*',sems:Array.isArray(x.sems)?x.sems:[],vids:x.vids};})};
+  s.familias=(Array.isArray(s.familias)?s.familias:[]).filter(function(f){return f&&f.id&&Array.isArray(f.membros);}).map(function(f){return {id:f.id,nome:String(f.nome||''),membros:f.membros.filter(function(m){return typeof m==='string';})};});
   Object.keys(s.oanse.escala).forEach(function(k){var it=s.oanse.escala[k];if(!it||!Array.isArray(it.ps)){delete s.oanse.escala[k];return;}if(!Array.isArray(it.m)){it.m=it.ps.map(function(){return false;});}it.fx=!!it.fx;});
   Object.keys(s.escala).forEach(function(k){var a=k.split('|');if(a.length<3||(a[2]==='visit'&&a[1]!=='*')){delete s.escala[k];}});
   s.periodo=s.periodo&&s.periodo.de&&s.periodo.ate?s.periodo:b.periodo;
@@ -663,12 +731,21 @@ function generate(from,to,cids,keep){
     cnt[p][id]=(cnt[p][id]||0)+1;tot[id]=(tot[id]||0)+1;
   });
   var slots=slotsIn(from,to,cids).filter(function(s){return inRanges(s.date);}),vazios=[],n=S.pessoas.length,i=0;
-  slots.forEach(function(s){
-    i++;
+  /* pregação e avisos primeiro; contato com visitantes por último (é o único que considera famílias) */
+  slots=slots.map(function(s,ix){return {s:s,ix:ix+1};});
+  slots=slots.filter(function(o){return o.s.papel!=='visit';}).concat(slots.filter(function(o){return o.s.papel==='visit';}));
+  slots.forEach(function(o){
+    var s=o.s;i=o.ix;
     if(e[s.key]){return;}
     var dn=dnum(s.date);
     var cand=S.pessoas.filter(function(p){return conflicts(p.id,s.date,s.cid,s.papel,e,null).length===0;});
     if(!cand.length){vazios.push(s);return;}
+    if(s.papel==='visit'&&S.familias.length){
+      var serv=servindoNoDia(s.date,e,S.oanse.escala);
+      var mn=Math.min.apply(null,S.pessoas.filter(function(p){return p.papeis.indexOf('visit')>=0;}).map(function(p){return cnt.visit[p.id]||0;}));
+      var par=cand.filter(function(p){return (cnt.visit[p.id]||0)<=mn+1&&famScore('p:'+p.id,serv)>0;});
+      if(par.length){cand=par;}
+    }
     function gap(pid){
       var m=-1e9;
       for(var k in e){if(e[k].p!==pid){continue;}var d=dnum(k.split('|')[0]);if(d<dn&&d>m){m=d;}}
@@ -897,14 +974,27 @@ function generateOanse(from,to,cids,keep){
       .forEach(function(c){
         var key=d+'|'+c.id,n=vagasDe(c),it=oanseEntry(e,key,n);e[key]=it;
         if(it.fx){return;}
+        S.oanse.exige.filter(function(r){return (r.cid==='*'||r.cid===c.id)&&(!r.sems.length||r.sems.indexOf(wk(d))>=0);}).forEach(function(r){
+          r.vids.forEach(function(vid){
+            if(!volById(vid)||oanseIndisp(vid,d)||it.ps.indexOf(vid)>=0){return;}
+            var j=it.ps.indexOf('');if(j<0||j>=n){return;}
+            it.ps[j]=vid;it.m[j]=false;note(vid,d);
+          });
+        });
         for(var i=0;i<n;i++){
           if(it.ps[i]){continue;}
           var emDia={};
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
-          var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0;});
+          var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!oanseIndisp(v.id,d);});
           var livres=cand.filter(function(v){return !emDia[v.id];});
           if(livres.length){cand=livres;}
           if(!cand.length){vazios++;continue;}
+          if(S.familias.length){
+            var serv=servindoNoDia(d,S.escala,e);
+            var mn=Math.min.apply(null,V.filter(function(v){return !oanseIndisp(v.id,d);}).map(function(v){return tot[v.id]||0;}));
+            var par=cand.filter(function(v){return (tot[v.id]||0)<=mn+1&&famScore('v:'+v.id,serv)>0;});
+            if(par.length){cand=par;}
+          }
           cand.sort(function(a,b){
             var ta=tot[a.id]||0,tb=tot[b.id]||0;if(ta!==tb){return ta-tb;}
             var ga=gapOf(a.id,dn),gb=gapOf(b.id,dn);if(ga!==gb){return gb-ga;}
@@ -931,12 +1021,15 @@ function oanseHTML(date,c){
   }
   var outros={};
   Object.keys(S.oanse.escala).forEach(function(k){var a=k.split('|');if(a[0]===date&&a[1]!==c.id){S.oanse.escala[k].ps.forEach(function(id){if(id){outros[id]=1;}});}});
+  var serv=servindoNoDia(date,S.escala,S.oanse.escala);
   var avisos=[];
+  var indis=ids.filter(function(id){return oanseIndisp(id,date);}).map(function(id){return volById(id).nome;});
+  if(indis.length){avisos.push('Indisponível: '+indis.join(', '));}
   if(nomes.length<n&&Object.keys(S.oanse.escala).length){avisos.push('Faltam '+(n-nomes.length)+' voluntário(s)');}
   if(nomes.length>n){avisos.push('Mais voluntários que vagas ('+nomes.length+' de '+n+')');}
   if(ids.some(function(id){return outros[id];})){avisos.push('Já serve em outro culto neste dia');}
   var lista=S.oanse.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);}).map(function(v){
-    return '<label><input type="checkbox" data-oms="'+esc(key)+'" value="'+esc(v.id)+'"'+(ids.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+(outros[v.id]?' <span class="small muted">(já serve neste dia)</span>':'')+'</label>';
+    return '<label><input type="checkbox" data-oms="'+esc(key)+'" value="'+esc(v.id)+'"'+(ids.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+(outros[v.id]?' <span class="small muted">(já serve neste dia)</span>':'')+(oanseIndisp(v.id,date)?' <span class="small muted">(indisponível)</span>':'')+(famScore('v:'+v.id,serv)>0?' <span class="small muted">(família serve neste dia)</span>':'')+'</label>';
   }).join('')||'<span class="empty">Cadastre voluntários na aba OANSE.</span>';
   return '<div class="r"><div class="rt">OANSE ('+n+')</div><div class="oanse-sel">'
     +'<details class="ms" data-ms="'+esc(key)+'"'+(openMS[key]?' open':'')+'><summary>'+(nomes.length?esc(nomes.join(', ')):'<span class="muted">Escolher voluntários</span>')+' <span class="small muted">('+nomes.length+'/'+n+')</span></summary>'
@@ -1005,6 +1098,7 @@ function renderOanse(){
     return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('vol-mes').textContent=MESES[view.m]+' '+view.y;
+  renderOanseRegras();
 }
 function resetVol(){editVol=null;$('form-vol').reset();$('vol-titulo').textContent='Novo voluntário';$('vol-salvar').textContent='Adicionar voluntário';$('vol-cancelar').hidden=true;}
 function delVol(id){
@@ -1079,6 +1173,119 @@ $('vagas-lista').addEventListener('input',function(e){
   S.stale=true;touch();renderBanner();renderEscala();
 });
 
+/* ---------- famílias e regras da OANSE ---------- */
+var editFam=null,famMarcados=null;
+function membroNome(k){
+  var id=k.slice(2);
+  if(k.slice(0,2)==='p:'){var p=pessoaById(id);return p?p.nome:'';}
+  var v=volById(id);return v?v.nome:'';
+}
+function famDe(key){return S.familias.find(function(f){return f.membros.indexOf(key)>=0;});}
+function parentes(key){var f=famDe(key);return f?f.membros.filter(function(m){return m!==key;}):[];}
+/* quem está servindo em `date`, como chaves 'p:id' (pessoas) e 'v:id' (voluntários) */
+function servindoNoDia(date,eMain,eOanse){
+  var s={},A=eMain||{},B=eOanse||{};
+  Object.keys(A).forEach(function(k){if(k.split('|')[0]===date&&A[k]&&A[k].p){s['p:'+A[k].p]=1;}});
+  Object.keys(B).forEach(function(k){if(k.split('|')[0]===date){(B[k].ps||[]).forEach(function(id){if(id){s['v:'+id]=1;}});}});
+  return s;
+}
+function famScore(key,serv){return parentes(key).filter(function(m){return serv[m];}).length;}
+function oanseIndisp(vid,date){return S.oanse.indisp.find(function(i){return i.vid===vid&&date>=i.de&&date<=i.ate;});}
+
+/* remove referências a pessoas, voluntários e cultos que não existem mais */
+function pruneRefs(){
+  var ok=function(k){return k.slice(0,2)==='p:'?!!pessoaById(k.slice(2)):!!volById(k.slice(2));};
+  S.familias=S.familias.map(function(f){return {id:f.id,nome:f.nome,membros:f.membros.filter(ok)};}).filter(function(f){return f.membros.length>1;});
+  S.oanse.indisp=S.oanse.indisp.filter(function(i){return !!volById(i.vid);});
+  S.oanse.exige=S.oanse.exige.map(function(x){return {id:x.id,cid:x.cid,sems:x.sems,vids:x.vids.filter(function(v){return !!volById(v);})};})
+    .filter(function(x){return x.vids.length&&(x.cid==='*'||cultoById(x.cid));});
+}
+
+/* aba Famílias */
+function renderFamilias(){
+  var marc=famMarcados;famMarcados=null;
+  if(!marc){marc=Array.prototype.map.call(document.querySelectorAll('#fam-membros input:checked'),function(i){return i.value;});}
+  var grupo=function(titulo,itens){
+    return itens.length?'<div class="gr"><div class="grt">'+titulo+'</div>'+itens.join('')+'</div>':'';
+  };
+  var item=function(key,nome,extra){
+    var f=famDe(key),outra=f&&f.id!==editFam;
+    return '<label data-n="'+esc(nome.toLowerCase())+'"><input type="checkbox" value="'+esc(key)+'"'+(marc.indexOf(key)>=0&&!outra?' checked':'')+(outra?' disabled':'')+'> '+esc(nome)+(extra?' <span class="small muted">'+extra+'</span>':'')+(outra?' <span class="small muted">(já na família '+esc(f.nome||membroNome(f.membros[0]))+')</span>':'')+'</label>';
+  };
+  var P=S.pessoas.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);}).map(function(p){return item('p:'+p.id,p.nome,'('+esc(FABR[p.funcao])+')');});
+  var V=S.oanse.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);}).map(function(v){return item('v:'+v.id,v.nome,'(OANSE)');});
+  $('fam-membros').innerHTML=grupo('Pessoas (pregação, avisos, contato)',P)+grupo('Voluntários da OANSE',V)||'<span class="empty">Cadastre pessoas ou voluntários primeiro.</span>';
+  filtraFam();
+  var L=S.familias.slice().sort(function(a,b){return (a.nome||membroNome(a.membros[0])).localeCompare(b.nome||membroNome(b.membros[0]));});
+  $('lista-fams').innerHTML=L.length?L.map(function(f){
+    var m=f.membros.map(function(k){return '<span class="chip tag">'+esc(membroNome(k))+'</span>';}).join(' ');
+    return '<li><div class="main"><b>'+esc(f.nome||('Família de '+membroNome(f.membros[0])))+'</b><span class="tags">'+m+'</span></div><div class="row"><button class="btn sec mini" data-act="edit-fam" data-id="'+esc(f.id)+'">Editar</button><button class="btn danger mini" data-act="del-fam" data-id="'+esc(f.id)+'">Remover</button></div></li>';
+  }).join(''):'<li class="empty">Nenhuma família cadastrada ainda.</li>';
+}
+function filtraFam(){
+  var q=($('fam-busca').value||'').toLowerCase().trim();
+  Array.prototype.forEach.call(document.querySelectorAll('#fam-membros label'),function(l){l.hidden=!!q&&(l.getAttribute('data-n')||'').indexOf(q)<0;});
+}
+function resetFam(){editFam=null;famMarcados=[];$('form-fam').reset();$('fam-titulo').textContent='Nova família';$('fam-salvar').textContent='Cadastrar família';$('fam-cancelar').hidden=true;$('fam-msg').textContent='';renderFamilias();}
+function editFamStart(id){
+  var f=S.familias.find(function(x){return x.id===id;});if(!f){return;}
+  editFam=id;famMarcados=f.membros.slice();$('fam-nome').value=f.nome||'';
+  $('fam-titulo').textContent='Editar família';$('fam-salvar').textContent='Salvar alterações';$('fam-cancelar').hidden=false;
+  renderFamilias();$('form-fam').scrollIntoView({block:'nearest'});$('fam-nome').focus();
+}
+$('form-fam').addEventListener('submit',function(e){
+  e.preventDefault();
+  var m=Array.prototype.map.call(document.querySelectorAll('#fam-membros input:checked'),function(i){return i.value;});
+  if(m.length<2){$('fam-msg').textContent='Escolha pelo menos duas pessoas da mesma família.';return;}
+  var nome=limpaNome($('fam-nome').value);
+  if(editFam){var f=S.familias.find(function(x){return x.id===editFam;});if(f){f.nome=nome;f.membros=m;}}
+  else{S.familias.push({id:'f'+uid(),nome:nome,membros:m});}
+  resetFam();changed();
+});
+$('fam-cancelar').addEventListener('click',resetFam);
+$('fam-busca').addEventListener('input',filtraFam);
+
+/* regras da OANSE */
+function renderOanseRegras(){
+  var O=S.oanse;
+  var vols=O.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
+  var marc=Array.prototype.map.call(document.querySelectorAll('#ox-vols input:checked'),function(i){return i.value;});
+  $('ox-vols').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários primeiro.</span>';
+  var cs=sortedCultos();
+  var cur=$('ox-culto').value;
+  $('ox-culto').innerHTML='<option value="*">Todos os cultos com OANSE</option>'+cs.filter(function(c){return vagasDe(c)>0;}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
+  if(Array.prototype.some.call($('ox-culto').options||[],function(o){return o.value===cur;})){$('ox-culto').value=cur;}
+  var curv=$('oi-vol').value;
+  $('oi-vol').innerHTML=vols.length?vols.map(function(v){return '<option value="'+esc(v.id)+'">'+esc(v.nome)+'</option>';}).join(''):'<option value="">Cadastre voluntários primeiro</option>';
+  if(Array.prototype.some.call($('oi-vol').options||[],function(o){return o.value===curv;})){$('oi-vol').value=curv;}
+  $('lista-ox').innerHTML=O.exige.length?O.exige.map(function(x){
+    var c=x.cid==='*'?null:cultoById(x.cid);
+    var nomes=x.vids.map(function(id){var v=volById(id);return v?v.nome:'';}).filter(Boolean).join(', ');
+    return '<li><div class="main"><b>'+(x.cid==='*'?'Todos os cultos com OANSE':esc(c?cultoLabel(c):'Culto removido'))+'</b><span class="small muted">'+(x.sems.length?(x.sems.length>1?'Semanas ':'Semana ')+x.sems.map(function(n){return n+'ª';}).join(', ')+' do mês':'Toda semana')+' · '+esc(nomes)+'</span></div><button class="btn danger mini" data-act="del-ox" data-id="'+esc(x.id)+'">Remover</button></li>';
+  }).join(''):'<li class="empty">Nenhuma regra desse tipo.</li>';
+  $('lista-oi').innerHTML=O.indisp.length?O.indisp.map(function(i){
+    var v=volById(i.vid);
+    return '<li><div class="main"><b>'+esc(v?v.nome:'Voluntário removido')+'</b><span class="small muted">'+br(i.de)+' a '+br(i.ate)+(i.obs?' · '+esc(i.obs):'')+'</span></div><button class="btn danger mini" data-act="del-oi" data-id="'+esc(i.id)+'">Remover</button></li>';
+  }).join(''):'<li class="empty">Ninguém indisponível.</li>';
+  $('oanse-limpar-mes').textContent='Limpar OANSE de '+MESES[view.m]+'/'+view.y;
+}
+$('form-ox').addEventListener('submit',function(e){
+  e.preventDefault();
+  var vids=Array.prototype.map.call(document.querySelectorAll('#ox-vols input:checked'),function(i){return i.value;});
+  if(!vids.length){$('ox-msg').textContent='Escolha pelo menos um voluntário.';return;}
+  $('ox-msg').textContent='';
+  S.oanse.exige.push({id:'x'+uid(),cid:$('ox-culto').value,sems:Array.prototype.map.call(document.querySelectorAll('#ox-sems input:checked'),function(i){return +i.value;}),vids:vids});
+  Array.prototype.forEach.call(document.querySelectorAll('#ox-vols input,#ox-sems input'),function(i){i.checked=false;});
+  changed();
+});
+$('form-oi').addEventListener('submit',function(e){
+  e.preventDefault();
+  var vid=$('oi-vol').value,de=$('oi-de').value,ate=$('oi-ate').value;
+  if(!vid||!de||!ate||de>ate){return;}
+  S.oanse.indisp.push({id:'i'+uid(),vid:vid,de:de,ate:ate,obs:limpaNome($('oi-obs').value)});
+  $('form-oi').reset();changed();
+});
+
 /* ---------- tela: cadastros e regras ---------- */
 var editCulto=null,editPessoa=null;
 function fillSel(id,html){var el=$(id),v=el.value;el.innerHTML=html;if(Array.prototype.some.call(el.options,function(o){return o.value===v;})){el.value=v;}}
@@ -1127,8 +1334,8 @@ function renderRegras(){
   }).join(''):'<li class="empty">Ninguém indisponível.</li>';
 }
 
-function render(){renderBanner();renderGerarCultos();renderEscala();renderCultos();renderPessoas();renderRegras();renderOanse();}
-function changed(){S.stale=true;touch();render();}
+function render(){renderBanner();renderGerarCultos();renderEscala();renderCultos();renderPessoas();renderRegras();renderOanse();renderFamilias();}
+function changed(){pruneRefs();S.stale=true;touch();render();}
 
 /* botões de duas etapas (sem janela de confirmação) */
 function arm(b){
@@ -1146,7 +1353,7 @@ function formPeriodo(){return {de:$('p-de').value||S.periodo.de,ate:$('p-ate').v
 document.addEventListener('click',function(e){
   var b=e.target.closest('[data-act]');if(!b){return;}
   var act=b.dataset.act,id=b.dataset.id;
-  if(act.indexOf('del-')===0||act==='zero'||act==='limpar'||act==='limpar-tudo'){if(!arm(b)){return;}disarm(b);}
+  if(act.indexOf('del-')===0||act==='zero'||act==='limpar'||act==='limpar-tudo'||act==='oanse-limpar-mes'||act==='oanse-limpar-tudo'){if(!arm(b)){return;}disarm(b);}
   if(act==='edit-culto'){
     var c=cultoById(id);if(!c){return;}
     editCulto=id;$('c-igreja').value=c.igreja;$('c-desc').value=c.desc||'';$('c-dia').value=c.dia;$('c-hora').value=c.hora;
@@ -1159,6 +1366,7 @@ document.addEventListener('click',function(e){
     Object.keys(S.escala).forEach(function(k){if(k.split('|')[1]===id){delete S.escala[k];}});
     Object.keys(S.oanse.escala).forEach(function(k){if(k.split('|')[1]===id){delete S.oanse.escala[k];}});
     delete S.oanse.vagas[id];
+    S.oanse.exige=S.oanse.exige.filter(function(x){return x.cid!==id;});
     if(editCulto===id){resetCulto();}
     changed();
   }else if(act==='edit-pessoa'){
@@ -1179,8 +1387,20 @@ document.addEventListener('click',function(e){
   else if(act==='del-indisp'){S.regras.indisp=S.regras.indisp.filter(function(x){return x.id!==id;});changed();}
   else if(act==='edit-vol'){editVolStart(id);}
   else if(act==='del-vol'){delVol(id);}
+  else if(act==='del-ox'){S.oanse.exige=S.oanse.exige.filter(function(x){return x.id!==id;});changed();}
+  else if(act==='del-oi'){S.oanse.indisp=S.oanse.indisp.filter(function(x){return x.id!==id;});changed();}
+  else if(act==='edit-fam'){editFamStart(id);}
+  else if(act==='del-fam'){S.familias=S.familias.filter(function(f){return f.id!==id;});if(editFam===id){resetFam();}changed();}
+  else if(act==='oanse-limpar-mes'){
+    var ymL=view.y+'-'+pad(view.m+1),nL=0;
+    Object.keys(S.oanse.escala).forEach(function(k){if(k.slice(0,7)===ymL){delete S.oanse.escala[k];nL++;}});
+    touch();render();$('oanse-msg').textContent='OANSE de '+MESES[view.m]+'/'+view.y+' limpa ('+nL+' culto(s)). Pregação, avisos e contato não foram alterados.';
+  }else if(act==='oanse-limpar-tudo'){
+    var nT=Object.keys(S.oanse.escala).length;S.oanse.escala={};
+    touch();render();$('oanse-msg').textContent='Toda a escala da OANSE foi limpa ('+nT+' culto(s)). Pregação, avisos e contato não foram alterados.';
+  }
   else if(act==='zero'){
-    S.oanse={voluntarios:[],vagas:{},escala:{}};resetVol();
+    S.oanse={voluntarios:[],vagas:{},escala:{},indisp:[],exige:[]};S.familias=[];resetVol();resetFam();
     S.cultos=[];S.pessoas=[];S.escala={};S.regras.indisp=[];S.regras.exige=[];S.example=false;S.stale=false;
     resetCulto();resetPessoa();touch();render();setMsg('Tudo limpo. Cadastre os cultos e depois as pessoas.');
   }else if(act==='limpar-tudo'){
