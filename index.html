@@ -398,10 +398,10 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       <div class="panel">
         <h2 id="vol-titulo">Novo voluntário</h2>
         <form class="f" id="form-vol">
-          <label class="l full" for="vol-nome">Nome<input type="text" id="vol-nome" required maxlength="80" autocomplete="off" list="vol-sug"></label>
-          <datalist id="vol-sug"></datalist>
+          <label class="l full" for="vol-nome">Nome<input type="text" id="vol-nome" required maxlength="80" autocomplete="off"></label>
+          <div class="sugl full" id="vol-sugl" hidden></div>
           <p class="hint full">Digite o nome de quem já está cadastrado para incluí-lo aqui (os cultos marcados são acrescentados aos que ele já tem), ou um nome novo para cadastrar uma pessoa nova.</p>
-          <div class="full" style="display:flex;flex-direction:column;gap:6px"><span class="small" style="font-weight:500;color:var(--muted)">Cultos em que serve (sem marcar nenhum, serve em qualquer culto)</span><div class="checks" id="vol-cultos"></div></div>
+          <div class="full" style="display:flex;flex-direction:column;gap:6px"><span class="small" style="font-weight:500;color:var(--muted)">Cultos em que serve</span><div class="checks" id="vol-cultos"></div></div>
           <div class="row full"><button class="btn" type="submit" id="vol-salvar">Adicionar voluntário</button><button class="btn sec" type="button" id="vol-cancelar" hidden>Cancelar edição</button></div>
         </form>
         <div id="vol-imp">
@@ -493,10 +493,10 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       <div class="panel">
         <h2 id="lv-titulo">Novo voluntário</h2>
         <form class="f" id="form-lv">
-          <label class="l full" for="lv-nome">Nome<input type="text" id="lv-nome" required maxlength="80" autocomplete="off" list="lv-sug"></label>
-          <datalist id="lv-sug"></datalist>
+          <label class="l full" for="lv-nome">Nome<input type="text" id="lv-nome" required maxlength="80" autocomplete="off"></label>
+          <div class="sugl full" id="lv-sugl" hidden></div>
           <p class="hint full">Digite o nome de quem já está cadastrado para incluí-lo aqui (os cultos marcados são acrescentados aos que ele já tem), ou um nome novo para cadastrar uma pessoa nova.</p>
-          <div class="full" style="display:flex;flex-direction:column;gap:6px"><span class="small" style="font-weight:500;color:var(--muted)">Cultos em que serve (sem marcar nenhum, serve em qualquer culto)</span><div class="checks" id="lv-cultos"></div></div>
+          <div class="full" style="display:flex;flex-direction:column;gap:6px"><span class="small" style="font-weight:500;color:var(--muted)">Cultos em que serve</span><div class="checks" id="lv-cultos"></div></div>
           <div class="row full"><button class="btn" type="submit" id="lv-salvar">Adicionar voluntário</button><button class="btn sec" type="button" id="lv-cancelar" hidden>Cancelar edição</button></div>
         </form>
         <div id="lv-imp">
@@ -1212,15 +1212,29 @@ function pessoaMinist(p){
   var r=p.papeis.map(function(x){return PNOME[x];}).concat(p.oanse?['OANSE']:[],p.lit?['Liturgia']:[]);
   return r.length?r.join(', '):'cadastro';
 }
-/* ao digitar o nome de alguém já cadastrado, preenche os cultos dele e avisa onde ele já serve */
+/* ao digitar, lista quem já está cadastrado (em outro ministério ou não); tocar no nome preenche os cultos dele */
 function autoPreenche(pre,flag,nome,editando){
-  $(pre+'-nome').addEventListener('input',function(e){
-    if(editando()){return;}
-    var k=nomeKey(e.target.value),p=k&&S.pessoas.find(function(x){return nomeKey(x.nome)===k;});
-    if(!p){$(pre+'-msg').textContent='';return;}
-    if(p[flag]){$(pre+'-msg').textContent=p.nome+' já está na '+nome+'.';return;}
+  var box=$(pre+'-sugl'),input=$(pre+'-nome');
+  function escolhe(p){
+    input.value=p.nome;box.hidden=true;box.innerHTML='';
     Array.prototype.forEach.call(document.querySelectorAll('#'+pre+'-cultos input'),function(i){i.checked=p.cultos.indexOf(i.value)>=0;});
     $(pre+'-msg').textContent=p.nome+' já está cadastrado(a) ('+pessoaMinist(p)+'). Ao adicionar, será incluído(a) na '+nome+'.';
+  }
+  input.addEventListener('input',function(e){
+    if(editando()){box.hidden=true;return;}
+    var q=nomeKey(e.target.value);
+    $(pre+'-msg').textContent='';
+    if(q.length<2){box.hidden=true;box.innerHTML='';return;}
+    var exato=S.pessoas.find(function(x){return nomeKey(x.nome)===q;});
+    if(exato&&exato[flag]){$(pre+'-msg').textContent=exato.nome+' já está na '+nome+'.';}
+    var L=S.pessoas.filter(function(p){return !p[flag]&&nomeKey(p.nome).indexOf(q)>=0;})
+      .sort(function(a,b){var x=(a.oanse||a.lit)?0:1,y=(b.oanse||b.lit)?0:1;return x-y||a.nome.localeCompare(b.nome);}).slice(0,8);
+    box.innerHTML=L.map(function(p){return '<button type="button" data-sug="'+esc(p.id)+'">'+esc(p.nome)+' <span class="small muted">('+esc(pessoaMinist(p))+')</span></button>';}).join('');
+    box.hidden=!L.length;
+  });
+  box.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('button[data-sug]');if(!b){return;}
+    var p=pessoaById(b.getAttribute('data-sug'));if(p){escolhe(p);}
   });
 }
 function cultosMarcados(id){return Array.prototype.map.call(document.querySelectorAll('#'+id+' input:checked'),function(i){return i.value;});}
@@ -1372,7 +1386,6 @@ function renderOanse(){
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-vol').parentNode.hidden=!can('oanse');
   $('vol-imp').hidden=!can('cadastros');
-  $('vol-sug').innerHTML=S.pessoas.filter(function(p){return !p.oanse;}).sort(function(a,b){var x=(a.oanse||a.lit)?0:1,y=(b.oanse||b.lit)?0:1;return x-y||a.nome.localeCompare(b.nome);}).map(function(p){return '<option value="'+esc(p.nome)+'" label="'+esc(pessoaMinist(p))+'">';}).join('');
   fillVolCultos('vol-cultos');
   $('vol-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
@@ -1736,7 +1749,6 @@ function renderLit(){
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-lv').parentNode.hidden=!can('liturgia');
   $('lv-imp').hidden=!can('cadastros');
-  $('lv-sug').innerHTML=S.pessoas.filter(function(p){return !p.lit;}).sort(function(a,b){var x=(a.oanse||a.lit)?0:1,y=(b.oanse||b.lit)?0:1;return x-y||a.nome.localeCompare(b.nome);}).map(function(p){return '<option value="'+esc(p.nome)+'" label="'+esc(pessoaMinist(p))+'">';}).join('');
   fillVolCultos('lv-cultos');
   $('lv-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
