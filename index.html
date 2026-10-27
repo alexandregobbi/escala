@@ -398,7 +398,9 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       <div class="panel">
         <h2 id="vol-titulo">Novo voluntário</h2>
         <form class="f" id="form-vol">
-          <label class="l full" for="vol-nome">Nome<input type="text" id="vol-nome" required maxlength="80" autocomplete="off"></label>
+          <label class="l full" for="vol-nome">Nome<input type="text" id="vol-nome" required maxlength="80" autocomplete="off" list="vol-sug"></label>
+          <datalist id="vol-sug"></datalist>
+          <p class="hint full">Digite o nome de quem já está cadastrado para incluí-lo aqui (os cultos marcados são acrescentados aos que ele já tem), ou um nome novo para cadastrar uma pessoa nova.</p>
           <div class="full" style="display:flex;flex-direction:column;gap:6px"><span class="small" style="font-weight:500;color:var(--muted)">Cultos em que serve (sem marcar nenhum, serve em qualquer culto)</span><div class="checks" id="vol-cultos"></div></div>
           <div class="row full"><button class="btn" type="submit" id="vol-salvar">Adicionar voluntário</button><button class="btn sec" type="button" id="vol-cancelar" hidden>Cancelar edição</button></div>
         </form>
@@ -489,7 +491,9 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       <div class="panel">
         <h2 id="lv-titulo">Novo voluntário</h2>
         <form class="f" id="form-lv">
-          <label class="l full" for="lv-nome">Nome<input type="text" id="lv-nome" required maxlength="80" autocomplete="off"></label>
+          <label class="l full" for="lv-nome">Nome<input type="text" id="lv-nome" required maxlength="80" autocomplete="off" list="lv-sug"></label>
+          <datalist id="lv-sug"></datalist>
+          <p class="hint full">Digite o nome de quem já está cadastrado para incluí-lo aqui (os cultos marcados são acrescentados aos que ele já tem), ou um nome novo para cadastrar uma pessoa nova.</p>
           <div class="full" style="display:flex;flex-direction:column;gap:6px"><span class="small" style="font-weight:500;color:var(--muted)">Cultos em que serve (sem marcar nenhum, serve em qualquer culto)</span><div class="checks" id="lv-cultos"></div></div>
           <div class="row full"><button class="btn" type="submit" id="lv-salvar">Adicionar voluntário</button><button class="btn sec" type="button" id="lv-cancelar" hidden>Cancelar edição</button></div>
         </form>
@@ -1345,9 +1349,10 @@ $('cal').addEventListener('click',function(e){
 function renderOanse(){
   var V=S.oanse.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-vols').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('cadastros')?'<div class="row"><button class="btn sec mini" data-act="edit-vol" data-id="'+esc(v.id)+'">Editar</button><button class="btn danger mini" data-act="del-vol" data-id="'+esc(v.id)+'">Tirar da OANSE</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('oanse')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-vol" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-vol" data-id="'+esc(v.id)+'">Tirar da OANSE</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
-  $('form-vol').parentNode.hidden=!can('cadastros');
+  $('form-vol').parentNode.hidden=!can('oanse');
+  $('vol-sug').innerHTML=S.pessoas.filter(function(p){return !p.oanse;}).sort(function(a,b){return a.nome.localeCompare(b.nome);}).map(function(p){return '<option value="'+esc(p.nome)+'">';}).join('');
   fillVolCultos('vol-cultos');
   $('vol-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
@@ -1405,7 +1410,7 @@ $('form-vol').addEventListener('submit',function(e){
     if(igual){$('vol-msg').textContent='Já existe outra pessoa com esse nome.';return;}
     var v=pessoaById(editVol);if(v){v.nome=nome;v.cultos=cm;}
   }else if(igual&&igual.oanse){$('vol-msg').textContent='Essa pessoa já está na OANSE.';return;}
-  else{addNomes([nome],cm);}
+  else{addNomes([nome],cm);$('vol-msg').textContent=igual?nome+' já estava cadastrado(a) e foi incluído(a) na OANSE.':nome+' foi cadastrado(a) e incluído(a) na OANSE.';}
   resetVol();changed();
 });
 $('vol-cancelar').addEventListener('click',resetVol);
@@ -1706,9 +1711,10 @@ $('cal').addEventListener('click',function(e){
 function renderLit(){
   var V=S.lit.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-lvs').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('cadastros')?'<div class="row"><button class="btn sec mini" data-act="edit-lv" data-id="'+esc(v.id)+'">Editar</button><button class="btn danger mini" data-act="del-lv" data-id="'+esc(v.id)+'">Tirar da Liturgia</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('liturgia')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-lv" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-lv" data-id="'+esc(v.id)+'">Tirar da Liturgia</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
-  $('form-lv').parentNode.hidden=!can('cadastros');
+  $('form-lv').parentNode.hidden=!can('liturgia');
+  $('lv-sug').innerHTML=S.pessoas.filter(function(p){return !p.lit;}).sort(function(a,b){return a.nome.localeCompare(b.nome);}).map(function(p){return '<option value="'+esc(p.nome)+'">';}).join('');
   fillVolCultos('lv-cultos');
   $('lv-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
@@ -1763,7 +1769,7 @@ $('form-lv').addEventListener('submit',function(e){
     if(igual){$('lv-msg').textContent='Já existe outra pessoa com esse nome.';return;}
     var v=pessoaById(editLV);if(v){v.nome=nome;v.cultos=cm;}
   }else if(igual&&igual.lit){$('lv-msg').textContent='Essa pessoa já está na Liturgia.';return;}
-  else{addNomesL([nome],cm);}
+  else{addNomesL([nome],cm);$('lv-msg').textContent=igual?nome+' já estava cadastrado(a) e foi incluído(a) na Liturgia.':nome+' foi cadastrado(a) e incluído(a) na Liturgia.';}
   resetLV();changed();
 });
 $('lv-cancelar').addEventListener('click',resetLV);

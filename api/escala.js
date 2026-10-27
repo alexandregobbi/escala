@@ -118,8 +118,55 @@ async function authenticate(req) {
 }
 
 /* aplica sobre os dados gravados só o que o usuário pode alterar */
+function nomeKey(n) {
+  return String(n).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+/* quem administra só OANSE e/ou Liturgia pode: incluir ou tirar pessoas do próprio módulo,
+   acrescentar cultos a quem entra no módulo e cadastrar pessoas novas (só nos próprios módulos). */
+function mergePessoas(storedList, sentList, storedCultos, perms) {
+  const mods = [];
+  if (perms.indexOf('oanse') >= 0) mods.push('oanse');
+  if (perms.indexOf('liturgia') >= 0) mods.push('lit');
+  const cultoIds = new Set((Array.isArray(storedCultos) ? storedCultos : []).map((c) => c && c.id));
+  const out = (Array.isArray(storedList) ? storedList : []).map((p) => Object.assign({}, p));
+  if (!mods.length || !Array.isArray(sentList)) return out;
+  const byId = new Map(out.map((p) => [p.id, p]));
+  const names = new Set(out.map((p) => nomeKey(p.nome)));
+  sentList.forEach((sp) => {
+    if (!sp || typeof sp !== 'object' || typeof sp.id !== 'string') return;
+    const cs = (Array.isArray(sp.cultos) ? sp.cultos : []).filter((id) => cultoIds.has(id));
+    const cur = byId.get(sp.id);
+    if (cur) {
+      mods.forEach((m) => {
+        if (typeof sp[m] === 'boolean') cur[m] = sp[m];
+      });
+      if (mods.some((m) => cur[m])) {
+        cur.cultos = Array.isArray(cur.cultos) ? cur.cultos : [];
+        cs.forEach((id) => { if (cur.cultos.indexOf(id) < 0) cur.cultos.push(id); });
+      }
+      return;
+    }
+    const nome = String(sp.nome || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+    if (!nome || names.has(nomeKey(nome)) || !/^[A-Za-z0-9]{3,24}$/.test(sp.id) || out.length >= 500) return;
+    const novo = {
+      id: sp.id, nome, funcao: '', igreja: '', cultos: cs, papeis: [],
+      oanse: mods.indexOf('oanse') >= 0 && sp.oanse === true,
+      lit: mods.indexOf('lit') >= 0 && sp.lit === true,
+    };
+    if (!novo.oanse && !novo.lit) return;
+    names.add(nomeKey(nome));
+    byId.set(novo.id, novo);
+    out.push(novo);
+  });
+  return out;
+}
+
 function mergeForUser(stored, sent, perms) {
   const out = Object.assign({}, stored);
+  if (perms.indexOf('cadastros') < 0 && (perms.indexOf('oanse') >= 0 || perms.indexOf('liturgia') >= 0)) {
+    out.pessoas = mergePessoas(stored.pessoas, sent.pessoas, stored.cultos, perms);
+  }
   const keys = new Set(META);
   perms.forEach((p) => (PERMS[p] || []).forEach((k) => keys.add(k)));
   keys.forEach((k) => {
