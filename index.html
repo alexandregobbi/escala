@@ -387,6 +387,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
         <h2 id="vol-titulo">Novo voluntário</h2>
         <form class="f" id="form-vol">
           <label class="l full" for="vol-nome">Nome<input type="text" id="vol-nome" required maxlength="80" autocomplete="off"></label>
+          <div class="full" style="display:flex;flex-direction:column;gap:6px"><span class="small" style="font-weight:500;color:var(--muted)">Cultos em que serve (sem marcar nenhum, serve em qualquer culto)</span><div class="checks" id="vol-cultos"></div></div>
           <div class="row full"><button class="btn" type="submit" id="vol-salvar">Adicionar voluntário</button><button class="btn sec" type="button" id="vol-cancelar" hidden>Cancelar edição</button></div>
         </form>
         <h3>Importar uma lista de nomes</h3>
@@ -476,6 +477,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
         <h2 id="lv-titulo">Novo voluntário</h2>
         <form class="f" id="form-lv">
           <label class="l full" for="lv-nome">Nome<input type="text" id="lv-nome" required maxlength="80" autocomplete="off"></label>
+          <div class="full" style="display:flex;flex-direction:column;gap:6px"><span class="small" style="font-weight:500;color:var(--muted)">Cultos em que serve (sem marcar nenhum, serve em qualquer culto)</span><div class="checks" id="lv-cultos"></div></div>
           <div class="row full"><button class="btn" type="submit" id="lv-salvar">Adicionar voluntário</button><button class="btn sec" type="button" id="lv-cancelar" hidden>Cancelar edição</button></div>
         </form>
         <h3>Importar uma lista de nomes</h3>
@@ -662,11 +664,11 @@ function normalize(o){
   s.regras.exige.forEach(function(x){if(!Array.isArray(x.sems)){x.sems=x.sem?[x.sem]:[];}delete x.sem;x.papel=x.papel||'preg';x.func=x.func||'';x.pid=x.pid||'';});
   s.escala=s.escala&&typeof s.escala==='object'?s.escala:{};
   var oo=s.oanse||{};
-  s.oanse={voluntarios:(Array.isArray(oo.voluntarios)?oo.voluntarios:[]).filter(function(v){return v&&v.id&&v.nome;}),vagas:(oo.vagas&&typeof oo.vagas==='object')?oo.vagas:{},escala:(oo.escala&&typeof oo.escala==='object')?oo.escala:{},
+  s.oanse={voluntarios:(Array.isArray(oo.voluntarios)?oo.voluntarios:[]).filter(function(v){return v&&v.id&&v.nome;}).map(function(v){return {id:v.id,nome:v.nome,cultos:Array.isArray(v.cultos)?v.cultos:[]};}),vagas:(oo.vagas&&typeof oo.vagas==='object')?oo.vagas:{},escala:(oo.escala&&typeof oo.escala==='object')?oo.escala:{},
     indisp:(Array.isArray(oo.indisp)?oo.indisp:[]).filter(function(i){return i&&i.vid&&i.de&&i.ate;}),
     exige:(Array.isArray(oo.exige)?oo.exige:[]).filter(function(x){return x&&x.id&&Array.isArray(x.vids);}).map(function(x){return {id:x.id,cid:x.cid||'*',sems:Array.isArray(x.sems)?x.sems:[],vids:x.vids};})};
   var lo=s.lit||{};
-  s.lit={voluntarios:(Array.isArray(lo.voluntarios)?lo.voluntarios:[]).filter(function(v){return v&&v.id&&v.nome;}),vagas:(lo.vagas&&typeof lo.vagas==='object')?lo.vagas:{},escala:(lo.escala&&typeof lo.escala==='object')?lo.escala:{},
+  s.lit={voluntarios:(Array.isArray(lo.voluntarios)?lo.voluntarios:[]).filter(function(v){return v&&v.id&&v.nome;}).map(function(v){return {id:v.id,nome:v.nome,cultos:Array.isArray(v.cultos)?v.cultos:[]};}),vagas:(lo.vagas&&typeof lo.vagas==='object')?lo.vagas:{},escala:(lo.escala&&typeof lo.escala==='object')?lo.escala:{},
     indisp:(Array.isArray(lo.indisp)?lo.indisp:[]).filter(function(i){return i&&i.vid&&i.de&&i.ate;}),
     exige:(Array.isArray(lo.exige)?lo.exige:[]).filter(function(x){return x&&x.id&&Array.isArray(x.vids);}).map(function(x){return {id:x.id,cid:x.cid||'*',sems:Array.isArray(x.sems)?x.sems:[],vids:x.vids};})};
   Object.keys(s.lit.escala).forEach(function(k){var it=s.lit.escala[k];if(!it||!Array.isArray(it.ps)){delete s.lit.escala[k];return;}if(!Array.isArray(it.m)){it.m=it.ps.map(function(){return false;});}it.fx=!!it.fx;});
@@ -1075,6 +1077,19 @@ function oanseEntry(e,key,n){
   return it;
 }
 
+function cultosMarcados(id){return Array.prototype.map.call(document.querySelectorAll('#'+id+' input:checked'),function(i){return i.value;});}
+function fillVolCultos(id){
+  var keep=cultosMarcados(id);
+  $(id).innerHTML=S.cultos.length?sortedCultos().map(function(c){
+    return '<label><input type="checkbox" value="'+esc(c.id)+'"'+(keep.indexOf(c.id)>=0?' checked':'')+'> '+esc(cultoLabel(c))+'</label>';
+  }).join(''):'<span class="empty">Nenhum culto cadastrado.</span>';
+}
+function volPodeCulto(v,cid){return !v.cultos||!v.cultos.length||v.cultos.indexOf(cid)>=0;}
+function volCultosTags(v){
+  var t=(v.cultos||[]).map(cultoById).filter(Boolean).map(function(c){return '<span class="chip tag">'+DIAS3[c.dia]+' '+esc(c.hora)+'</span>';}).join('');
+  return '<span class="tags">'+(t||'<span class="small muted">Todos os cultos</span>')+'</span>';
+}
+
 /* completa as vagas dos cultos escolhidos. Devolve quantas vagas ficaram sem voluntário. */
 function generateOanse(from,to,cids,keep){
   var O=S.oanse,V=O.voluntarios,e={};
@@ -1111,7 +1126,7 @@ function generateOanse(from,to,cids,keep){
           if(it.ps[i]){continue;}
           var emDia={};
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
-          var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!oanseIndisp(v.id,d);});
+          var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!oanseIndisp(v.id,d)&&volPodeCulto(v,c.id);});
           var livres=cand.filter(function(v){return !emDia[v.id];});
           if(livres.length){cand=livres;}
           if(!cand.length){vazios++;continue;}
@@ -1206,8 +1221,9 @@ $('cal').addEventListener('click',function(e){
 function renderOanse(){
   var V=S.oanse.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-vols').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b></div><div class="row"><button class="btn sec mini" data-act="edit-vol" data-id="'+esc(v.id)+'">Editar</button><button class="btn danger mini" data-act="del-vol" data-id="'+esc(v.id)+'">Remover</button></div></li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div><div class="row"><button class="btn sec mini" data-act="edit-vol" data-id="'+esc(v.id)+'">Editar</button><button class="btn danger mini" data-act="del-vol" data-id="'+esc(v.id)+'">Remover</button></div></li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
+  fillVolCultos('vol-cultos');
   $('vol-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
   $('vagas-lista').innerHTML=cs.length?cs.map(function(c){
@@ -1239,13 +1255,13 @@ function delVol(id){
 }
 function editVolStart(id){
   var v=volById(id);if(!v){return;}
-  editVol=id;$('vol-nome').value=v.nome;$('vol-titulo').textContent='Editar voluntário';$('vol-salvar').textContent='Salvar alterações';$('vol-cancelar').hidden=false;
+  editVol=id;$('vol-nome').value=v.nome;Array.prototype.forEach.call(document.querySelectorAll('#vol-cultos input'),function(i){i.checked=(v.cultos||[]).indexOf(i.value)>=0;});$('vol-titulo').textContent='Editar voluntário';$('vol-salvar').textContent='Salvar alterações';$('vol-cancelar').hidden=false;
   $('form-vol').scrollIntoView({block:'nearest'});$('vol-nome').focus();
 }
 function parseNomes(txt){
   return String(txt).split(/\r?\n/).map(function(l){return limpaNome(l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,''));}).filter(Boolean);
 }
-function addNomes(lista){
+function addNomes(lista,cultos){
   var have={};S.oanse.voluntarios.forEach(function(v){have[nomeKey(v.nome)]=1;});
   var add=0,dup=0;
   lista.forEach(function(n){
@@ -1253,7 +1269,7 @@ function addNomes(lista){
     if(!k||n.length>80){return;}
     if(have[k]){dup++;return;}
     if(S.oanse.voluntarios.length>=300){return;}
-    have[k]=1;S.oanse.voluntarios.push({id:'v'+uid(),nome:n});add++;
+    have[k]=1;S.oanse.voluntarios.push({id:'v'+uid(),nome:n,cultos:(cultos||[]).slice()});add++;
   });
   return {add:add,dup:dup};
 }
@@ -1264,8 +1280,8 @@ $('form-vol').addEventListener('submit',function(e){
   var igual=S.oanse.voluntarios.find(function(v){return nomeKey(v.nome)===k&&v.id!==editVol;});
   if(igual){$('vol-msg').textContent='Esse nome já está cadastrado.';return;}
   $('vol-msg').textContent='';
-  if(editVol){var v=volById(editVol);if(v){v.nome=nome;}}
-  else{S.oanse.voluntarios.push({id:'v'+uid(),nome:nome});}
+  if(editVol){var v=volById(editVol);if(v){v.nome=nome;v.cultos=cultosMarcados('vol-cultos');}}
+  else{S.oanse.voluntarios.push({id:'v'+uid(),nome:nome,cultos:cultosMarcados('vol-cultos')});}
   resetVol();changed();
 });
 $('vol-cancelar').addEventListener('click',resetVol);
@@ -1287,7 +1303,7 @@ $('vol-arquivo').addEventListener('change',function(e){
 $('vol-importar').addEventListener('click',function(){
   var nomes=parseNomes($('vol-lista').value);
   if(!nomes.length){$('vol-msg').textContent='Cole ou carregue uma lista com um nome por linha.';return;}
-  var r=addNomes(nomes);
+  var r=addNomes(nomes,cultosMarcados('vol-cultos'));
   $('vol-lista').value='';
   $('vol-msg').textContent=r.add+' adicionado(s)'+(r.dup?', '+r.dup+' já existia(m)':'')+'.';
   if(r.add){changed();}
@@ -1325,6 +1341,7 @@ function pruneRefs(){
   var ok=function(k){var t=k.slice(0,2);return t==='p:'?!!pessoaById(k.slice(2)):t==='l:'?!!lvById(k.slice(2)):!!volById(k.slice(2));};
   S.familias=S.familias.map(function(f){return {id:f.id,nome:f.nome,membros:f.membros.filter(ok)};}).filter(function(f){return f.membros.length>1;});
   S.oanse.indisp=S.oanse.indisp.filter(function(i){return !!volById(i.vid);});
+  S.oanse.voluntarios.concat(S.lit.voluntarios).forEach(function(v){v.cultos=(v.cultos||[]).filter(function(id){return !!cultoById(id);});});
   S.lit.indisp=S.lit.indisp.filter(function(i){return !!lvById(i.vid);});
   S.lit.exige=S.lit.exige.map(function(x){return {id:x.id,cid:x.cid,sems:x.sems,vids:x.vids.filter(function(v){return !!lvById(v);})};})
     .filter(function(x){return x.vids.length&&(x.cid==='*'||cultoById(x.cid));});
@@ -1468,7 +1485,7 @@ function generateLit(from,to,cids,keep){
           if(it.ps[i]){continue;}
           var emDia={};
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
-          var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!litIndisp(v.id,d);});
+          var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!litIndisp(v.id,d)&&volPodeCulto(v,c.id);});
           var livres=cand.filter(function(v){return !emDia[v.id];});
           if(livres.length){cand=livres;}
           if(!cand.length){vazios++;continue;}
@@ -1563,8 +1580,9 @@ $('cal').addEventListener('click',function(e){
 function renderLit(){
   var V=S.lit.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-lvs').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b></div><div class="row"><button class="btn sec mini" data-act="edit-lv" data-id="'+esc(v.id)+'">Editar</button><button class="btn danger mini" data-act="del-lv" data-id="'+esc(v.id)+'">Remover</button></div></li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div><div class="row"><button class="btn sec mini" data-act="edit-lv" data-id="'+esc(v.id)+'">Editar</button><button class="btn danger mini" data-act="del-lv" data-id="'+esc(v.id)+'">Remover</button></div></li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
+  fillVolCultos('lv-cultos');
   $('lv-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
   $('lvagas-lista').innerHTML=cs.length?cs.map(function(c){
@@ -1596,10 +1614,10 @@ function delLV(id){
 }
 function editLVStart(id){
   var v=lvById(id);if(!v){return;}
-  editLV=id;$('lv-nome').value=v.nome;$('lv-titulo').textContent='Editar voluntário';$('lv-salvar').textContent='Salvar alterações';$('lv-cancelar').hidden=false;
+  editLV=id;$('lv-nome').value=v.nome;Array.prototype.forEach.call(document.querySelectorAll('#lv-cultos input'),function(i){i.checked=(v.cultos||[]).indexOf(i.value)>=0;});$('lv-titulo').textContent='Editar voluntário';$('lv-salvar').textContent='Salvar alterações';$('lv-cancelar').hidden=false;
   $('form-lv').scrollIntoView({block:'nearest'});$('lv-nome').focus();
 }
-function addNomesL(lista){
+function addNomesL(lista,cultos){
   var have={};S.lit.voluntarios.forEach(function(v){have[nomeKey(v.nome)]=1;});
   var add=0,dup=0;
   lista.forEach(function(n){
@@ -1607,7 +1625,7 @@ function addNomesL(lista){
     if(!k||n.length>80){return;}
     if(have[k]){dup++;return;}
     if(S.lit.voluntarios.length>=300){return;}
-    have[k]=1;S.lit.voluntarios.push({id:'l'+uid(),nome:n});add++;
+    have[k]=1;S.lit.voluntarios.push({id:'l'+uid(),nome:n,cultos:(cultos||[]).slice()});add++;
   });
   return {add:add,dup:dup};
 }
@@ -1618,8 +1636,8 @@ $('form-lv').addEventListener('submit',function(e){
   var igual=S.lit.voluntarios.find(function(v){return nomeKey(v.nome)===k&&v.id!==editLV;});
   if(igual){$('lv-msg').textContent='Esse nome já está cadastrado.';return;}
   $('lv-msg').textContent='';
-  if(editLV){var v=lvById(editLV);if(v){v.nome=nome;}}
-  else{S.lit.voluntarios.push({id:'l'+uid(),nome:nome});}
+  if(editLV){var v=lvById(editLV);if(v){v.nome=nome;v.cultos=cultosMarcados('lv-cultos');}}
+  else{S.lit.voluntarios.push({id:'l'+uid(),nome:nome,cultos:cultosMarcados('lv-cultos')});}
   resetLV();changed();
 });
 $('lv-cancelar').addEventListener('click',resetLV);
@@ -1641,7 +1659,7 @@ $('lv-arquivo').addEventListener('change',function(e){
 $('lv-importar').addEventListener('click',function(){
   var nomes=parseNomes($('lv-lista').value);
   if(!nomes.length){$('lv-msg').textContent='Cole ou carregue uma lista com um nome por linha.';return;}
-  var r=addNomesL(nomes);
+  var r=addNomesL(nomes,cultosMarcados('lv-cultos'));
   $('lv-lista').value='';
   $('lv-msg').textContent=r.add+' adicionado(s)'+(r.dup?', '+r.dup+' já existia(m)':'')+'.';
   if(r.add){changed();}
