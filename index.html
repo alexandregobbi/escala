@@ -142,6 +142,11 @@ details.ms[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
 details.ms summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ms-pane{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:6px 8px;display:flex;flex-direction:column;gap:4px;margin-top:4px}
 .ms-pane label{display:flex;align-items:center;gap:6px;font-size:13px}
+.sugl{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.sugl button{background:none;border:0;border-bottom:1px solid var(--line);padding:12px 14px;text-align:left;font:inherit;color:var(--ink);cursor:pointer;min-height:44px}
+.sugl button:last-child{border-bottom:0}
+.sugl button:hover,.sugl button:focus-visible{background:var(--bg)}
+.sugl[hidden]{display:none}
 .ms-pane .gr{display:flex;flex-direction:column;gap:4px}
 .ms-pane .grt{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:4px}
 .ms-pane label[hidden]{display:none}
