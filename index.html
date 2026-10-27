@@ -239,6 +239,16 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
 
   </section>
 
+  <!-- RESUMO PÚBLICO (só leitura) -->
+  <section id="panel-resumo-pub" class="panel" hidden>
+    <div class="row sp"><h2>Quem serve em cada função</h2><span class="hint" id="pub-mes"></span></div>
+    <p class="hint">Todas as funções do mês aberto acima, reunidas por pessoa.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Pessoa</th><th>Pregação</th><th>Avisos</th><th>Contato visitantes</th><th>OANSE</th><th>Liturgia</th></tr></thead>
+      <tbody id="pub-resumo"></tbody>
+    </table></div>
+  </section>
+
   <!-- PREGAÇÃO -->
   <section id="tab-pregacao" class="tabpane" hidden style="flex-direction:column;gap:18px">
     <div class="panel" id="panel-gerar">
@@ -999,7 +1009,7 @@ function renderEscala(){
     }).join('');
     rows+='<tr><td>'+esc(p.nome)+'</td><td>'+chip(p.funcao)+'</td>'+cells+'</tr>';
   });
-  restoreMS();restoreLMS();
+  restoreMS();restoreLMS();renderPublico();
   $('resumo').innerHTML=rows||'<tr><td colspan="5" class="empty">Cadastre pessoas para ver o resumo.</td></tr>';
 }
 
@@ -1716,6 +1726,37 @@ function gerarMod(pre){
   $('form-'+pre+'g').addEventListener('submit',function(e){e.preventDefault();gerarMod(pre);});
   $(pre+'g-cultos').addEventListener('change',function(e){var t=e.target;if(t.value){uncMod[pre][t.value]=!t.checked;}});
 });
+
+/* resumo público: todas as funções por pessoa, no mês aberto */
+function renderPublico(){
+  var box=$('panel-resumo-pub');box.hidden=EDIT;
+  if(EDIT){return;}
+  var ym=view.y+'-'+pad(view.m+1),M={};
+  function add(nome,col,date){
+    var k=nomeKey(nome),r=M[k]||(M[k]={nome:nome,c:[[],[],[],[],[]]});
+    if(r.c[col].indexOf(date)<0){r.c[col].push(date);}
+  }
+  Object.keys(S.escala).forEach(function(k){
+    var a=k.split('|');if(a[0].slice(0,7)!==ym){return;}
+    var p=pessoaById(S.escala[k].p);if(!p){return;}
+    add(p.nome,a[2]==='preg'?0:a[2]==='avisos'?1:2,a[0]);
+  });
+  Object.keys(S.oanse.escala).forEach(function(k){
+    var a=k.split('|');if(a[0].slice(0,7)!==ym){return;}
+    S.oanse.escala[k].ps.forEach(function(id){var v=volById(id);if(v){add(v.nome,3,a[0]);}});
+  });
+  Object.keys(S.lit.escala).forEach(function(k){
+    var a=k.split('|');if(a[0].slice(0,7)!==ym){return;}
+    S.lit.escala[k].ps.forEach(function(id){var v=lvById(id);if(v){add(v.nome,4,a[0]);}});
+  });
+  $('pub-mes').textContent=MESES[view.m]+' '+view.y;
+  var L=Object.keys(M).map(function(k){return M[k];}).sort(function(a,b){return a.nome.localeCompare(b.nome);});
+  $('pub-resumo').innerHTML=L.length?L.map(function(r){
+    return '<tr><td>'+esc(r.nome)+'</td>'+r.c.map(function(ds){
+      ds.sort();return '<td>'+(ds.length?ds.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td>';
+    }).join('')+'</tr>';
+  }).join(''):'<tr><td colspan="6" class="empty">Nenhuma escala neste mês.</td></tr>';
+}
 
 /* ---------- tela: cadastros e regras ---------- */
 var editCulto=null,editPessoa=null;
