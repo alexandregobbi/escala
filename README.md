@@ -17,3 +17,7 @@ Site com a escala de pregação e avisos dos cultos.
 3. Faça um novo deploy (**Deployments → Redeploy**) para as variáveis valerem.
 
 Enquanto o banco não estiver configurado, a página mostra a escala que vem embutida no `index.html`, só para consulta.
+
+## Usuários e permissões
+
+Na aba **Usuários** (só administrador) é possível criar usuários com nome de usuário, senha e as áreas que podem alterar: Pregação/avisos/contato (e Regras), OANSE, Liturgia, e Cultos/Pessoas/Famílias. Quem entra sem nome de usuário, com `ADMIN_PASSWORD`, é o administrador. O servidor só grava as partes liberadas para cada usuário. Os usuários ficam no Redis na chave `escala:usuarios` (senhas com scrypt), separados dos dados públicos.

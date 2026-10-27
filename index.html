@@ -185,13 +185,15 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
     <div class="adm">
       <span id="status" class="status warn">Carregando…</span>
-      <button class="btn sec mini" id="adm-abrir" type="button">Entrar como administrador</button>
+      <button class="btn sec mini" id="adm-abrir" type="button">Entrar</button>
       <form id="adm-form" class="row" hidden>
-        <input type="password" id="adm-senha" autocomplete="current-password" placeholder="Senha" aria-label="Senha do administrador">
+        <input type="text" id="adm-login" autocomplete="username" placeholder="Usuário (vazio = administrador)" aria-label="Usuário" autocapitalize="none" style="width:200px">
+        <input type="password" id="adm-senha" autocomplete="current-password" placeholder="Senha" aria-label="Senha">
         <button class="btn mini" type="submit">Entrar</button>
         <button class="btn sec mini" type="button" id="adm-cancelar">Cancelar</button>
       </form>
       <button class="btn sec mini" id="adm-sair" type="button" hidden>Sair</button>
+      <span id="adm-quem" class="small muted"></span>
       <span id="adm-msg" class="small" aria-live="polite"></span>
     </div>
   </header>
@@ -205,6 +207,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <button role="tab" data-tab="oanse" aria-selected="false">OANSE</button>
     <button role="tab" data-tab="liturgia" aria-selected="false">Liturgia</button>
     <button role="tab" data-tab="familias" aria-selected="false">Famílias</button>
+    <button role="tab" data-tab="usuarios" aria-selected="false">Usuários</button>
   </nav>
 
   <div id="banner"></div>
@@ -566,6 +569,31 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel"><h2>Famílias cadastradas</h2><ul class="list" id="lista-fams"></ul></div>
   </section>
 
+  <!-- USUÁRIOS -->
+  <section id="tab-usuarios" class="tabpane grid2" hidden>
+    <div class="panel">
+      <h2 id="usr-titulo">Novo usuário</h2>
+      <p class="hint">Cada usuário entra com o próprio nome de usuário e senha e só altera as áreas liberadas aqui. Quem entra sem nome de usuário, com a senha do administrador, tem acesso a tudo.</p>
+      <form class="f" id="form-usr">
+        <label class="l" for="usr-nome">Nome<input type="text" id="usr-nome" required maxlength="60" autocomplete="off"></label>
+        <label class="l" for="usr-login">Usuário (para entrar)<input type="text" id="usr-login" required maxlength="30" autocomplete="off" autocapitalize="none" placeholder="ex.: lili"></label>
+        <label class="l full" for="usr-senha">Senha<input type="password" id="usr-senha" autocomplete="new-password" placeholder="Pelo menos 6 caracteres"></label>
+        <div class="l full" role="group" aria-labelledby="usr-perm-t">
+          <span id="usr-perm-t">Pode gerar e alterar</span>
+          <div class="checks" id="usr-perms">
+            <label><input type="checkbox" value="pregacao"> Pregação, avisos e contato (inclui a aba Regras)</label>
+            <label><input type="checkbox" value="oanse"> OANSE</label>
+            <label><input type="checkbox" value="liturgia"> Liturgia</label>
+            <label><input type="checkbox" value="cadastros"> Cultos, Pessoas e Famílias</label>
+          </div>
+        </div>
+        <div class="row full"><button class="btn" type="submit" id="usr-salvar">Criar usuário</button><button class="btn sec" type="button" id="usr-cancelar" hidden>Cancelar edição</button></div>
+        <div class="hint full" id="usr-msg" aria-live="polite"></div>
+      </form>
+    </div>
+    <div class="panel"><h2>Usuários cadastrados</h2><ul class="list" id="lista-usr"></ul></div>
+  </section>
+
   <footer class="bk">
     <span>Os dados ficam salvos no servidor e todos veem a versão mais recente. Se quiser, guarde uma cópia de segurança.</span>
     <button class="btn sec mini" id="bk-baixar" type="button">Baixar backup</button>
@@ -684,11 +712,15 @@ function normalize(o){
 }
 var S=exemplo();
 (function(){try{var t=$('dados').textContent;if(t&&t.trim()&&t.trim()!=='null'){S=normalize(JSON.parse(t));}}catch(e){}})();
-var EDIT=false, saving=false, dirty=false, timer=null, curTab='escala', ver=0, PWD='', online=false;
-var PKEY='escala-admin', UIKEY='escala-ui';
+var EDIT=false, saving=false, dirty=false, timer=null, curTab='escala', ver=0, CRED={login:'',pw:''}, USER={admin:false,nome:'',perms:[]}, online=false;
+var PKEY='escala-admin', CKEY='escala-cred', UIKEY='escala-ui';
+var TABPERM={pregacao:'pregacao',regras:'pregacao',cultos:'cadastros',pessoas:'cadastros',familias:'cadastros',oanse:'oanse',liturgia:'liturgia',usuarios:'admin'};
+function can(mod){return EDIT&&(USER.admin||USER.perms.indexOf(mod)>=0);}
+function tabOk(name){var p=TABPERM[name];return !p||can(p);}
+function setUser(r,cred){EDIT=true;CRED=cred;USER={admin:!!r.admin,nome:r.nome||'',perms:Array.isArray(r.perms)?r.perms:[]};try{localStorage.setItem(CKEY,JSON.stringify(cred));localStorage.removeItem(PKEY);}catch(e){}}
 
-function api(method,body,pwd){
-  var h={'content-type':'application/json'};if(pwd){h['x-admin-password']=pwd;}
+function api(method,body,cred){
+  var h={'content-type':'application/json'};if(cred&&cred.pw){h['x-admin-password']=cred.pw;h['x-login']=cred.login||'';}
   return fetch('/api/escala',{method:method,headers:h,cache:'no-store',body:body?JSON.stringify(body):undefined})
     .then(function(r){return r.json().catch(function(){return {};}).then(function(j){j.status=r.status;return j;});});
 }
@@ -718,8 +750,9 @@ function flush(){
   if(!EDIT){return;}
   if(saving){timer=setTimeout(flush,400);return;}
   saving=true;dirty=false;saveUI();
-  api('PUT',{v:ver,data:S},PWD).then(function(r){
-    if(r.status===200){ver=r.v;setStatus('Salvo','ok');}
+  api('PUT',{v:ver,data:S},CRED).then(function(r){
+    if(r.status===200){ver=r.v;setStatus('Salvo','ok');if(r.data&&!dirty){S=normalize(r.data);render();}}
+    else if(r.status===403){setStatus('Você não tem permissão para salvar isso','bad');}
     else if(r.status===409){dirty=false;setStatus('Alterada em outro aparelho. Recarregando…','bad');return load(true).then(function(){render();});}
     else if(r.status===401){logout();setStatus('Senha não confere. Entre de novo.','bad');}
     else if(r.status===503){setStatus('Servidor sem banco de dados configurado','bad');}
@@ -737,7 +770,9 @@ function load(force){
   },function(){online=false;});
 }
 function showTab(name){
+  if(!tabOk(name)){name='escala';}
   curTab=name;
+  if(name==='usuarios'&&typeof carregaUsuarios==='function'){carregaUsuarios();}
   Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(x){x.setAttribute('aria-selected',x.dataset.tab===name?'true':'false');});
   Array.prototype.forEach.call(document.querySelectorAll('.tabpane'),function(p){p.hidden=(p.id!=='tab-'+name);});
 }
@@ -745,33 +780,45 @@ function applyMode(){
   var ro=!EDIT;
   document.querySelector('nav.tabs').hidden=ro;
   ['panel-gerar','banner','status','cal-hint'].forEach(function(id){$(id).hidden=ro;});
-  document.querySelector('footer.bk').hidden=ro;
+  document.querySelector('footer.bk').hidden=ro||!USER.admin;
+  Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(x){x.hidden=!tabOk(x.dataset.tab);});
+  $('adm-quem').textContent=ro?'':USER.nome+(USER.admin?'':' (acesso limitado)');
   $('adm-abrir').hidden=!ro||!$('adm-form').hidden;
   $('adm-sair').hidden=ro;
   if(!ro){setStatus(S.example?'Exemplo: edite qualquer coisa para começar':'Salvo',S.example?'warn':'ok');}
   if(ro){curTab='escala';}
 }
 function logout(){
-  PWD='';EDIT=false;try{localStorage.removeItem(PKEY);}catch(e){}
+  CRED={login:'',pw:''};USER={admin:false,nome:'',perms:[]};EDIT=false;try{localStorage.removeItem(PKEY);localStorage.removeItem(CKEY);}catch(e){}
   applyMode();render();showTab('escala');
 }
 function boot(){
   var sy=restoreUI();
-  try{PWD=localStorage.getItem(PKEY)||'';}catch(e){PWD='';}
+  try{
+    var cj=localStorage.getItem(CKEY);
+    if(cj){CRED=JSON.parse(cj)||CRED;}
+    else{var old=localStorage.getItem(PKEY);if(old){CRED={login:'',pw:old};}}
+  }catch(e){CRED={login:'',pw:''};}
   clampMonth();applyMode();render();showTab(curTab);
   load().then(function(){
-    if(PWD&&online){return api('POST',{action:'login'},PWD).then(function(r){
-      if(r.status===200){EDIT=true;}else{PWD='';try{localStorage.removeItem(PKEY);}catch(e){}}
+    if(CRED.pw&&online){return api('POST',{action:'login'},CRED).then(function(r){
+      if(r.status===200){setUser(r,CRED);}else{CRED={login:'',pw:''};try{localStorage.removeItem(PKEY);localStorage.removeItem(CKEY);}catch(e){}}
     },function(){});}
   }).then(function(){
     if(S.example&&!Object.keys(S.escala).length){generate(S.periodo.de,S.periodo.ate,null);}
     clampMonth();applyMode();render();showTab(curTab);
     if(sy){window.scrollTo(0,sy);}
   });
-  document.addEventListener('visibilitychange',function(){
-    if(document.visibilityState==='visible'&&!EDIT&&online){load().then(function(){render();});}
-  });
-  setInterval(function(){if(document.visibilityState==='visible'&&!EDIT&&online){load().then(function(){render();});}},90000);
+  function atualiza(){
+    if(document.visibilityState!=='visible'||!online){return;}
+    if(!EDIT){load().then(function(){render();});return;}
+    if(dirty||saving){return;}
+    api('GET').then(function(r){
+      if(r.status===200&&r.data&&(r.v||0)!==ver&&!dirty&&!saving){S=normalize(r.data);ver=r.v||0;render();}
+    },function(){});
+  }
+  document.addEventListener('visibilitychange',atualiza);
+  setInterval(atualiza,90000);
 }
 
 /* ---------- motor de regras ---------- */
@@ -918,7 +965,7 @@ function renderGerarCultos(){
 function rowHTML(date,c,papel){
   var key=mk(date,c.id,papel),it=S.escala[key],has=Object.keys(S.escala).length>0;
   var lab=viewMode==='lista'?(papel==='preg'?'Pregador':PNOME[papel]):PNOME[papel];
-  if(!EDIT){
+  if(!can('pregacao')){
     var pp=it&&pessoaById(it.p);
     return {empty:false,html:'<div class="r"><div class="rt">'+lab+'</div><div class="who">'+(pp?esc(pp.nome)+' <span class="small muted">('+esc(pp.funcao)+')</span>':'<span class="muted">A definir</span>')+'</div></div>'};
   }
@@ -942,7 +989,7 @@ function visitHTML(date){
   var key=mk(date,'*','visit'),it=S.escala[key],has=Object.keys(S.escala).length>0;
   var w=parse(date).getDay();
   var cabecalho='<div class="sh"><b>'+PNOME.visit+'</b><span>todos os cultos do dia</span></div>';
-  if(!EDIT){
+  if(!can('pregacao')){
     var pp=it&&pessoaById(it.p);
     return '<div class="slot dia"><div class="sh"><b>'+PNOME.visit+'</b><span>dia todo</span></div><div class="r"><div class="rt">Responsável</div><div class="who">'+(pp?esc(pp.nome)+' <span class="small muted">('+esc(pp.funcao)+')</span>':'<span class="muted">A definir</span>')+'</div></div></div>';
   }
@@ -1157,7 +1204,7 @@ function oanseHTML(date,c){
   var key=date+'|'+c.id,real=S.oanse.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=volById(id);return v?v.nome:'';}).filter(Boolean);
-  if(!EDIT){
+  if(!can('oanse')){
     return '<div class="r"><div class="rt">OANSE</div><div class="who">'+(nomes.length?esc(nomes.join(', ')):'<span class="muted">A definir</span>')+'</div></div>';
   }
   var outros={};
@@ -1516,7 +1563,7 @@ function litHTML(date,c){
   var key=date+'|'+c.id,real=S.lit.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=lvById(id);return v?v.nome:'';}).filter(Boolean);
-  if(!EDIT){
+  if(!can('liturgia')){
     return '<div class="r"><div class="rt">Liturgia</div><div class="who">'+(nomes.length?esc(nomes.join(', ')):'<span class="muted">A definir</span>')+'</div></div>';
   }
   var outros={};
@@ -1776,6 +1823,42 @@ function renderPublico(){
   }).join(''):'<tr><td colspan="6" class="empty">Nenhuma escala neste mês.</td></tr>';
 }
 
+/* ---------- usuários e permissões (só administrador) ---------- */
+var USERS=[],editUsr=null;
+var PERMNOME={pregacao:'Pregação, avisos e contato',oanse:'OANSE',liturgia:'Liturgia',cadastros:'Cultos, Pessoas e Famílias'};
+function renderUsuarios(){
+  if(!USER.admin){return;}
+  $('lista-usr').innerHTML=USERS.length?USERS.map(function(u){
+    var t=u.perms.map(function(p){return '<span class="chip tag">'+esc(PERMNOME[p]||p)+'</span>';}).join(' ')||'<span class="small muted">Sem permissões (só visualiza)</span>';
+    return '<li><div class="main"><b>'+esc(u.nome)+'</b><span class="small muted">Usuário: '+esc(u.login)+'</span><span class="tags">'+t+'</span></div><div class="row"><button class="btn sec mini" data-act="edit-usr" data-id="'+esc(u.id)+'">Editar</button><button class="btn danger mini" data-act="del-usr" data-id="'+esc(u.id)+'">Remover</button></div></li>';
+  }).join(''):'<li class="empty">Nenhum usuário criado ainda.</li>';
+}
+function carregaUsuarios(){
+  if(!USER.admin){return;}
+  api('POST',{action:'users-list'},CRED).then(function(r){if(r.status===200){USERS=r.users||[];renderUsuarios();}});
+}
+function resetUsr(){editUsr=null;$('form-usr').reset();$('usr-titulo').textContent='Novo usuário';$('usr-salvar').textContent='Criar usuário';$('usr-cancelar').hidden=true;$('usr-senha').placeholder='Pelo menos 6 caracteres';}
+function editUsrStart(id){
+  var u=USERS.find(function(x){return x.id===id;});if(!u){return;}
+  editUsr=id;$('usr-nome').value=u.nome;$('usr-login').value=u.login;$('usr-senha').value='';$('usr-senha').placeholder='Deixe em branco para manter a senha';
+  Array.prototype.forEach.call(document.querySelectorAll('#usr-perms input'),function(i){i.checked=u.perms.indexOf(i.value)>=0;});
+  $('usr-titulo').textContent='Editar usuário';$('usr-salvar').textContent='Salvar alterações';$('usr-cancelar').hidden=false;
+  $('form-usr').scrollIntoView({block:'nearest'});$('usr-nome').focus();
+}
+$('form-usr').addEventListener('submit',function(e){
+  e.preventDefault();
+  var perms=Array.prototype.map.call(document.querySelectorAll('#usr-perms input:checked'),function(i){return i.value;});
+  var o={action:'users-save',id:editUsr,nome:$('usr-nome').value.trim(),login:$('usr-login').value.trim().toLowerCase(),senha:$('usr-senha').value,perms:perms};
+  api('POST',o,CRED).then(function(r){
+    if(r.status===200){USERS=r.users||[];resetUsr();renderUsuarios();$('usr-msg').textContent='Usuário salvo.';}
+    else if(r.status===409){$('usr-msg').textContent='Esse nome de usuário já existe.';}
+    else if(r.error==='login'){$('usr-msg').textContent='Use de 3 a 30 letras minúsculas, números, ponto, traço ou sublinhado, sem espaços.';}
+    else if(r.error==='senha'){$('usr-msg').textContent='A senha precisa ter pelo menos 6 caracteres.';}
+    else{$('usr-msg').textContent='Não foi possível salvar o usuário.';}
+  },function(){$('usr-msg').textContent='Sem conexão com o servidor.';});
+});
+$('usr-cancelar').addEventListener('click',function(){resetUsr();$('usr-msg').textContent='';});
+
 /* ---------- tela: cadastros e regras ---------- */
 var editCulto=null,editPessoa=null;
 function fillSel(id,html){var el=$(id),v=el.value;el.innerHTML=html;if(Array.prototype.some.call(el.options,function(o){return o.value===v;})){el.value=v;}}
@@ -1878,6 +1961,8 @@ document.addEventListener('click',function(e){
     changed();
   }else if(act==='del-exige'){S.regras.exige=S.regras.exige.filter(function(x){return x.id!==id;});changed();}
   else if(act==='del-indisp'){S.regras.indisp=S.regras.indisp.filter(function(x){return x.id!==id;});changed();}
+  else if(act==='edit-usr'){editUsrStart(id);}
+  else if(act==='del-usr'){api('POST',{action:'users-del',id:id},CRED).then(function(r){if(r.status===200){USERS=r.users||[];if(editUsr===id){resetUsr();}renderUsuarios();$('usr-msg').textContent='Usuário removido.';}});}
   else if(act==='edit-vol'){editVolStart(id);}
   else if(act==='del-vol'){delVol(id);}
   else if(act==='edit-lv'){editLVStart(id);}
@@ -2017,13 +2102,14 @@ $('adm-cancelar').addEventListener('click',function(){$('adm-form').hidden=true;
 $('adm-form').addEventListener('submit',function(e){
   e.preventDefault();
   var pw=$('adm-senha').value;if(!pw){return;}
+  var cred={login:$('adm-login').value.trim().toLowerCase(),pw:pw};
   $('adm-msg').textContent='Verificando…';
-  api('POST',{action:'login'},pw).then(function(r){
+  api('POST',{action:'login'},cred).then(function(r){
     if(r.status===200){
-      PWD=pw;EDIT=true;try{localStorage.setItem(PKEY,pw);}catch(e2){}
-      $('adm-senha').value='';$('adm-form').hidden=true;$('adm-msg').textContent='';
+      setUser(r,cred);
+      $('adm-senha').value='';$('adm-login').value='';$('adm-form').hidden=true;$('adm-msg').textContent='';
       load().then(function(){if(S.example&&!Object.keys(S.escala).length){generate(S.periodo.de,S.periodo.ate,null);}clampMonth();applyMode();render();showTab(curTab);});
-    }else if(r.status===401){$('adm-msg').textContent='Senha incorreta.';}
+    }else if(r.status===401){$('adm-msg').textContent='Usuário ou senha incorretos.';}
     else if(r.status===503){$('adm-msg').textContent='O servidor ainda não tem a senha ou o banco configurados.';}
     else{$('adm-msg').textContent='Não foi possível entrar. Tente de novo.';}
   },function(){$('adm-msg').textContent='Sem conexão com o servidor.';});

@@ -1,11 +1,25 @@
 /* Função da Vercel: guarda a escala no Upstash Redis.
-   GET  /api/escala            -> qualquer pessoa lê
-   POST /api/escala            -> {action:'login'} confere a senha de administrador
-   PUT  /api/escala            -> {v, data} grava (exige a senha no cabeçalho x-admin-password) */
+   GET  /api/escala  -> qualquer pessoa lê
+   POST /api/escala  -> {action:'login'} confere usuário e senha
+                        {action:'users-list'|'users-save'|'users-del'} gerencia usuários (só administrador)
+   PUT  /api/escala  -> {v, data} grava
+   Credenciais nos cabeçalhos: x-login (vazio = administrador) e x-admin-password.
+   O administrador usa a senha ADMIN_PASSWORD. Os demais usuários só gravam as áreas liberadas para eles. */
 const crypto = require('crypto');
 
 const KEY = 'escala:dados';
+const UKEY = 'escala:usuarios';
 const MAX_BYTES = 400 * 1024;
+
+/* permissão -> partes dos dados que ela libera */
+const PERMS = {
+  pregacao: ['escala', 'regras'],
+  oanse: ['oanse'],
+  liturgia: ['lit'],
+  cadastros: ['cultos', 'pessoas', 'familias'],
+};
+/* partes que qualquer usuário com acesso pode alterar (período mostrado no calendário) */
+const META = ['periodo', 'periodos', 'v', 'example', 'stale'];
 
 function dbConfig() {
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
@@ -29,6 +43,12 @@ function sameSecret(a, b) {
   const ha = crypto.createHash('sha256').update(String(a)).digest();
   const hb = crypto.createHash('sha256').update(String(b)).digest();
   return crypto.timingSafeEqual(ha, hb);
+}
+
+function hashSenha(senha, salt) {
+  return new Promise((resolve, reject) => {
+    crypto.scrypt(String(senha), salt, 32, (e, k) => (e ? reject(e) : resolve(k.toString('hex'))));
+  });
 }
 
 function send(res, status, obj) {
@@ -57,6 +77,57 @@ async function read() {
   }
 }
 
+async function readUsers() {
+  const raw = await redis(['GET', UKEY]);
+  if (!raw) return [];
+  try {
+    const o = JSON.parse(raw);
+    return Array.isArray(o.users) ? o.users : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function cleanPerms(p) {
+  return Object.keys(PERMS).filter((k) => Array.isArray(p) && p.indexOf(k) >= 0);
+}
+
+function publicUser(u) {
+  return { id: u.id, nome: u.nome, login: u.login, perms: cleanPerms(u.perms) };
+}
+
+/* quem está chamando: {admin:true} ou {admin:false,user} ou null */
+async function authenticate(req) {
+  const admin = process.env.ADMIN_PASSWORD;
+  const login = String(req.headers['x-login'] || '').trim().toLowerCase();
+  const given = String(req.headers['x-admin-password'] || '');
+  if (!login) {
+    if (!admin) return { error: 503 };
+    return sameSecret(given, admin) ? { admin: true } : null;
+  }
+  if (!dbConfig()) return { error: 503 };
+  const users = await readUsers();
+  const u = users.find((x) => x.login === login);
+  if (!u) {
+    await hashSenha(given, 'x'.repeat(16)).catch(() => {});
+    return null;
+  }
+  const h = await hashSenha(given, u.salt);
+  if (!sameSecret(h, u.hash)) return null;
+  return { admin: false, user: u };
+}
+
+/* aplica sobre os dados gravados só o que o usuário pode alterar */
+function mergeForUser(stored, sent, perms) {
+  const out = Object.assign({}, stored);
+  const keys = new Set(META);
+  perms.forEach((p) => (PERMS[p] || []).forEach((k) => keys.add(k)));
+  keys.forEach((k) => {
+    if (Object.prototype.hasOwnProperty.call(sent, k)) out[k] = sent[k];
+  });
+  return out;
+}
+
 module.exports = async function handler(req, res) {
   try {
     if (req.method === 'GET') {
@@ -66,17 +137,60 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'POST' || req.method === 'PUT') {
-      const admin = process.env.ADMIN_PASSWORD;
-      if (!admin) return send(res, 503, { error: 'no_password' });
-      const given = req.headers['x-admin-password'] || '';
-      if (!sameSecret(given, admin)) {
+      const who = await authenticate(req);
+      if (who && who.error) return send(res, 503, { error: 'no_password' });
+      if (!who) {
         await new Promise((r) => setTimeout(r, 500));
         return send(res, 401, { error: 'unauthorized' });
       }
       const body = readBody(req);
 
       if (req.method === 'POST') {
-        return send(res, 200, { ok: true });
+        const action = body.action;
+        if (action === 'login') {
+          return send(res, 200, who.admin
+            ? { ok: true, admin: true, nome: 'Administrador', perms: Object.keys(PERMS) }
+            : { ok: true, admin: false, nome: who.user.nome, perms: cleanPerms(who.user.perms) });
+        }
+        if (!who.admin) return send(res, 403, { error: 'forbidden' });
+        if (!dbConfig()) return send(res, 503, { error: 'not_configured' });
+        const users = await readUsers();
+        if (action === 'users-list') {
+          return send(res, 200, { users: users.map(publicUser) });
+        }
+        if (action === 'users-del') {
+          const rest = users.filter((u) => u.id !== body.id);
+          await redis(['SET', UKEY, JSON.stringify({ users: rest })]);
+          return send(res, 200, { users: rest.map(publicUser) });
+        }
+        if (action === 'users-save') {
+          const nome = String(body.nome || '').trim().slice(0, 60);
+          const login = String(body.login || '').trim().toLowerCase();
+          const senha = String(body.senha || '');
+          if (!nome) return send(res, 400, { error: 'nome' });
+          if (!/^[a-z0-9._-]{3,30}$/.test(login)) return send(res, 400, { error: 'login' });
+          if (users.some((u) => u.login === login && u.id !== body.id)) return send(res, 409, { error: 'login_em_uso' });
+          let u = body.id ? users.find((x) => x.id === body.id) : null;
+          if (body.id && !u) return send(res, 404, { error: 'not_found' });
+          if (!u) {
+            if (senha.length < 6) return send(res, 400, { error: 'senha' });
+            if (users.length >= 50) return send(res, 400, { error: 'limite' });
+            u = { id: 'u' + crypto.randomBytes(5).toString('hex') };
+            users.push(u);
+          } else if (senha && senha.length < 6) {
+            return send(res, 400, { error: 'senha' });
+          }
+          u.nome = nome;
+          u.login = login;
+          u.perms = cleanPerms(body.perms);
+          if (senha) {
+            u.salt = crypto.randomBytes(16).toString('hex');
+            u.hash = await hashSenha(senha, u.salt);
+          }
+          await redis(['SET', UKEY, JSON.stringify({ users })]);
+          return send(res, 200, { users: users.map(publicUser) });
+        }
+        return send(res, 400, { error: 'action' });
       }
 
       if (!dbConfig()) return send(res, 503, { error: 'not_configured' });
@@ -84,14 +198,27 @@ module.exports = async function handler(req, res) {
       if (!d || typeof d !== 'object' || !Array.isArray(d.cultos) || !Array.isArray(d.pessoas)) {
         return send(res, 400, { error: 'bad_data' });
       }
-      const expected = Number(body.v) || 0;
       const cur = await read();
-      if (cur.v !== expected) return send(res, 409, { error: 'conflict', v: cur.v });
+
+      if (who.admin) {
+        const expected = Number(body.v) || 0;
+        if (cur.v !== expected) return send(res, 409, { error: 'conflict', v: cur.v });
+        const next = cur.v + 1;
+        const value = JSON.stringify({ v: next, data: d });
+        if (Buffer.byteLength(value) > MAX_BYTES) return send(res, 413, { error: 'too_large' });
+        await redis(['SET', KEY, value]);
+        return send(res, 200, { ok: true, v: next });
+      }
+
+      const perms = cleanPerms(who.user.perms);
+      if (!perms.length) return send(res, 403, { error: 'forbidden' });
+      if (!cur.data) return send(res, 409, { error: 'sem_dados' });
+      const merged = mergeForUser(cur.data, d, perms);
       const next = cur.v + 1;
-      const value = JSON.stringify({ v: next, data: d });
+      const value = JSON.stringify({ v: next, data: merged });
       if (Buffer.byteLength(value) > MAX_BYTES) return send(res, 413, { error: 'too_large' });
       await redis(['SET', KEY, value]);
-      return send(res, 200, { ok: true, v: next });
+      return send(res, 200, { ok: true, v: next, data: merged });
     }
 
     res.setHeader('Allow', 'GET, POST, PUT');
