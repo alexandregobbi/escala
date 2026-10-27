@@ -404,16 +404,18 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
           <div class="full" style="display:flex;flex-direction:column;gap:6px"><span class="small" style="font-weight:500;color:var(--muted)">Cultos em que serve (sem marcar nenhum, serve em qualquer culto)</span><div class="checks" id="vol-cultos"></div></div>
           <div class="row full"><button class="btn" type="submit" id="vol-salvar">Adicionar voluntário</button><button class="btn sec" type="button" id="vol-cancelar" hidden>Cancelar edição</button></div>
         </form>
+        <div id="vol-imp">
         <h3>Importar uma lista de nomes</h3>
         <p class="hint">Carregue um arquivo de texto (.txt) com um nome por linha, ou cole a lista abaixo. Nomes repetidos são ignorados.</p>
         <label class="l" for="vol-arquivo">Arquivo de texto<input type="file" id="vol-arquivo" accept=".txt,.csv,text/plain"></label>
         <label class="l" for="vol-lista">Lista de nomes<textarea id="vol-lista" class="txt" style="min-height:120px" placeholder="Maria Silva&#10;João Souza"></textarea></label>
         <div class="row"><button class="btn sec" type="button" id="vol-importar">Adicionar nomes da lista</button></div>
+        </div>
         <div class="hint" id="vol-msg" aria-live="polite"></div>
       </div>
       <div class="panel">
         <div class="row sp"><h2>Voluntários OANSE</h2><span class="hint" id="vol-total"></span></div>
-        <p class="hint">Vêm do cadastro de Pessoas (marque OANSE lá). Quem tem permissão de cadastros também pode adicionar nomes aqui, que entram no cadastro único.</p>
+        <p class="hint">Vêm do cadastro de Pessoas (marque OANSE lá). Quem administra o ministério também pode incluir pessoas aqui, uma por vez; quem tem a permissão de cadastros ainda pode importar listas.</p>
         <ul class="list" id="lista-vols"></ul>
       </div>
     </div>
@@ -497,16 +499,18 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
           <div class="full" style="display:flex;flex-direction:column;gap:6px"><span class="small" style="font-weight:500;color:var(--muted)">Cultos em que serve (sem marcar nenhum, serve em qualquer culto)</span><div class="checks" id="lv-cultos"></div></div>
           <div class="row full"><button class="btn" type="submit" id="lv-salvar">Adicionar voluntário</button><button class="btn sec" type="button" id="lv-cancelar" hidden>Cancelar edição</button></div>
         </form>
+        <div id="lv-imp">
         <h3>Importar uma lista de nomes</h3>
         <p class="hint">Carregue um arquivo de texto (.txt) com um nome por linha, ou cole a lista abaixo. Nomes repetidos são ignorados.</p>
         <label class="l" for="lv-arquivo">Arquivo de texto<input type="file" id="lv-arquivo" accept=".txt,.csv,text/plain"></label>
         <label class="l" for="lv-lista">Lista de nomes<textarea id="lv-lista" class="txt" style="min-height:120px" placeholder="Maria Silva&#10;João Souza"></textarea></label>
         <div class="row"><button class="btn sec" type="button" id="lv-importar">Adicionar nomes da lista</button></div>
+        </div>
         <div class="hint" id="lv-msg" aria-live="polite"></div>
       </div>
       <div class="panel">
         <div class="row sp"><h2>Voluntários da Liturgia</h2><span class="hint" id="lv-total"></span></div>
-        <p class="hint">Vêm do cadastro de Pessoas (marque Liturgia lá). Quem tem permissão de cadastros também pode adicionar nomes aqui, que entram no cadastro único.</p>
+        <p class="hint">Vêm do cadastro de Pessoas (marque Liturgia lá). Quem administra o ministério também pode incluir pessoas aqui, uma por vez; quem tem a permissão de cadastros ainda pode importar listas.</p>
         <ul class="list" id="lista-lvs"></ul>
       </div>
     </div>
@@ -1204,6 +1208,21 @@ function tiraDasEscalas(id,mod){
     });
   });
 }
+function pessoaMinist(p){
+  var r=p.papeis.map(function(x){return PNOME[x];}).concat(p.oanse?['OANSE']:[],p.lit?['Liturgia']:[]);
+  return r.length?r.join(', '):'cadastro';
+}
+/* ao digitar o nome de alguém já cadastrado, preenche os cultos dele e avisa onde ele já serve */
+function autoPreenche(pre,flag,nome,editando){
+  $(pre+'-nome').addEventListener('input',function(e){
+    if(editando()){return;}
+    var k=nomeKey(e.target.value),p=k&&S.pessoas.find(function(x){return nomeKey(x.nome)===k;});
+    if(!p){$(pre+'-msg').textContent='';return;}
+    if(p[flag]){$(pre+'-msg').textContent=p.nome+' já está na '+nome+'.';return;}
+    Array.prototype.forEach.call(document.querySelectorAll('#'+pre+'-cultos input'),function(i){i.checked=p.cultos.indexOf(i.value)>=0;});
+    $(pre+'-msg').textContent=p.nome+' já está cadastrado(a) ('+pessoaMinist(p)+'). Ao adicionar, será incluído(a) na '+nome+'.';
+  });
+}
 function cultosMarcados(id){return Array.prototype.map.call(document.querySelectorAll('#'+id+' input:checked'),function(i){return i.value;});}
 function fillVolCultos(id){
   var keep=cultosMarcados(id);
@@ -1352,7 +1371,8 @@ function renderOanse(){
     return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('oanse')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-vol" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-vol" data-id="'+esc(v.id)+'">Tirar da OANSE</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-vol').parentNode.hidden=!can('oanse');
-  $('vol-sug').innerHTML=S.pessoas.filter(function(p){return !p.oanse;}).sort(function(a,b){return a.nome.localeCompare(b.nome);}).map(function(p){return '<option value="'+esc(p.nome)+'">';}).join('');
+  $('vol-imp').hidden=!can('cadastros');
+  $('vol-sug').innerHTML=S.pessoas.filter(function(p){return !p.oanse;}).sort(function(a,b){var x=(a.oanse||a.lit)?0:1,y=(b.oanse||b.lit)?0:1;return x-y||a.nome.localeCompare(b.nome);}).map(function(p){return '<option value="'+esc(p.nome)+'" label="'+esc(pessoaMinist(p))+'">';}).join('');
   fillVolCultos('vol-cultos');
   $('vol-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
@@ -1430,6 +1450,7 @@ $('vol-arquivo').addEventListener('change',function(e){
   ler(null);e.target.value='';
 });
 $('vol-importar').addEventListener('click',function(){
+  if(!can('cadastros')){return;}
   var nomes=parseNomes($('vol-lista').value);
   if(!nomes.length){$('vol-msg').textContent='Cole ou carregue uma lista com um nome por linha.';return;}
   var r=addNomes(nomes,cultosMarcados('vol-cultos'));
@@ -1714,7 +1735,8 @@ function renderLit(){
     return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('liturgia')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-lv" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-lv" data-id="'+esc(v.id)+'">Tirar da Liturgia</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-lv').parentNode.hidden=!can('liturgia');
-  $('lv-sug').innerHTML=S.pessoas.filter(function(p){return !p.lit;}).sort(function(a,b){return a.nome.localeCompare(b.nome);}).map(function(p){return '<option value="'+esc(p.nome)+'">';}).join('');
+  $('lv-imp').hidden=!can('cadastros');
+  $('lv-sug').innerHTML=S.pessoas.filter(function(p){return !p.lit;}).sort(function(a,b){var x=(a.oanse||a.lit)?0:1,y=(b.oanse||b.lit)?0:1;return x-y||a.nome.localeCompare(b.nome);}).map(function(p){return '<option value="'+esc(p.nome)+'" label="'+esc(pessoaMinist(p))+'">';}).join('');
   fillVolCultos('lv-cultos');
   $('lv-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
@@ -1789,6 +1811,7 @@ $('lv-arquivo').addEventListener('change',function(e){
   ler(null);e.target.value='';
 });
 $('lv-importar').addEventListener('click',function(){
+  if(!can('cadastros')){return;}
   var nomes=parseNomes($('lv-lista').value);
   if(!nomes.length){$('lv-msg').textContent='Cole ou carregue uma lista com um nome por linha.';return;}
   var r=addNomesL(nomes,cultosMarcados('lv-cultos'));
@@ -1907,6 +1930,9 @@ function renderPublico(){
     }).join('')+'</tr>';
   }).join(''):'<tr><td colspan="6" class="empty">Nenhuma escala neste mês.</td></tr>';
 }
+
+autoPreenche('vol','oanse','OANSE',function(){return editVol;});
+autoPreenche('lv','lit','Liturgia',function(){return editLV;});
 
 /* ---------- usuários e permissões (só administrador) ---------- */
 var USERS=[],editUsr=null;
