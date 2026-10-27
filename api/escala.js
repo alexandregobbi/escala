@@ -19,7 +19,7 @@ const PERMS = {
   cadastros: ['cultos', 'pessoas', 'familias'],
 };
 /* partes que qualquer usuário com acesso pode alterar (período mostrado no calendário) */
-const META = ['periodo', 'periodos', 'v', 'example', 'stale'];
+const META = ['periodo', 'periodos', 'example', 'stale'];
 
 function dbConfig() {
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
