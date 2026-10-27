@@ -198,6 +198,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
 
   <nav class="tabs" role="tablist" aria-label="Seções">
     <button role="tab" data-tab="escala" aria-selected="true">Escala</button>
+    <button role="tab" data-tab="pregacao" aria-selected="false">Pregação</button>
     <button role="tab" data-tab="cultos" aria-selected="false">Cultos</button>
     <button role="tab" data-tab="pessoas" aria-selected="false">Pessoas</button>
     <button role="tab" data-tab="regras" aria-selected="false">Regras</button>
@@ -210,28 +211,6 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
 
   <!-- ESCALA -->
   <section id="tab-escala" class="tabpane" style="display:flex;flex-direction:column;gap:18px">
-    <div class="panel" id="panel-gerar">
-      <div class="row sp">
-        <h2>Gerar escala</h2>
-        <span class="hint">Pregadores ajustados à mão ficam fixos e não são trocados na geração.</span>
-      </div>
-      <form class="f" id="form-gerar">
-        <label class="l" for="p-de">De<input type="date" id="p-de" required></label>
-        <label class="l" for="p-ate">Até<input type="date" id="p-ate" required></label>
-        <div class="full" style="display:flex;flex-direction:column;gap:6px">
-          <span class="small" style="font-weight:500;color:var(--muted)">Cultos a gerar</span>
-          <div class="checks" id="g-cultos"></div>
-        </div>
-        <div class="full checks"><label><input type="checkbox" id="g-manter"> Manter o que já está preenchido e só completar os espaços vazios</label></div>
-        <div class="row full">
-          <button class="btn" type="submit" id="btn-gerar">Gerar escala</button>
-          <button class="btn danger" type="button" id="btn-limpar" data-act="limpar">Limpar automáticas</button>
-          <button class="btn danger" type="button" id="btn-limpar-tudo" data-act="limpar-tudo">Limpar tudo</button>
-        </div>
-      </form>
-      <div id="msg" class="hint" aria-live="polite"></div>
-    </div>
-
     <div class="panel">
       <div class="row sp">
         <div class="row">
@@ -248,6 +227,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
           <button class="btn sec" id="btn-texto">Texto para WhatsApp</button>
         </div>
       </div>
+      <div id="msg" class="hint" aria-live="polite"></div>
       <div class="cal-head" aria-hidden="true"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
       <div id="cal" class="cal"></div>
       <div class="hint" id="cal-hint">Troque o pregador direto no calendário. Os cultos seguintes (que não foram ajustados à mão) são recalculados pelas regras.</div>
@@ -255,6 +235,32 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
         <textarea id="texto" class="txt" readonly aria-label="Escala do mês em texto"></textarea>
         <div class="row"><button class="btn" id="btn-copiar">Copiar texto</button><span id="copiado" class="hint" aria-live="polite"></span></div>
       </div>
+    </div>
+
+  </section>
+
+  <!-- PREGAÇÃO -->
+  <section id="tab-pregacao" class="tabpane" hidden style="flex-direction:column;gap:18px">
+    <div class="panel" id="panel-gerar">
+      <div class="row sp">
+        <h2>Gerar escala de pregação, avisos e contato</h2>
+        <span class="hint">Gera pregação, avisos e contato com visitantes. A OANSE e a Liturgia têm o próprio botão de gerar. Ajustes feitos à mão ficam fixos.</span>
+      </div>
+      <form class="f" id="form-gerar">
+        <label class="l" for="p-de">De<input type="date" id="p-de" required></label>
+        <label class="l" for="p-ate">Até<input type="date" id="p-ate" required></label>
+        <div class="full" style="display:flex;flex-direction:column;gap:6px">
+          <span class="small" style="font-weight:500;color:var(--muted)">Cultos a gerar</span>
+          <div class="checks" id="g-cultos"></div>
+        </div>
+        <div class="full checks"><label><input type="checkbox" id="g-manter"> Manter o que já está preenchido e só completar os espaços vazios</label></div>
+        <div class="row full">
+          <button class="btn" type="submit" id="btn-gerar">Gerar escala</button>
+          <button class="btn danger" type="button" id="btn-limpar" data-act="limpar">Limpar automáticas</button>
+          <button class="btn danger" type="button" id="btn-limpar-tudo" data-act="limpar-tudo">Limpar tudo</button>
+        </div>
+      </form>
+      <div id="msg-preg" class="hint" aria-live="polite"></div>
     </div>
 
     <div class="panel">
@@ -352,6 +358,20 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
 
   <!-- OANSE -->
   <section id="tab-oanse" class="tabpane" hidden style="flex-direction:column;gap:18px">
+    <div class="panel">
+      <h2>Gerar escala da OANSE</h2>
+      <p class="hint">Gera só a OANSE. Pregação, avisos e contato não são alterados. O que você marcou à mão fica fixo.</p>
+      <form class="f" id="form-og">
+        <label class="l" for="og-de">De<input type="date" id="og-de" required></label>
+        <label class="l" for="og-ate">Até<input type="date" id="og-ate" required></label>
+        <div class="full" style="display:flex;flex-direction:column;gap:6px">
+          <span class="small" style="font-weight:500;color:var(--muted)">Cultos a gerar</span>
+          <div class="checks" id="og-cultos"></div>
+        </div>
+        <div class="full checks"><label><input type="checkbox" id="og-manter"> Manter o que já está preenchido e só completar os espaços vazios</label></div>
+        <div class="row full"><button class="btn" type="submit">Gerar escala da OANSE</button></div>
+      </form>
+    </div>
     <div class="grid2">
       <div class="panel">
         <h2 id="vol-titulo">Novo voluntário</h2>
@@ -427,6 +447,20 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
   </section>
 
   <section id="tab-liturgia" class="tabpane" hidden style="flex-direction:column;gap:18px">
+    <div class="panel">
+      <h2>Gerar escala da Liturgia</h2>
+      <p class="hint">Gera só a Liturgia. Pregação, avisos e contato não são alterados. O que você marcou à mão fica fixo.</p>
+      <form class="f" id="form-lg">
+        <label class="l" for="lg-de">De<input type="date" id="lg-de" required></label>
+        <label class="l" for="lg-ate">Até<input type="date" id="lg-ate" required></label>
+        <div class="full" style="display:flex;flex-direction:column;gap:6px">
+          <span class="small" style="font-weight:500;color:var(--muted)">Cultos a gerar</span>
+          <div class="checks" id="lg-cultos"></div>
+        </div>
+        <div class="full checks"><label><input type="checkbox" id="lg-manter"> Manter o que já está preenchido e só completar os espaços vazios</label></div>
+        <div class="row full"><button class="btn" type="submit">Gerar escala da Liturgia</button></div>
+      </form>
+    </div>
     <div class="grid2">
       <div class="panel">
         <h2 id="lv-titulo">Novo voluntário</h2>
@@ -857,7 +891,7 @@ var view={y:new Date().getFullYear(),m:new Date().getMonth()};
 var unchecked={};
 var viewMode='lista';
 try{if(localStorage.getItem('escala-modo')==='cal'){viewMode='cal';}}catch(e){}
-function setMsg(t){$('msg').textContent=t||'';}
+function setMsg(t){$('msg').textContent=t||'';var m=$('msg-preg');if(m){m.textContent=t||'';}}
 function chip(f){return '<span class="chip '+FCLS[f]+'">'+esc(f)+'</span>';}
 function igShort(n){return String(n);}
 function selectedCultos(){return S.cultos.filter(function(c){return !unchecked[c.id];}).map(function(c){return c.id;});}
@@ -1008,10 +1042,9 @@ function gerar(){
   S.periodo={de:de,ate:ate};
   S.periodos=mergeRanges(S.periodos.concat([{de:de,ate:ate}]));
   var v=generate(de,ate,cids,$('g-manter').checked),total=slotsIn(de,ate,cids).length;
-  var vo=generateOanse(de,ate,cids,$('g-manter').checked),vl=generateLit(de,ate,cids,$('g-manter').checked);
   var d=parse(de);view={y:d.getFullYear(),m:d.getMonth()};
   touch();render();
-  setMsg('Escala gerada para '+cids.length+' culto(s): '+total+' espaços de escala'+(v.length?', '+v.length+' sem pessoa disponível.':', todos preenchidos.')+(vo?' OANSE: '+vo+' vaga(s) sem voluntário.':'')+(vl?' Liturgia: '+vl+' vaga(s) sem voluntário.':''));
+  setMsg('Escala gerada para '+cids.length+' culto(s): '+total+' espaços de escala'+(v.length?', '+v.length+' sem pessoa disponível.':', todos preenchidos.'));
 }
 
 /* ---------- OANSE: voluntários e escala por culto ---------- */
@@ -1181,7 +1214,7 @@ function renderOanse(){
     return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('vol-mes').textContent=MESES[view.m]+' '+view.y;
-  renderOanseRegras();
+  renderOanseRegras();renderGerarMod('o');
 }
 function resetVol(){editVol=null;$('form-vol').reset();$('vol-titulo').textContent='Novo voluntário';$('vol-salvar').textContent='Adicionar voluntário';$('vol-cancelar').hidden=true;}
 function delVol(id){
@@ -1538,7 +1571,7 @@ function renderLit(){
     return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('lv-mes').textContent=MESES[view.m]+' '+view.y;
-  renderLitRegras();
+  renderLitRegras();renderGerarMod('l');
 }
 function resetLV(){editLV=null;$('form-lv').reset();$('lv-titulo').textContent='Novo voluntário';$('lv-salvar').textContent='Adicionar voluntário';$('lv-cancelar').hidden=true;}
 function delLV(id){
@@ -1651,6 +1684,38 @@ $('form-li').addEventListener('submit',function(e){
   $('form-li').reset();changed();
 });
 function litIndisp(vid,date){return S.lit.indisp.find(function(i){return i.vid===vid&&date>=i.de&&date<=i.ate;});}
+
+/* ---------- gerar a escala de cada módulo ---------- */
+var uncMod={o:{},l:{}};
+function modCfg(pre){
+  return pre==='o'?{O:S.oanse,gen:generateOanse,vag:vagasDe,nome:'OANSE',msg:'oanse-msg'}:{O:S.lit,gen:generateLit,vag:lvagasDe,nome:'Liturgia',msg:'lit-msg'};
+}
+function renderGerarMod(pre){
+  var cs=sortedCultos().filter(function(c){return modCfg(pre).vag(c)>0;});
+  $(pre+'g-cultos').innerHTML=cs.length?cs.map(function(c){
+    return '<label><input type="checkbox" value="'+esc(c.id)+'"'+(uncMod[pre][c.id]?'':' checked')+'> '+esc(cultoLabel(c))+'</label>';
+  }).join(''):'<span class="empty">Defina as vagas dos cultos mais abaixo.</span>';
+  if(!$(pre+'g-de').value){$(pre+'g-de').value=S.periodo.de;}
+  if(!$(pre+'g-ate').value){$(pre+'g-ate').value=S.periodo.ate;}
+}
+function gerarMod(pre){
+  var cf=modCfg(pre),de=$(pre+'g-de').value,ate=$(pre+'g-ate').value,out=$(cf.msg);
+  var cids=Array.prototype.map.call(document.querySelectorAll('#'+pre+'g-cultos input:checked'),function(i){return i.value;});
+  if(!de||!ate||de>ate){out.textContent='Informe um período válido: a data inicial deve vir antes da final.';return;}
+  if(dnum(ate)-dnum(de)>400){out.textContent='Use um período de até 400 dias.';return;}
+  if(!cf.O.voluntarios.length){out.textContent='Cadastre voluntários antes de gerar.';return;}
+  if(!cids.length){out.textContent='Marque pelo menos um culto com vagas.';return;}
+  S.periodo={de:de,ate:ate};
+  S.periodos=mergeRanges(S.periodos.concat([{de:de,ate:ate}]));
+  var v=cf.gen(de,ate,cids,$(pre+'g-manter').checked);
+  var d=parse(de);view={y:d.getFullYear(),m:d.getMonth()};
+  S.example=false;touch();render();
+  $(cf.msg).textContent='Escala da '+cf.nome+' gerada para '+cids.length+' culto(s).'+(v?' '+v+' vaga(s) ficaram sem voluntário.':' Todas as vagas preenchidas.');
+}
+['o','l'].forEach(function(pre){
+  $('form-'+pre+'g').addEventListener('submit',function(e){e.preventDefault();gerarMod(pre);});
+  $(pre+'g-cultos').addEventListener('change',function(e){var t=e.target;if(t.value){uncMod[pre][t.value]=!t.checked;}});
+});
 
 /* ---------- tela: cadastros e regras ---------- */
 var editCulto=null,editPessoa=null;
@@ -1787,15 +1852,11 @@ document.addEventListener('click',function(e){
   }else if(act==='limpar-tudo'){
     var sel2=selectedCultos(),P=formPeriodo();
     Object.keys(S.escala).forEach(function(k){var a=k.split('|');if(a[0]>=P.de&&a[0]<=P.ate&&(a[1]==='*'?selDia(a[0],sel2):sel2.indexOf(a[1])>=0)){delete S.escala[k];}});
-    Object.keys(S.oanse.escala).forEach(function(k){var a=k.split('|');if(a[0]>=P.de&&a[0]<=P.ate&&sel2.indexOf(a[1])>=0){delete S.oanse.escala[k];}});
-    Object.keys(S.lit.escala).forEach(function(k){var a=k.split('|');if(a[0]>=P.de&&a[0]<=P.ate&&sel2.indexOf(a[1])>=0){delete S.lit.escala[k];}});
-    touch();render();setMsg('Escala dos cultos marcados removida, incluindo os ajustes manuais.');
+    touch();render();setMsg('Pregação, avisos e contato dos cultos marcados removidos, incluindo os ajustes manuais. OANSE e Liturgia não foram alteradas.');
   }else if(act==='limpar'){
     var sel=selectedCultos(),P=formPeriodo();
     Object.keys(S.escala).forEach(function(k){var a=k.split('|');if(!S.escala[k].manual&&a[0]>=P.de&&a[0]<=P.ate&&(a[1]==='*'?selDia(a[0],sel):sel.indexOf(a[1])>=0)){delete S.escala[k];}});
-    Object.keys(S.oanse.escala).forEach(function(k){var a=k.split('|'),it=S.oanse.escala[k];if(a[0]>=P.de&&a[0]<=P.ate&&sel.indexOf(a[1])>=0&&!it.fx){it.ps=it.ps.map(function(x,q){return it.m[q]?x:'';});if(!it.ps.some(Boolean)){delete S.oanse.escala[k];}}});
-    Object.keys(S.lit.escala).forEach(function(k){var a=k.split('|'),it=S.lit.escala[k];if(a[0]>=P.de&&a[0]<=P.ate&&sel.indexOf(a[1])>=0&&!it.fx){it.ps=it.ps.map(function(x,q){return it.m[q]?x:'';});if(!it.ps.some(Boolean)){delete S.lit.escala[k];}}});
-    touch();render();setMsg('Escala automática dos cultos marcados removida. Os ajustes manuais foram mantidos.');
+    touch();render();setMsg('Pregação, avisos e contato automáticos removidos. Os ajustes manuais foram mantidos. OANSE e Liturgia não foram alteradas.');
   }
 });
 
