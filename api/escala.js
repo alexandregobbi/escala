@@ -152,6 +152,23 @@ module.exports = async function handler(req, res) {
             ? { ok: true, admin: true, nome: 'Administrador', perms: Object.keys(PERMS) }
             : { ok: true, admin: false, nome: who.user.nome, perms: cleanPerms(who.user.perms) });
         }
+        if (action === 'change-password') {
+          if (who.admin) return send(res, 400, { error: 'admin_env' });
+          const atual = String(body.atual || '');
+          const nova = String(body.nova || '');
+          if (nova.length < 6 || nova.length > 100) return send(res, 400, { error: 'senha' });
+          if (!sameSecret(atual, String(req.headers['x-admin-password'] || ''))) {
+            await new Promise((r) => setTimeout(r, 500));
+            return send(res, 401, { error: 'atual' });
+          }
+          const all = await readUsers();
+          const me = all.find((x) => x.id === who.user.id);
+          if (!me) return send(res, 404, { error: 'not_found' });
+          me.salt = crypto.randomBytes(16).toString('hex');
+          me.hash = await hashSenha(nova, me.salt);
+          await redis(['SET', UKEY, JSON.stringify({ users: all })]);
+          return send(res, 200, { ok: true });
+        }
         if (!who.admin) return send(res, 403, { error: 'forbidden' });
         if (!dbConfig()) return send(res, 503, { error: 'not_configured' });
         const users = await readUsers();

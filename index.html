@@ -192,6 +192,14 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
         <button class="btn mini" type="submit">Entrar</button>
         <button class="btn sec mini" type="button" id="adm-cancelar">Cancelar</button>
       </form>
+      <button class="btn sec mini" id="pw-abrir" type="button" hidden>Alterar senha</button>
+      <form id="pw-form" class="row" hidden>
+        <input type="password" id="pw-atual" autocomplete="current-password" placeholder="Senha atual" aria-label="Senha atual" style="width:140px">
+        <input type="password" id="pw-nova" autocomplete="new-password" placeholder="Nova senha (6+)" aria-label="Nova senha" style="width:150px">
+        <input type="password" id="pw-nova2" autocomplete="new-password" placeholder="Repita a nova senha" aria-label="Repita a nova senha" style="width:160px">
+        <button class="btn mini" type="submit">Salvar senha</button>
+        <button class="btn sec mini" type="button" id="pw-cancelar">Cancelar</button>
+      </form>
       <button class="btn sec mini" id="adm-sair" type="button" hidden>Sair</button>
       <span id="adm-quem" class="small muted"></span>
       <span id="adm-msg" class="small" aria-live="polite"></span>
@@ -785,6 +793,8 @@ function applyMode(){
   $('adm-quem').textContent=ro?'':USER.nome+(USER.admin?'':' (acesso limitado)');
   $('adm-abrir').hidden=!ro||!$('adm-form').hidden;
   $('adm-sair').hidden=ro;
+  $('pw-abrir').hidden=ro||USER.admin||!$('pw-form').hidden;
+  if(ro||USER.admin){$('pw-form').hidden=true;}
   if(!ro){setStatus(S.example?'Exemplo: edite qualquer coisa para começar':'Salvo',S.example?'warn':'ok');}
   if(ro){curTab='escala';}
 }
@@ -2115,6 +2125,24 @@ $('adm-form').addEventListener('submit',function(e){
   },function(){$('adm-msg').textContent='Sem conexão com o servidor.';});
 });
 $('adm-sair').addEventListener('click',logout);
+function fechaSenha(){$('pw-form').hidden=true;$('pw-form').reset();$('pw-abrir').hidden=!EDIT||USER.admin;}
+$('pw-abrir').addEventListener('click',function(){$('pw-form').hidden=false;$('pw-abrir').hidden=true;$('adm-msg').textContent='';$('pw-atual').focus();});
+$('pw-cancelar').addEventListener('click',function(){fechaSenha();$('adm-msg').textContent='';});
+$('pw-form').addEventListener('submit',function(e){
+  e.preventDefault();
+  var a=$('pw-atual').value,n=$('pw-nova').value,n2=$('pw-nova2').value;
+  if(n.length<6){$('adm-msg').textContent='A nova senha precisa ter pelo menos 6 caracteres.';return;}
+  if(n!==n2){$('adm-msg').textContent='As duas senhas novas não são iguais.';return;}
+  $('adm-msg').textContent='Salvando…';
+  api('POST',{action:'change-password',atual:a,nova:n},CRED).then(function(r){
+    if(r.status===200){
+      CRED={login:CRED.login,pw:n};try{localStorage.setItem(CKEY,JSON.stringify(CRED));}catch(e2){}
+      fechaSenha();$('adm-msg').textContent='Senha alterada.';
+    }else if(r.status===401){$('adm-msg').textContent='A senha atual não confere.';}
+    else if(r.status===400){$('adm-msg').textContent='Nova senha inválida (de 6 a 100 caracteres).';}
+    else{$('adm-msg').textContent='Não foi possível alterar a senha.';}
+  },function(){$('adm-msg').textContent='Sem conexão com o servidor.';});
+});
 
 boot();
 })();
