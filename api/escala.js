@@ -16,8 +16,18 @@ const PERMS = {
   pregacao: ['escala', 'regras'],
   oanse: ['oanse'],
   liturgia: ['lit'],
+  bibkids: ['bibkids'],
+  cantina: ['cantina'],
+  iluminacao: ['iluminacao'],
+  live: ['live'],
+  louvor: ['louvor'],
+  parking: ['parking'],
+  projecao: ['projecao'],
+  recepcao: ['recepcao'],
+  som: ['som'],
   cadastros: ['cultos', 'pessoas', 'familias'],
 };
+const MINISTERIOS = ['bibkids', 'cantina', 'iluminacao', 'live', 'louvor', 'parking', 'projecao', 'recepcao', 'som'];
 /* partes que qualquer usuário com acesso pode alterar (período mostrado no calendário) */
 const META = ['periodo', 'periodos', 'example', 'stale'];
 
@@ -126,8 +136,11 @@ function nomeKey(n) {
    acrescentar cultos a quem entra no módulo e cadastrar pessoas novas (só nos próprios módulos). */
 function mergePessoas(storedList, sentList, storedCultos, perms) {
   const mods = [];
-  if (perms.indexOf('oanse') >= 0) mods.push('oanse');
-  if (perms.indexOf('liturgia') >= 0) mods.push('lit');
+  perms.forEach((p) => {
+    if (p === 'oanse') mods.push('oanse');
+    else if (p === 'liturgia') mods.push('lit');
+    else if (MINISTERIOS.indexOf(p) >= 0) mods.push(p);
+  });
   const cultoIds = new Set((Array.isArray(storedCultos) ? storedCultos : []).map((c) => c && c.id));
   const out = (Array.isArray(storedList) ? storedList : []).map((p) => Object.assign({}, p));
   if (!mods.length || !Array.isArray(sentList)) return out;
@@ -154,7 +167,8 @@ function mergePessoas(storedList, sentList, storedCultos, perms) {
       oanse: mods.indexOf('oanse') >= 0 && sp.oanse === true,
       lit: mods.indexOf('lit') >= 0 && sp.lit === true,
     };
-    if (!novo.oanse && !novo.lit) return;
+    mods.forEach((m) => { if (m !== 'oanse' && m !== 'lit') novo[m] = sp[m] === true; });
+    if (!mods.some((m) => novo[m])) return;
     names.add(nomeKey(nome));
     byId.set(novo.id, novo);
     out.push(novo);
@@ -164,7 +178,7 @@ function mergePessoas(storedList, sentList, storedCultos, perms) {
 
 function mergeForUser(stored, sent, perms) {
   const out = Object.assign({}, stored);
-  if (perms.indexOf('cadastros') < 0 && (perms.indexOf('oanse') >= 0 || perms.indexOf('liturgia') >= 0)) {
+  if (perms.indexOf('cadastros') < 0 && perms.some((p) => p === 'oanse' || p === 'liturgia' || MINISTERIOS.indexOf(p) >= 0)) {
     out.pessoas = mergePessoas(stored.pessoas, sent.pessoas, stored.cultos, perms);
   }
   const keys = new Set(META);
