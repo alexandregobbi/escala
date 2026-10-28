@@ -142,6 +142,9 @@ details.ms[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
 details.ms summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ms-pane{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:6px 8px;display:flex;flex-direction:column;gap:4px;margin-top:4px}
 .ms-pane label{display:flex;align-items:center;gap:6px;font-size:13px}
+.vg{grid-column:1/-1;display:flex;flex-direction:column;gap:6px;padding:10px 0;border-bottom:1px solid var(--line)}
+.vg-sem .row{gap:10px;flex-wrap:wrap}
+.vg-sem label{display:flex;align-items:center;gap:4px}
 .sugl{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
 .sugl button{background:none;border:0;border-bottom:1px solid var(--line);padding:12px 14px;text-align:left;font:inherit;color:var(--ink);cursor:pointer;min-height:44px}
 .sugl button:last-child{border-bottom:0}
@@ -451,7 +454,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
     <div class="panel">
       <h2>Voluntários por culto</h2>
-      <p class="hint">Quantos voluntários cada culto precisa. Para cultos com "Mogi" no nome da igreja, a sugestão é 4 no culto da manhã e 2 nos demais. Use 0 para um culto sem OANSE. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
+      <p class="hint">Quantos voluntários cada culto precisa. Para cultos com "Mogi" no nome da igreja, a sugestão é 4 no culto da manhã e 2 nos demais. Se o número muda conforme o domingo do mês (por exemplo, no 2º e no 4º), preencha as caixas 1ª a 5ª do culto; vazio usa o padrão. Use 0 para um culto sem OANSE. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
       <div class="f" id="vagas-lista"></div>
     </div>
     <div class="grid2">
@@ -546,7 +549,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
     <div class="panel">
       <h2>Voluntários por culto</h2>
-      <p class="hint">Quantas pessoas cada culto precisa na Liturgia. Use 0 para um culto sem Liturgia. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
+      <p class="hint">Quantas pessoas cada culto precisa na Liturgia. Se o número muda conforme o domingo do mês (por exemplo, no 2º e no 4º), preencha as caixas 1ª a 5ª do culto; vazio usa o padrão. Use 0 para um culto sem Liturgia. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
       <div class="f" id="lvagas-lista"></div>
     </div>
     <div class="grid2">
@@ -641,7 +644,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
     <div class="panel">
       <h2>Voluntários por culto</h2>
-      <p class="hint">Quantas pessoas cada culto precisa na Bibkids. Use 0 para um culto sem Bibkids. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
+      <p class="hint">Quantas pessoas cada culto precisa na Bibkids. Se o número muda conforme o domingo do mês (por exemplo, no 2º e no 4º), preencha as caixas 1ª a 5ª do culto; vazio usa o padrão. Use 0 para um culto sem Bibkids. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
       <div class="f" id="bibkids-vagas-lista"></div>
     </div>
     <div class="grid2">
@@ -736,7 +739,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
     <div class="panel">
       <h2>Voluntários por culto</h2>
-      <p class="hint">Quantas pessoas cada culto precisa na Cantina. Use 0 para um culto sem Cantina. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
+      <p class="hint">Quantas pessoas cada culto precisa na Cantina. Se o número muda conforme o domingo do mês (por exemplo, no 2º e no 4º), preencha as caixas 1ª a 5ª do culto; vazio usa o padrão. Use 0 para um culto sem Cantina. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
       <div class="f" id="cantina-vagas-lista"></div>
     </div>
     <div class="grid2">
@@ -831,7 +834,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
     <div class="panel">
       <h2>Voluntários por culto</h2>
-      <p class="hint">Quantas pessoas cada culto precisa na Iluminação. Use 0 para um culto sem Iluminação. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
+      <p class="hint">Quantas pessoas cada culto precisa na Iluminação. Se o número muda conforme o domingo do mês (por exemplo, no 2º e no 4º), preencha as caixas 1ª a 5ª do culto; vazio usa o padrão. Use 0 para um culto sem Iluminação. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
       <div class="f" id="iluminacao-vagas-lista"></div>
     </div>
     <div class="grid2">
@@ -926,7 +929,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
     <div class="panel">
       <h2>Voluntários por culto</h2>
-      <p class="hint">Quantas pessoas cada culto precisa na Live. Use 0 para um culto sem Live. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
+      <p class="hint">Quantas pessoas cada culto precisa na Live. Se o número muda conforme o domingo do mês (por exemplo, no 2º e no 4º), preencha as caixas 1ª a 5ª do culto; vazio usa o padrão. Use 0 para um culto sem Live. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
       <div class="f" id="live-vagas-lista"></div>
     </div>
     <div class="grid2">
@@ -1021,7 +1024,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
     <div class="panel">
       <h2>Voluntários por culto</h2>
-      <p class="hint">Quantas pessoas cada culto precisa na Louvor. Use 0 para um culto sem Louvor. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
+      <p class="hint">Quantas pessoas cada culto precisa na Louvor. Se o número muda conforme o domingo do mês (por exemplo, no 2º e no 4º), preencha as caixas 1ª a 5ª do culto; vazio usa o padrão. Use 0 para um culto sem Louvor. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
       <div class="f" id="louvor-vagas-lista"></div>
     </div>
     <div class="grid2">
@@ -1116,7 +1119,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
     <div class="panel">
       <h2>Voluntários por culto</h2>
-      <p class="hint">Quantas pessoas cada culto precisa na Parking. Use 0 para um culto sem Parking. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
+      <p class="hint">Quantas pessoas cada culto precisa na Parking. Se o número muda conforme o domingo do mês (por exemplo, no 2º e no 4º), preencha as caixas 1ª a 5ª do culto; vazio usa o padrão. Use 0 para um culto sem Parking. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
       <div class="f" id="parking-vagas-lista"></div>
     </div>
     <div class="grid2">
@@ -1211,7 +1214,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
     <div class="panel">
       <h2>Voluntários por culto</h2>
-      <p class="hint">Quantas pessoas cada culto precisa na Projeção. Use 0 para um culto sem Projeção. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
+      <p class="hint">Quantas pessoas cada culto precisa na Projeção. Se o número muda conforme o domingo do mês (por exemplo, no 2º e no 4º), preencha as caixas 1ª a 5ª do culto; vazio usa o padrão. Use 0 para um culto sem Projeção. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
       <div class="f" id="projecao-vagas-lista"></div>
     </div>
     <div class="grid2">
@@ -1306,7 +1309,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
     <div class="panel">
       <h2>Voluntários por culto</h2>
-      <p class="hint">Quantas pessoas cada culto precisa na Recepção. Use 0 para um culto sem Recepção. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
+      <p class="hint">Quantas pessoas cada culto precisa na Recepção. Se o número muda conforme o domingo do mês (por exemplo, no 2º e no 4º), preencha as caixas 1ª a 5ª do culto; vazio usa o padrão. Use 0 para um culto sem Recepção. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
       <div class="f" id="recepcao-vagas-lista"></div>
     </div>
     <div class="grid2">
@@ -1401,7 +1404,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
     <div class="panel">
       <h2>Voluntários por culto</h2>
-      <p class="hint">Quantas pessoas cada culto precisa na Som. Use 0 para um culto sem Som. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
+      <p class="hint">Quantas pessoas cada culto precisa na Som. Se o número muda conforme o domingo do mês (por exemplo, no 2º e no 4º), preencha as caixas 1ª a 5ª do culto; vazio usa o padrão. Use 0 para um culto sem Som. Ao gerar a escala, os voluntários são distribuídos por igual e evita-se repetir a mesma pessoa de manhã e à noite no mesmo dia.</p>
       <div class="f" id="som-vagas-lista"></div>
     </div>
     <div class="grid2">
@@ -1554,7 +1557,38 @@ var MINS=[
   {k:'recepcao',perm:'recepcao',tab:'recepcao',nome:'Recepção',pre:'recepcao',html:html_recepcao,gen:generate_recepcao,vag:vagas_recepcao,render:render_recepcao,restore:restore_recepcao,byId:vById_recepcao,editing:function(){return edit_recepcao;},reset:reset_recepcao,msg:'recepcao-msg'},
   {k:'som',perm:'som',tab:'som',nome:'Som',pre:'som',html:html_som,gen:generate_som,vag:vagas_som,render:render_som,restore:restore_som,byId:vById_som,editing:function(){return edit_som;},reset:reset_som,msg:'som-msg'}
 ];
-function minVazio(){return {voluntarios:[],vagas:{},escala:{},indisp:[],exige:[]};}
+function minVazio(){return {voluntarios:[],vagas:{},vagasSem:{},escala:{},indisp:[],exige:[]};}
+/* vagas por domingo do mês: S[k].vagasSem[cultoId][semana] sobrepõe o número padrão do culto */
+function limpaVagasSem(o){
+  var r={};
+  if(!o||typeof o!=='object'){return r;}
+  Object.keys(o).forEach(function(cid){
+    var w=o[cid];if(!w||typeof w!=='object'){return;}
+    var x={};Object.keys(w).forEach(function(n){var q=+n,v=w[n];if(q>=1&&q<=5&&typeof v==='number'&&isFinite(v)){x[q]=Math.max(0,Math.min(30,Math.round(v)));}});
+    if(Object.keys(x).length){r[cid]=x;}
+  });
+  return r;
+}
+function minDe(k){return MINS.find(function(x){return x.k===k;});}
+function vagasEm(k,c,date){
+  var o=S[k].vagasSem&&S[k].vagasSem[c.id],w=wk(date);
+  if(o&&typeof o[w]==='number'){return o[w];}
+  return minDe(k).vag(c);
+}
+function temVagas(k,c){
+  if(minDe(k).vag(c)>0){return true;}
+  var o=S[k].vagasSem&&S[k].vagasSem[c.id];
+  return !!o&&Object.keys(o).some(function(w){return o[w]>0;});
+}
+function vagasHTML(k,c,attr){
+  var m=minDe(k),id=esc(c.id),o=(S[k].vagasSem&&S[k].vagasSem[c.id])||{};
+  var sem=[1,2,3,4,5].map(function(w){
+    return '<label class="small">'+w+'ª <input type="number" min="0" max="30" data-vsem="'+id+'" data-w="'+w+'" value="'+(typeof o[w]==='number'?o[w]:'')+'" style="width:64px"></label>';
+  }).join('');
+  return '<div class="vg"><label class="l" for="vaga-'+k+'-'+id+'">'+esc(cultoLabel(c))+' (padrão)<input type="number" min="0" max="30" id="vaga-'+k+'-'+id+'" '+attr+'="'+id+'" value="'+m.vag(c)+'"></label>'
+    +'<div class="vg-sem"><span class="small muted">Por domingo do mês (vazio = usa o padrão):</span><div class="row">'+sem+'</div></div></div>';
+}
+
 function temMin(p){return MINS.some(function(m){return p[m.k];});}
 var PCULTO=['preg','avisos'];
 var PNOME={preg:'Pregação',avisos:'Avisos',visit:'Contato visitantes'};
@@ -1589,8 +1623,8 @@ function exemplo0(){
     escala:{},
     periodo:{de:TODAY,ate:addDays(TODAY,89)},
     periodos:[{de:TODAY,ate:addDays(TODAY,89)}],
-    oanse:{voluntarios:[],vagas:{},escala:{},indisp:[],exige:[]},
-    lit:{voluntarios:[],vagas:{},escala:{},indisp:[],exige:[]},
+    oanse:minVazio(),
+    lit:minVazio(),
     familias:[]
   };
 }
@@ -1614,7 +1648,7 @@ function derivarVols(s){
 /* seção de um ministério novo: voluntários (derivados), vagas, escala, indisponibilidades e regras */
 function normMin(s,k){
   var lo=s[k]||{};
-  s[k]={voluntarios:[],vagas:(lo.vagas&&typeof lo.vagas==='object')?lo.vagas:{},escala:(lo.escala&&typeof lo.escala==='object')?lo.escala:{},
+  s[k]={voluntarios:[],vagas:(lo.vagas&&typeof lo.vagas==='object')?lo.vagas:{},vagasSem:limpaVagasSem(lo.vagasSem),escala:(lo.escala&&typeof lo.escala==='object')?lo.escala:{},
     indisp:(Array.isArray(lo.indisp)?lo.indisp:[]).filter(function(i){return i&&i.vid&&i.de&&i.ate;}),
     exige:(Array.isArray(lo.exige)?lo.exige:[]).filter(function(x){return x&&x.id&&Array.isArray(x.vids);}).map(function(x){return {id:x.id,cid:x.cid||'*',sems:Array.isArray(x.sems)?x.sems:[],vids:x.vids};})};
   Object.keys(s[k].escala).forEach(function(c){var it=s[k].escala[c];if(!it||!Array.isArray(it.ps)){delete s[k].escala[c];return;}if(!Array.isArray(it.m)){it.m=it.ps.map(function(){return false;});}it.fx=!!it.fx;});
@@ -1666,7 +1700,7 @@ function normalize(o){
   s.regras.exige.forEach(function(x){if(!Array.isArray(x.sems)){x.sems=x.sem?[x.sem]:[];}delete x.sem;x.papel=x.papel||'preg';x.func=x.func||'';x.pid=x.pid||'';});
   s.escala=s.escala&&typeof s.escala==='object'?s.escala:{};
   var oo=s.oanse||{};
-  s.oanse={voluntarios:(Array.isArray(oo.voluntarios)?oo.voluntarios:[]).filter(function(v){return v&&v.id&&v.nome;}).map(function(v){return {id:v.id,nome:v.nome,cultos:Array.isArray(v.cultos)?v.cultos:[]};}),vagas:(oo.vagas&&typeof oo.vagas==='object')?oo.vagas:{},escala:(oo.escala&&typeof oo.escala==='object')?oo.escala:{},
+  s.oanse={voluntarios:(Array.isArray(oo.voluntarios)?oo.voluntarios:[]).filter(function(v){return v&&v.id&&v.nome;}).map(function(v){return {id:v.id,nome:v.nome,cultos:Array.isArray(v.cultos)?v.cultos:[]};}),vagas:(oo.vagas&&typeof oo.vagas==='object')?oo.vagas:{},vagasSem:limpaVagasSem(oo.vagasSem),escala:(oo.escala&&typeof oo.escala==='object')?oo.escala:{},
     indisp:(Array.isArray(oo.indisp)?oo.indisp:[]).filter(function(i){return i&&i.vid&&i.de&&i.ate;}),
     exige:(Array.isArray(oo.exige)?oo.exige:[]).filter(function(x){return x&&x.id&&Array.isArray(x.vids);}).map(function(x){return {id:x.id,cid:x.cid||'*',sems:Array.isArray(x.sems)?x.sems:[],vids:x.vids};})};
   var lo=s.lit||{};
@@ -1677,6 +1711,7 @@ function normalize(o){
   s.familias=(Array.isArray(s.familias)?s.familias:[]).filter(function(f){return f&&f.id&&Array.isArray(f.membros);}).map(function(f){return {id:f.id,nome:String(f.nome||''),membros:f.membros.filter(function(m){return typeof m==='string';})};});
   Object.keys(s.oanse.escala).forEach(function(k){var it=s.oanse.escala[k];if(!it||!Array.isArray(it.ps)){delete s.oanse.escala[k];return;}if(!Array.isArray(it.m)){it.m=it.ps.map(function(){return false;});}it.fx=!!it.fx;});
   Object.keys(s.escala).forEach(function(k){var a=k.split('|');if(a.length<3||(a[2]==='visit'&&a[1]!=='*')){delete s.escala[k];}});
+  s.lit.vagasSem=limpaVagasSem(lo.vagasSem);
   MINS.forEach(function(m){if(m.k!=='oanse'&&m.k!=='lit'){normMin(s,m.k);}});
   if(antes<4&&(s.oanse.voluntarios.length||s.lit.voluntarios.length)){migraVols(s);MIGROU=true;}
   derivarVols(s);
@@ -2062,7 +2097,7 @@ function textoDoMes(){
         var it=S.escala[mk(d,c.id,pp)],p=it&&pessoaById(it.p);
         out+='   '+PNOME[pp]+': '+(p?p.nome+pf(p):'a definir')+'\n';
       });
-      MINS.forEach(function(m){if(m.vag(c)>0){var E=S[m.k].escala[d+'|'+c.id],nm=E?E.ps.filter(Boolean).map(function(id){var v=m.byId(id);return v?v.nome:'';}).filter(Boolean):[];out+='   '+m.nome+': '+(nm.length?nm.join(', '):'a definir')+'\n';}});
+      MINS.forEach(function(m){if(vagasEm(m.k,c,d)>0){var E=S[m.k].escala[d+'|'+c.id],nm=E?E.ps.filter(Boolean).map(function(id){var v=m.byId(id);return v?v.nome:'';}).filter(Boolean):[];out+='   '+m.nome+': '+(nm.length?nm.join(', '):'a definir')+'\n';}});
     });
   }
   return out.trim();
@@ -2190,10 +2225,10 @@ function generateOanse(from,to,cids,keep){
   for(var d=from;d<=end;d=addDays(d,1)){
     if(!inRanges(d)){continue;}
     var w=parse(d).getDay(),dn=dnum(d);
-    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagasDe(c)>0;})
+    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagasEm('oanse',c,d)>0;})
       .sort(function(a,b){return a.hora.localeCompare(b.hora);})
       .forEach(function(c){
-        var key=d+'|'+c.id,n=vagasDe(c),it=oanseEntry(e,key,n);e[key]=it;
+        var key=d+'|'+c.id,n=vagasEm('oanse',c,d),it=oanseEntry(e,key,n);e[key]=it;
         if(it.fx){return;}
         S.oanse.exige.filter(function(r){return (r.cid==='*'||r.cid===c.id)&&(!r.sems.length||r.sems.indexOf(wk(d))>=0);}).forEach(function(r){
           r.vids.forEach(function(vid){
@@ -2233,7 +2268,7 @@ function generateOanse(from,to,cids,keep){
 /* uma caixa por culto, com todos os nomes */
 var openMS={},paneScroll={};
 function oanseHTML(date,c){
-  var n=vagasDe(c);if(n<=0){return '';}
+  var n=vagasEm('oanse',c,date);if(n<=0){return '';}
   var key=date+'|'+c.id,real=S.oanse.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=volById(id);return v?v.nome:'';}).filter(Boolean);
@@ -2309,7 +2344,7 @@ function renderOanse(){
   $('vol-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
   $('vagas-lista').innerHTML=cs.length?cs.map(function(c){
-    return '<label class="l" for="vaga-'+esc(c.id)+'">'+esc(cultoLabel(c))+'<input type="number" min="0" max="30" id="vaga-'+esc(c.id)+'" data-vaga="'+esc(c.id)+'" value="'+vagasDe(c)+'"></label>';
+    return vagasHTML('oanse',c,'data-vaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
   $('vol-dist').innerHTML=V.length?V.map(function(v){
@@ -2487,7 +2522,7 @@ function renderOanseRegras(){
   $('ox-vols').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários primeiro.</span>';
   var cs=sortedCultos();
   var cur=$('ox-culto').value;
-  $('ox-culto').innerHTML='<option value="*">Todos os cultos com OANSE</option>'+cs.filter(function(c){return vagasDe(c)>0;}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
+  $('ox-culto').innerHTML='<option value="*">Todos os cultos com OANSE</option>'+cs.filter(function(c){return temVagas('oanse',c);}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
   if(Array.prototype.some.call($('ox-culto').options||[],function(o){return o.value===cur;})){$('ox-culto').value=cur;}
   var curv=$('oi-vol').value;
   $('oi-vol').innerHTML=vols.length?vols.map(function(v){return '<option value="'+esc(v.id)+'">'+esc(v.nome)+'</option>';}).join(''):'<option value="">Cadastre voluntários primeiro</option>';
@@ -2555,10 +2590,10 @@ function generateLit(from,to,cids,keep){
   for(var d=from;d<=end;d=addDays(d,1)){
     if(!inRanges(d)){continue;}
     var w=parse(d).getDay(),dn=dnum(d);
-    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&lvagasDe(c)>0;})
+    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagasEm('lit',c,d)>0;})
       .sort(function(a,b){return a.hora.localeCompare(b.hora);})
       .forEach(function(c){
-        var key=d+'|'+c.id,n=lvagasDe(c),it=litEntry(e,key,n);e[key]=it;
+        var key=d+'|'+c.id,n=vagasEm('lit',c,d),it=litEntry(e,key,n);e[key]=it;
         if(it.fx){return;}
         S.lit.exige.filter(function(r){return (r.cid==='*'||r.cid===c.id)&&(!r.sems.length||r.sems.indexOf(wk(d))>=0);}).forEach(function(r){
           r.vids.forEach(function(vid){
@@ -2598,7 +2633,7 @@ function generateLit(from,to,cids,keep){
 /* uma caixa por culto, com todos os nomes */
 var openLMS={},paneScrollL={};
 function litHTML(date,c){
-  var n=lvagasDe(c);if(n<=0){return '';}
+  var n=vagasEm('lit',c,date);if(n<=0){return '';}
   var key=date+'|'+c.id,real=S.lit.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=lvById(id);return v?v.nome:'';}).filter(Boolean);
@@ -2674,7 +2709,7 @@ function renderLit(){
   $('lv-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
   $('lvagas-lista').innerHTML=cs.length?cs.map(function(c){
-    return '<label class="l" for="vaga-'+esc(c.id)+'">'+esc(cultoLabel(c))+'<input type="number" min="0" max="30" id="vaga-'+esc(c.id)+'" data-lvaga="'+esc(c.id)+'" value="'+lvagasDe(c)+'"></label>';
+    return vagasHTML('lit',c,'data-lvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
   $('lv-dist').innerHTML=V.length?V.map(function(v){
@@ -2767,7 +2802,7 @@ function renderLitRegras(){
   $('lx-vols').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários primeiro.</span>';
   var cs=sortedCultos();
   var cur=$('lx-culto').value;
-  $('lx-culto').innerHTML='<option value="*">Todos os cultos com Liturgia</option>'+cs.filter(function(c){return lvagasDe(c)>0;}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
+  $('lx-culto').innerHTML='<option value="*">Todos os cultos com Liturgia</option>'+cs.filter(function(c){return temVagas('lit',c);}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
   if(Array.prototype.some.call($('lx-culto').options||[],function(o){return o.value===cur;})){$('lx-culto').value=cur;}
   var curv=$('li-vol').value;
   $('li-vol').innerHTML=vols.length?vols.map(function(v){return '<option value="'+esc(v.id)+'">'+esc(v.nome)+'</option>';}).join(''):'<option value="">Cadastre voluntários primeiro</option>';
@@ -2806,7 +2841,7 @@ var uncMod={};
 function modPorPre(pre){return MINS.find(function(m){return m.pre===pre;});}
 function renderGerarMod(pre){
   var m=modPorPre(pre);uncMod[pre]=uncMod[pre]||{};
-  var cs=sortedCultos().filter(function(c){return m.vag(c)>0;});
+  var cs=sortedCultos().filter(function(c){return temVagas(m.k,c);});
   $(pre+'g-cultos').innerHTML=cs.length?cs.map(function(c){
     return '<label><input type="checkbox" value="'+esc(c.id)+'"'+(uncMod[pre][c.id]?'':' checked')+'> '+esc(cultoLabel(c))+'</label>';
   }).join(''):'<span class="empty">Defina as vagas dos cultos mais abaixo.</span>';
@@ -2899,10 +2934,10 @@ function generate_bibkids(from,to,cids,keep){
   for(var d=from;d<=end;d=addDays(d,1)){
     if(!inRanges(d)){continue;}
     var w=parse(d).getDay(),dn=dnum(d);
-    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagas_bibkids(c)>0;})
+    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagasEm('bibkids',c,d)>0;})
       .sort(function(a,b){return a.hora.localeCompare(b.hora);})
       .forEach(function(c){
-        var key=d+'|'+c.id,n=vagas_bibkids(c),it=entry_bibkids(e,key,n);e[key]=it;
+        var key=d+'|'+c.id,n=vagasEm('bibkids',c,d),it=entry_bibkids(e,key,n);e[key]=it;
         if(it.fx){return;}
         S.bibkids.exige.filter(function(r){return (r.cid==='*'||r.cid===c.id)&&(!r.sems.length||r.sems.indexOf(wk(d))>=0);}).forEach(function(r){
           r.vids.forEach(function(vid){
@@ -2942,7 +2977,7 @@ function generate_bibkids(from,to,cids,keep){
 /* uma caixa por culto, com todos os nomes */
 var open_bibkids={},scroll_bibkids={};
 function html_bibkids(date,c){
-  var n=vagas_bibkids(c);if(n<=0){return '';}
+  var n=vagasEm('bibkids',c,date);if(n<=0){return '';}
   var key=date+'|'+c.id,real=S.bibkids.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=vById_bibkids(id);return v?v.nome:'';}).filter(Boolean);
@@ -3018,7 +3053,7 @@ function render_bibkids(){
   $('bibkids-v-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
   $('bibkids-vagas-lista').innerHTML=cs.length?cs.map(function(c){
-    return '<label class="l" for="vaga-'+esc(c.id)+'">'+esc(cultoLabel(c))+'<input type="number" min="0" max="30" id="vaga-'+esc(c.id)+'" data-mvaga="'+esc(c.id)+'" value="'+vagas_bibkids(c)+'"></label>';
+    return vagasHTML('bibkids',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
   $('bibkids-v-dist').innerHTML=V.length?V.map(function(v){
@@ -3111,7 +3146,7 @@ function renderRegras_bibkids(){
   $('bibkids-x-vols').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários primeiro.</span>';
   var cs=sortedCultos();
   var cur=$('bibkids-x-culto').value;
-  $('bibkids-x-culto').innerHTML='<option value="*">Todos os cultos com Bibkids</option>'+cs.filter(function(c){return vagas_bibkids(c)>0;}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
+  $('bibkids-x-culto').innerHTML='<option value="*">Todos os cultos com Bibkids</option>'+cs.filter(function(c){return temVagas('bibkids',c);}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
   if(Array.prototype.some.call($('bibkids-x-culto').options||[],function(o){return o.value===cur;})){$('bibkids-x-culto').value=cur;}
   var curv=$('bibkids-i-vol').value;
   $('bibkids-i-vol').innerHTML=vols.length?vols.map(function(v){return '<option value="'+esc(v.id)+'">'+esc(v.nome)+'</option>';}).join(''):'<option value="">Cadastre voluntários primeiro</option>';
@@ -3181,10 +3216,10 @@ function generate_cantina(from,to,cids,keep){
   for(var d=from;d<=end;d=addDays(d,1)){
     if(!inRanges(d)){continue;}
     var w=parse(d).getDay(),dn=dnum(d);
-    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagas_cantina(c)>0;})
+    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagasEm('cantina',c,d)>0;})
       .sort(function(a,b){return a.hora.localeCompare(b.hora);})
       .forEach(function(c){
-        var key=d+'|'+c.id,n=vagas_cantina(c),it=entry_cantina(e,key,n);e[key]=it;
+        var key=d+'|'+c.id,n=vagasEm('cantina',c,d),it=entry_cantina(e,key,n);e[key]=it;
         if(it.fx){return;}
         S.cantina.exige.filter(function(r){return (r.cid==='*'||r.cid===c.id)&&(!r.sems.length||r.sems.indexOf(wk(d))>=0);}).forEach(function(r){
           r.vids.forEach(function(vid){
@@ -3224,7 +3259,7 @@ function generate_cantina(from,to,cids,keep){
 /* uma caixa por culto, com todos os nomes */
 var open_cantina={},scroll_cantina={};
 function html_cantina(date,c){
-  var n=vagas_cantina(c);if(n<=0){return '';}
+  var n=vagasEm('cantina',c,date);if(n<=0){return '';}
   var key=date+'|'+c.id,real=S.cantina.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=vById_cantina(id);return v?v.nome:'';}).filter(Boolean);
@@ -3300,7 +3335,7 @@ function render_cantina(){
   $('cantina-v-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
   $('cantina-vagas-lista').innerHTML=cs.length?cs.map(function(c){
-    return '<label class="l" for="vaga-'+esc(c.id)+'">'+esc(cultoLabel(c))+'<input type="number" min="0" max="30" id="vaga-'+esc(c.id)+'" data-mvaga="'+esc(c.id)+'" value="'+vagas_cantina(c)+'"></label>';
+    return vagasHTML('cantina',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
   $('cantina-v-dist').innerHTML=V.length?V.map(function(v){
@@ -3393,7 +3428,7 @@ function renderRegras_cantina(){
   $('cantina-x-vols').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários primeiro.</span>';
   var cs=sortedCultos();
   var cur=$('cantina-x-culto').value;
-  $('cantina-x-culto').innerHTML='<option value="*">Todos os cultos com Cantina</option>'+cs.filter(function(c){return vagas_cantina(c)>0;}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
+  $('cantina-x-culto').innerHTML='<option value="*">Todos os cultos com Cantina</option>'+cs.filter(function(c){return temVagas('cantina',c);}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
   if(Array.prototype.some.call($('cantina-x-culto').options||[],function(o){return o.value===cur;})){$('cantina-x-culto').value=cur;}
   var curv=$('cantina-i-vol').value;
   $('cantina-i-vol').innerHTML=vols.length?vols.map(function(v){return '<option value="'+esc(v.id)+'">'+esc(v.nome)+'</option>';}).join(''):'<option value="">Cadastre voluntários primeiro</option>';
@@ -3463,10 +3498,10 @@ function generate_iluminacao(from,to,cids,keep){
   for(var d=from;d<=end;d=addDays(d,1)){
     if(!inRanges(d)){continue;}
     var w=parse(d).getDay(),dn=dnum(d);
-    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagas_iluminacao(c)>0;})
+    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagasEm('iluminacao',c,d)>0;})
       .sort(function(a,b){return a.hora.localeCompare(b.hora);})
       .forEach(function(c){
-        var key=d+'|'+c.id,n=vagas_iluminacao(c),it=entry_iluminacao(e,key,n);e[key]=it;
+        var key=d+'|'+c.id,n=vagasEm('iluminacao',c,d),it=entry_iluminacao(e,key,n);e[key]=it;
         if(it.fx){return;}
         S.iluminacao.exige.filter(function(r){return (r.cid==='*'||r.cid===c.id)&&(!r.sems.length||r.sems.indexOf(wk(d))>=0);}).forEach(function(r){
           r.vids.forEach(function(vid){
@@ -3506,7 +3541,7 @@ function generate_iluminacao(from,to,cids,keep){
 /* uma caixa por culto, com todos os nomes */
 var open_iluminacao={},scroll_iluminacao={};
 function html_iluminacao(date,c){
-  var n=vagas_iluminacao(c);if(n<=0){return '';}
+  var n=vagasEm('iluminacao',c,date);if(n<=0){return '';}
   var key=date+'|'+c.id,real=S.iluminacao.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=vById_iluminacao(id);return v?v.nome:'';}).filter(Boolean);
@@ -3582,7 +3617,7 @@ function render_iluminacao(){
   $('iluminacao-v-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
   $('iluminacao-vagas-lista').innerHTML=cs.length?cs.map(function(c){
-    return '<label class="l" for="vaga-'+esc(c.id)+'">'+esc(cultoLabel(c))+'<input type="number" min="0" max="30" id="vaga-'+esc(c.id)+'" data-mvaga="'+esc(c.id)+'" value="'+vagas_iluminacao(c)+'"></label>';
+    return vagasHTML('iluminacao',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
   $('iluminacao-v-dist').innerHTML=V.length?V.map(function(v){
@@ -3675,7 +3710,7 @@ function renderRegras_iluminacao(){
   $('iluminacao-x-vols').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários primeiro.</span>';
   var cs=sortedCultos();
   var cur=$('iluminacao-x-culto').value;
-  $('iluminacao-x-culto').innerHTML='<option value="*">Todos os cultos com Iluminação</option>'+cs.filter(function(c){return vagas_iluminacao(c)>0;}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
+  $('iluminacao-x-culto').innerHTML='<option value="*">Todos os cultos com Iluminação</option>'+cs.filter(function(c){return temVagas('iluminacao',c);}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
   if(Array.prototype.some.call($('iluminacao-x-culto').options||[],function(o){return o.value===cur;})){$('iluminacao-x-culto').value=cur;}
   var curv=$('iluminacao-i-vol').value;
   $('iluminacao-i-vol').innerHTML=vols.length?vols.map(function(v){return '<option value="'+esc(v.id)+'">'+esc(v.nome)+'</option>';}).join(''):'<option value="">Cadastre voluntários primeiro</option>';
@@ -3745,10 +3780,10 @@ function generate_live(from,to,cids,keep){
   for(var d=from;d<=end;d=addDays(d,1)){
     if(!inRanges(d)){continue;}
     var w=parse(d).getDay(),dn=dnum(d);
-    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagas_live(c)>0;})
+    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagasEm('live',c,d)>0;})
       .sort(function(a,b){return a.hora.localeCompare(b.hora);})
       .forEach(function(c){
-        var key=d+'|'+c.id,n=vagas_live(c),it=entry_live(e,key,n);e[key]=it;
+        var key=d+'|'+c.id,n=vagasEm('live',c,d),it=entry_live(e,key,n);e[key]=it;
         if(it.fx){return;}
         S.live.exige.filter(function(r){return (r.cid==='*'||r.cid===c.id)&&(!r.sems.length||r.sems.indexOf(wk(d))>=0);}).forEach(function(r){
           r.vids.forEach(function(vid){
@@ -3788,7 +3823,7 @@ function generate_live(from,to,cids,keep){
 /* uma caixa por culto, com todos os nomes */
 var open_live={},scroll_live={};
 function html_live(date,c){
-  var n=vagas_live(c);if(n<=0){return '';}
+  var n=vagasEm('live',c,date);if(n<=0){return '';}
   var key=date+'|'+c.id,real=S.live.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=vById_live(id);return v?v.nome:'';}).filter(Boolean);
@@ -3864,7 +3899,7 @@ function render_live(){
   $('live-v-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
   $('live-vagas-lista').innerHTML=cs.length?cs.map(function(c){
-    return '<label class="l" for="vaga-'+esc(c.id)+'">'+esc(cultoLabel(c))+'<input type="number" min="0" max="30" id="vaga-'+esc(c.id)+'" data-mvaga="'+esc(c.id)+'" value="'+vagas_live(c)+'"></label>';
+    return vagasHTML('live',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
   $('live-v-dist').innerHTML=V.length?V.map(function(v){
@@ -3957,7 +3992,7 @@ function renderRegras_live(){
   $('live-x-vols').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários primeiro.</span>';
   var cs=sortedCultos();
   var cur=$('live-x-culto').value;
-  $('live-x-culto').innerHTML='<option value="*">Todos os cultos com Live</option>'+cs.filter(function(c){return vagas_live(c)>0;}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
+  $('live-x-culto').innerHTML='<option value="*">Todos os cultos com Live</option>'+cs.filter(function(c){return temVagas('live',c);}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
   if(Array.prototype.some.call($('live-x-culto').options||[],function(o){return o.value===cur;})){$('live-x-culto').value=cur;}
   var curv=$('live-i-vol').value;
   $('live-i-vol').innerHTML=vols.length?vols.map(function(v){return '<option value="'+esc(v.id)+'">'+esc(v.nome)+'</option>';}).join(''):'<option value="">Cadastre voluntários primeiro</option>';
@@ -4027,10 +4062,10 @@ function generate_louvor(from,to,cids,keep){
   for(var d=from;d<=end;d=addDays(d,1)){
     if(!inRanges(d)){continue;}
     var w=parse(d).getDay(),dn=dnum(d);
-    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagas_louvor(c)>0;})
+    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagasEm('louvor',c,d)>0;})
       .sort(function(a,b){return a.hora.localeCompare(b.hora);})
       .forEach(function(c){
-        var key=d+'|'+c.id,n=vagas_louvor(c),it=entry_louvor(e,key,n);e[key]=it;
+        var key=d+'|'+c.id,n=vagasEm('louvor',c,d),it=entry_louvor(e,key,n);e[key]=it;
         if(it.fx){return;}
         S.louvor.exige.filter(function(r){return (r.cid==='*'||r.cid===c.id)&&(!r.sems.length||r.sems.indexOf(wk(d))>=0);}).forEach(function(r){
           r.vids.forEach(function(vid){
@@ -4070,7 +4105,7 @@ function generate_louvor(from,to,cids,keep){
 /* uma caixa por culto, com todos os nomes */
 var open_louvor={},scroll_louvor={};
 function html_louvor(date,c){
-  var n=vagas_louvor(c);if(n<=0){return '';}
+  var n=vagasEm('louvor',c,date);if(n<=0){return '';}
   var key=date+'|'+c.id,real=S.louvor.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=vById_louvor(id);return v?v.nome:'';}).filter(Boolean);
@@ -4146,7 +4181,7 @@ function render_louvor(){
   $('louvor-v-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
   $('louvor-vagas-lista').innerHTML=cs.length?cs.map(function(c){
-    return '<label class="l" for="vaga-'+esc(c.id)+'">'+esc(cultoLabel(c))+'<input type="number" min="0" max="30" id="vaga-'+esc(c.id)+'" data-mvaga="'+esc(c.id)+'" value="'+vagas_louvor(c)+'"></label>';
+    return vagasHTML('louvor',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
   $('louvor-v-dist').innerHTML=V.length?V.map(function(v){
@@ -4239,7 +4274,7 @@ function renderRegras_louvor(){
   $('louvor-x-vols').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários primeiro.</span>';
   var cs=sortedCultos();
   var cur=$('louvor-x-culto').value;
-  $('louvor-x-culto').innerHTML='<option value="*">Todos os cultos com Louvor</option>'+cs.filter(function(c){return vagas_louvor(c)>0;}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
+  $('louvor-x-culto').innerHTML='<option value="*">Todos os cultos com Louvor</option>'+cs.filter(function(c){return temVagas('louvor',c);}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
   if(Array.prototype.some.call($('louvor-x-culto').options||[],function(o){return o.value===cur;})){$('louvor-x-culto').value=cur;}
   var curv=$('louvor-i-vol').value;
   $('louvor-i-vol').innerHTML=vols.length?vols.map(function(v){return '<option value="'+esc(v.id)+'">'+esc(v.nome)+'</option>';}).join(''):'<option value="">Cadastre voluntários primeiro</option>';
@@ -4309,10 +4344,10 @@ function generate_parking(from,to,cids,keep){
   for(var d=from;d<=end;d=addDays(d,1)){
     if(!inRanges(d)){continue;}
     var w=parse(d).getDay(),dn=dnum(d);
-    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagas_parking(c)>0;})
+    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagasEm('parking',c,d)>0;})
       .sort(function(a,b){return a.hora.localeCompare(b.hora);})
       .forEach(function(c){
-        var key=d+'|'+c.id,n=vagas_parking(c),it=entry_parking(e,key,n);e[key]=it;
+        var key=d+'|'+c.id,n=vagasEm('parking',c,d),it=entry_parking(e,key,n);e[key]=it;
         if(it.fx){return;}
         S.parking.exige.filter(function(r){return (r.cid==='*'||r.cid===c.id)&&(!r.sems.length||r.sems.indexOf(wk(d))>=0);}).forEach(function(r){
           r.vids.forEach(function(vid){
@@ -4352,7 +4387,7 @@ function generate_parking(from,to,cids,keep){
 /* uma caixa por culto, com todos os nomes */
 var open_parking={},scroll_parking={};
 function html_parking(date,c){
-  var n=vagas_parking(c);if(n<=0){return '';}
+  var n=vagasEm('parking',c,date);if(n<=0){return '';}
   var key=date+'|'+c.id,real=S.parking.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=vById_parking(id);return v?v.nome:'';}).filter(Boolean);
@@ -4428,7 +4463,7 @@ function render_parking(){
   $('parking-v-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
   $('parking-vagas-lista').innerHTML=cs.length?cs.map(function(c){
-    return '<label class="l" for="vaga-'+esc(c.id)+'">'+esc(cultoLabel(c))+'<input type="number" min="0" max="30" id="vaga-'+esc(c.id)+'" data-mvaga="'+esc(c.id)+'" value="'+vagas_parking(c)+'"></label>';
+    return vagasHTML('parking',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
   $('parking-v-dist').innerHTML=V.length?V.map(function(v){
@@ -4521,7 +4556,7 @@ function renderRegras_parking(){
   $('parking-x-vols').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários primeiro.</span>';
   var cs=sortedCultos();
   var cur=$('parking-x-culto').value;
-  $('parking-x-culto').innerHTML='<option value="*">Todos os cultos com Parking</option>'+cs.filter(function(c){return vagas_parking(c)>0;}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
+  $('parking-x-culto').innerHTML='<option value="*">Todos os cultos com Parking</option>'+cs.filter(function(c){return temVagas('parking',c);}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
   if(Array.prototype.some.call($('parking-x-culto').options||[],function(o){return o.value===cur;})){$('parking-x-culto').value=cur;}
   var curv=$('parking-i-vol').value;
   $('parking-i-vol').innerHTML=vols.length?vols.map(function(v){return '<option value="'+esc(v.id)+'">'+esc(v.nome)+'</option>';}).join(''):'<option value="">Cadastre voluntários primeiro</option>';
@@ -4591,10 +4626,10 @@ function generate_projecao(from,to,cids,keep){
   for(var d=from;d<=end;d=addDays(d,1)){
     if(!inRanges(d)){continue;}
     var w=parse(d).getDay(),dn=dnum(d);
-    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagas_projecao(c)>0;})
+    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagasEm('projecao',c,d)>0;})
       .sort(function(a,b){return a.hora.localeCompare(b.hora);})
       .forEach(function(c){
-        var key=d+'|'+c.id,n=vagas_projecao(c),it=entry_projecao(e,key,n);e[key]=it;
+        var key=d+'|'+c.id,n=vagasEm('projecao',c,d),it=entry_projecao(e,key,n);e[key]=it;
         if(it.fx){return;}
         S.projecao.exige.filter(function(r){return (r.cid==='*'||r.cid===c.id)&&(!r.sems.length||r.sems.indexOf(wk(d))>=0);}).forEach(function(r){
           r.vids.forEach(function(vid){
@@ -4634,7 +4669,7 @@ function generate_projecao(from,to,cids,keep){
 /* uma caixa por culto, com todos os nomes */
 var open_projecao={},scroll_projecao={};
 function html_projecao(date,c){
-  var n=vagas_projecao(c);if(n<=0){return '';}
+  var n=vagasEm('projecao',c,date);if(n<=0){return '';}
   var key=date+'|'+c.id,real=S.projecao.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=vById_projecao(id);return v?v.nome:'';}).filter(Boolean);
@@ -4710,7 +4745,7 @@ function render_projecao(){
   $('projecao-v-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
   $('projecao-vagas-lista').innerHTML=cs.length?cs.map(function(c){
-    return '<label class="l" for="vaga-'+esc(c.id)+'">'+esc(cultoLabel(c))+'<input type="number" min="0" max="30" id="vaga-'+esc(c.id)+'" data-mvaga="'+esc(c.id)+'" value="'+vagas_projecao(c)+'"></label>';
+    return vagasHTML('projecao',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
   $('projecao-v-dist').innerHTML=V.length?V.map(function(v){
@@ -4803,7 +4838,7 @@ function renderRegras_projecao(){
   $('projecao-x-vols').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários primeiro.</span>';
   var cs=sortedCultos();
   var cur=$('projecao-x-culto').value;
-  $('projecao-x-culto').innerHTML='<option value="*">Todos os cultos com Projeção</option>'+cs.filter(function(c){return vagas_projecao(c)>0;}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
+  $('projecao-x-culto').innerHTML='<option value="*">Todos os cultos com Projeção</option>'+cs.filter(function(c){return temVagas('projecao',c);}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
   if(Array.prototype.some.call($('projecao-x-culto').options||[],function(o){return o.value===cur;})){$('projecao-x-culto').value=cur;}
   var curv=$('projecao-i-vol').value;
   $('projecao-i-vol').innerHTML=vols.length?vols.map(function(v){return '<option value="'+esc(v.id)+'">'+esc(v.nome)+'</option>';}).join(''):'<option value="">Cadastre voluntários primeiro</option>';
@@ -4873,10 +4908,10 @@ function generate_recepcao(from,to,cids,keep){
   for(var d=from;d<=end;d=addDays(d,1)){
     if(!inRanges(d)){continue;}
     var w=parse(d).getDay(),dn=dnum(d);
-    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagas_recepcao(c)>0;})
+    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagasEm('recepcao',c,d)>0;})
       .sort(function(a,b){return a.hora.localeCompare(b.hora);})
       .forEach(function(c){
-        var key=d+'|'+c.id,n=vagas_recepcao(c),it=entry_recepcao(e,key,n);e[key]=it;
+        var key=d+'|'+c.id,n=vagasEm('recepcao',c,d),it=entry_recepcao(e,key,n);e[key]=it;
         if(it.fx){return;}
         S.recepcao.exige.filter(function(r){return (r.cid==='*'||r.cid===c.id)&&(!r.sems.length||r.sems.indexOf(wk(d))>=0);}).forEach(function(r){
           r.vids.forEach(function(vid){
@@ -4916,7 +4951,7 @@ function generate_recepcao(from,to,cids,keep){
 /* uma caixa por culto, com todos os nomes */
 var open_recepcao={},scroll_recepcao={};
 function html_recepcao(date,c){
-  var n=vagas_recepcao(c);if(n<=0){return '';}
+  var n=vagasEm('recepcao',c,date);if(n<=0){return '';}
   var key=date+'|'+c.id,real=S.recepcao.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=vById_recepcao(id);return v?v.nome:'';}).filter(Boolean);
@@ -4992,7 +5027,7 @@ function render_recepcao(){
   $('recepcao-v-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
   $('recepcao-vagas-lista').innerHTML=cs.length?cs.map(function(c){
-    return '<label class="l" for="vaga-'+esc(c.id)+'">'+esc(cultoLabel(c))+'<input type="number" min="0" max="30" id="vaga-'+esc(c.id)+'" data-mvaga="'+esc(c.id)+'" value="'+vagas_recepcao(c)+'"></label>';
+    return vagasHTML('recepcao',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
   $('recepcao-v-dist').innerHTML=V.length?V.map(function(v){
@@ -5085,7 +5120,7 @@ function renderRegras_recepcao(){
   $('recepcao-x-vols').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários primeiro.</span>';
   var cs=sortedCultos();
   var cur=$('recepcao-x-culto').value;
-  $('recepcao-x-culto').innerHTML='<option value="*">Todos os cultos com Recepção</option>'+cs.filter(function(c){return vagas_recepcao(c)>0;}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
+  $('recepcao-x-culto').innerHTML='<option value="*">Todos os cultos com Recepção</option>'+cs.filter(function(c){return temVagas('recepcao',c);}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
   if(Array.prototype.some.call($('recepcao-x-culto').options||[],function(o){return o.value===cur;})){$('recepcao-x-culto').value=cur;}
   var curv=$('recepcao-i-vol').value;
   $('recepcao-i-vol').innerHTML=vols.length?vols.map(function(v){return '<option value="'+esc(v.id)+'">'+esc(v.nome)+'</option>';}).join(''):'<option value="">Cadastre voluntários primeiro</option>';
@@ -5155,10 +5190,10 @@ function generate_som(from,to,cids,keep){
   for(var d=from;d<=end;d=addDays(d,1)){
     if(!inRanges(d)){continue;}
     var w=parse(d).getDay(),dn=dnum(d);
-    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagas_som(c)>0;})
+    S.cultos.filter(function(c){return c.dia===w&&(!cids||cids.indexOf(c.id)>=0)&&vagasEm('som',c,d)>0;})
       .sort(function(a,b){return a.hora.localeCompare(b.hora);})
       .forEach(function(c){
-        var key=d+'|'+c.id,n=vagas_som(c),it=entry_som(e,key,n);e[key]=it;
+        var key=d+'|'+c.id,n=vagasEm('som',c,d),it=entry_som(e,key,n);e[key]=it;
         if(it.fx){return;}
         S.som.exige.filter(function(r){return (r.cid==='*'||r.cid===c.id)&&(!r.sems.length||r.sems.indexOf(wk(d))>=0);}).forEach(function(r){
           r.vids.forEach(function(vid){
@@ -5198,7 +5233,7 @@ function generate_som(from,to,cids,keep){
 /* uma caixa por culto, com todos os nomes */
 var open_som={},scroll_som={};
 function html_som(date,c){
-  var n=vagas_som(c);if(n<=0){return '';}
+  var n=vagasEm('som',c,date);if(n<=0){return '';}
   var key=date+'|'+c.id,real=S.som.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=vById_som(id);return v?v.nome:'';}).filter(Boolean);
@@ -5274,7 +5309,7 @@ function render_som(){
   $('som-v-total').textContent=V.length?V.length+' voluntário(s)':'';
   var cs=sortedCultos();
   $('som-vagas-lista').innerHTML=cs.length?cs.map(function(c){
-    return '<label class="l" for="vaga-'+esc(c.id)+'">'+esc(cultoLabel(c))+'<input type="number" min="0" max="30" id="vaga-'+esc(c.id)+'" data-mvaga="'+esc(c.id)+'" value="'+vagas_som(c)+'"></label>';
+    return vagasHTML('som',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
   $('som-v-dist').innerHTML=V.length?V.map(function(v){
@@ -5367,7 +5402,7 @@ function renderRegras_som(){
   $('som-x-vols').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários primeiro.</span>';
   var cs=sortedCultos();
   var cur=$('som-x-culto').value;
-  $('som-x-culto').innerHTML='<option value="*">Todos os cultos com Som</option>'+cs.filter(function(c){return vagas_som(c)>0;}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
+  $('som-x-culto').innerHTML='<option value="*">Todos os cultos com Som</option>'+cs.filter(function(c){return temVagas('som',c);}).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cultoLabel(c))+'</option>';}).join('');
   if(Array.prototype.some.call($('som-x-culto').options||[],function(o){return o.value===cur;})){$('som-x-culto').value=cur;}
   var curv=$('som-i-vol').value;
   $('som-i-vol').innerHTML=vols.length?vols.map(function(v){return '<option value="'+esc(v.id)+'">'+esc(v.nome)+'</option>';}).join(''):'<option value="">Cadastre voluntários primeiro</option>';
@@ -5531,6 +5566,19 @@ $('csv-modelo').addEventListener('click',function(){
   document.body.appendChild(a);a.click();document.body.removeChild(a);
 });
 
+/* vagas por domingo do mês (1ª a 5ª) de cada ministério */
+MINS.forEach(function(m){
+  var id=m.k==='oanse'?'vagas-lista':m.k==='lit'?'lvagas-lista':m.k+'-vagas-lista';
+  $(id).addEventListener('input',function(e){
+    var t=e.target;if(!t.dataset||!t.dataset.vsem){return;}
+    var M=S[m.k];M.vagasSem=M.vagasSem||{};
+    var o=M.vagasSem[t.dataset.vsem]=M.vagasSem[t.dataset.vsem]||{};
+    if(t.value===''){delete o[t.dataset.w];if(!Object.keys(o).length){delete M.vagasSem[t.dataset.vsem];}}
+    else{o[t.dataset.w]=Math.max(0,Math.min(30,parseInt(t.value,10)||0));}
+    S.stale=true;touch();renderBanner();renderEscala();
+  });
+});
+
 /* ---------- usuários e permissões (só administrador) ---------- */
 var USERS=[],editUsr=null;
 var PERMNOME={pregacao:'Pregação, avisos e contato',cadastros:'Cultos, Pessoas e Famílias'};
@@ -5652,7 +5700,7 @@ document.addEventListener('click',function(e){
     Object.keys(S.lit.escala).forEach(function(k){if(k.split('|')[1]===id){delete S.lit.escala[k];}});
     delete S.lit.vagas[id];
     S.lit.exige=S.lit.exige.filter(function(x){return x.cid!==id;});
-    MINS.forEach(function(m){Object.keys(S[m.k].escala).forEach(function(k){if(k.split('|')[1]===id){delete S[m.k].escala[k];}});delete S[m.k].vagas[id];S[m.k].exige=S[m.k].exige.filter(function(x){return x.cid!==id;});});
+    MINS.forEach(function(m){Object.keys(S[m.k].escala).forEach(function(k){if(k.split('|')[1]===id){delete S[m.k].escala[k];}});delete S[m.k].vagas[id];if(S[m.k].vagasSem){delete S[m.k].vagasSem[id];}S[m.k].exige=S[m.k].exige.filter(function(x){return x.cid!==id;});});
     S.oanse.exige=S.oanse.exige.filter(function(x){return x.cid!==id;});
     if(editCulto===id){resetCulto();}
     changed();
