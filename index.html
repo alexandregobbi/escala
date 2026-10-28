@@ -1586,11 +1586,13 @@ function limpaVagasSem(o){
 }
 function minDe(k){return MINS.find(function(x){return x.k===k;});}
 function vagasEm(k,c,date){
+  if(k==='louvor'){return 1;}
   var o=S[k].vagasSem&&S[k].vagasSem[c.id],w=wk(date);
   if(o&&typeof o[w]==='number'){return o[w];}
   return minDe(k).vag(c);
 }
 function temVagas(k,c){
+  if(k==='louvor'){return true;}
   if(minDe(k).vag(c)>0){return true;}
   var o=S[k].vagasSem&&S[k].vagasSem[c.id];
   return !!o&&Object.keys(o).some(function(w){return o[w]>0;});
@@ -4156,7 +4158,7 @@ function generate_louvor(from,to,cids,keep){
 /* uma caixa por culto, com todos os nomes */
 var open_louvor={},scroll_louvor={};
 function html_louvor(date,c){
-  var n=vagasEm('louvor',c,date);if(n<=0){return '';}
+  var n=1;
   var key=date+'|'+c.id,real=S.louvor.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=vById_louvor(id);return v?v.nome:'';}).filter(Boolean);
@@ -4175,13 +4177,16 @@ function html_louvor(date,c){
   if(nomes.length<n&&!(real&&real.b)&&Object.keys(S.louvor.escala).length){avisos.push('Faltam '+(n-nomes.length)+' voluntário(s)');}
   if(nomes.length>n&&!(real&&real.b)){avisos.push('Mais voluntários que vagas ('+nomes.length+' de '+n+')');}
   if(ids.some(function(id){return outros[id];})){avisos.push('Já serve em outro culto neste dia');}
-  var lista=S.louvor.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);}).map(function(v){
+  var pool=(real&&real.b&&bandaPorId(real.b))?S.louvor.voluntarios.filter(function(v){return bandaPorId(real.b).membros.indexOf(v.id)>=0;}):S.louvor.voluntarios;
+  var lista=pool.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);}).map(function(v){
     return '<label><input type="checkbox" data-ms-louvor="'+esc(key)+'" value="'+esc(v.id)+'"'+(ids.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+(outros[v.id]?' <span class="small muted">(já serve neste dia)</span>':'')+(indisp_louvor(v.id,date)?' <span class="small muted">(indisponível)</span>':'')+(outraFuncaoNoCulto(v.id,date,c.id,'louvor').length?' <span class="small muted">(já serve neste culto: '+esc(outraFuncaoNoCulto(v.id,date,c.id,'louvor').join(', '))+')</span>':'')+(famScore('p:'+v.id,serv)>0?' <span class="small muted">(família serve neste dia)</span>':'')+'</label>';
   }).join('')||'<span class="empty">Cadastre voluntários na aba Louvor.</span>';
-  return '<div class="r"><div class="rt">Louvor ('+n+')</div><div class="oanse-sel">'+selB
-    +'<details class="ms" data-ms-louvor="'+esc(key)+'"'+(open_louvor[key]?' open':'')+'><summary>'+(nomes.length?esc(nomes.join(', ')):'<span class="muted">Escolher voluntários</span>')+' <span class="small muted">('+nomes.length+'/'+n+')</span></summary>'
+  if(bs.length&&!(real&&real.b)){return '<div class="r"><div class="rt">Louvor</div><div class="oanse-sel">'+selB+'<div class="w">Sem banda escalada neste culto</div></div></div>';}
+  var bandaOn=real&&real.b;
+  return '<div class="r"><div class="rt">Louvor'+(bandaOn?' · '+esc(bandaNome(real.b)):'')+'</div><div class="oanse-sel">'+selB
+    +'<details class="ms" data-ms-louvor="'+esc(key)+'"'+(open_louvor[key]?' open':'')+'><summary>'+(nomes.length?esc(nomes.join(', ')):'<span class="muted">Escolher voluntários</span>')+' <span class="small muted">'+(bandaOn?'(presentes: '+nomes.length+' de '+pool.length+')':'('+nomes.length+')')+'</span></summary>'
     +'<div class="ms-pane">'+lista+'</div>'
-    +'<div class="ms-foot"><button type="button" class="btn sec mini" data-auto-louvor="'+esc(key)+'">Voltar ao automático</button>'+(real&&real.fx?' <span class="m">manual</span>':'')+'</div></details>'
+    +'<div class="ms-foot"><button type="button" class="btn sec mini" data-auto-louvor="'+esc(key)+'">'+(bandaOn?'Tirar a banda / automático':'Voltar ao automático')+'</button>'+(real&&real.fx?' <span class="m">manual</span>':'')+'</div></details>'
     +(avisos.length?'<div class="w">'+esc(avisos.join(' · '))+'</div>':'')+'</div></div>';
 }
 function restore_louvor(){
@@ -4197,7 +4202,9 @@ function toggle_louvor(key){
   var atual=(S.louvor.escala[key]?S.louvor.escala[key].ps:[]).filter(Boolean);
   var lista=atual.filter(function(id){return marc.indexOf(id)>=0;});
   marc.forEach(function(id){if(lista.indexOf(id)<0){lista.push(id);}});
+  var bAtual=S.louvor.escala[key]&&S.louvor.escala[key].b;
   S.louvor.escala[key]={ps:lista,m:lista.map(function(){return true;}),fx:true};
+  if(bAtual&&bandaPorId(bAtual)){S.louvor.escala[key].b=bAtual;}
   open_louvor[key]=1;
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
   var v=generate_louvor(addDays(a[0],1),rangeBounds().ate,cids,false);
@@ -4248,6 +4255,7 @@ function render_louvor(){
     return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('louvor-v-mes').textContent=MESES[view.m]+' '+view.y;
+  $('louvor-vagas-lista').parentNode.hidden=true;
   renderBandas_louvor();renderRegras_louvor();renderGerarMod('l');
 }
 function reset_louvor(){edit_louvor=null;$('form-louvor-v').reset();$('louvor-v-titulo').textContent='Novo voluntário';$('louvor-v-salvar').textContent='Adicionar voluntário';$('louvor-v-cancelar').hidden=true;}
@@ -4424,7 +4432,7 @@ $('form-louvor-b').addEventListener('submit',function(e){
     var hj=iso(new Date());
     Object.keys(S.louvor.escala).forEach(function(k){
       var it=S.louvor.escala[k];
-      if(it.b===edit_banda&&k.split('|')[0]>=hj){it.ps=mem.slice();it.m=mem.map(function(){return !!it.fx;});}
+      if(it.b===edit_banda&&k.split('|')[0]>=hj){if(it.fx){it.ps=it.ps.filter(function(x){return mem.indexOf(x)>=0;});it.m=it.ps.map(function(){return true;});}else{it.ps=mem.slice();it.m=mem.map(function(){return false;});}}
     });
     msg.textContent='Banda atualizada (as datas futuras em que ela está escalada foram atualizadas).';
   }else{
