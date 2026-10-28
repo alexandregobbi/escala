@@ -352,6 +352,22 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       </form>
     </div>
     <div class="panel"><h2>Pessoas cadastradas</h2><ul class="list" id="lista-pessoas"></ul></div>
+    <div class="panel" id="panel-csv" style="grid-column:1/-1">
+      <h2>Importar pessoas por arquivo CSV</h2>
+      <p class="hint">Duas colunas: <b>nome</b> e <b>função</b>. A função pode ser um ministério (Bibkids, Cantina, Iluminação, Live, Louvor, OANSE, Liturgia, Parking, Projeção, Recepção, Som), uma atividade (Pregação, Avisos, Contato visitantes) ou um cargo (Pastor, Presbítero, Diácono). Para várias funções na mesma pessoa, separe com <b>|</b> (ex.: Som|Louvor) ou repita o nome em outra linha. A primeira linha pode ser o cabeçalho. Quem já está cadastrado é atualizado, sem perder o que já tem.</p>
+      <div class="row"><button class="btn sec" type="button" id="csv-modelo">Baixar arquivo modelo</button></div>
+      <label class="l" for="csv-arquivo">Arquivo CSV<input type="file" id="csv-arquivo" accept=".csv,.txt,text/csv,text/plain"></label>
+      <div class="full" style="display:flex;flex-direction:column;gap:6px">
+        <span class="small" style="font-weight:500;color:var(--muted)">Cultos de que as pessoas participam (valem para quem for incluído ou atualizado)</span>
+        <div class="checks" id="csv-cultos"></div>
+      </div>
+      <div class="hint" id="csv-msg" aria-live="polite"></div>
+      <div class="tablewrap" id="csv-previa-box" hidden><table>
+        <thead><tr><th>Nome</th><th>Funções reconhecidas</th><th>Situação</th></tr></thead>
+        <tbody id="csv-previa"></tbody>
+      </table></div>
+      <div class="row"><button class="btn" type="button" id="csv-confirmar" hidden>Confirmar importação</button><button class="btn sec" type="button" id="csv-cancelar" hidden>Cancelar</button></div>
+    </div>
   </section>
 
   <!-- REGRAS -->
@@ -5385,6 +5401,136 @@ $('form-som-i').addEventListener('submit',function(e){
 });
 function indisp_som(vid,date){return S.som.indisp.find(function(i){return i.vid===vid&&date>=i.de&&date<=i.ate;});}
 
+/* ---------- importação de pessoas por CSV (administrador) ---------- */
+var csvLinhas=null;
+function csvParse(txt){
+  txt=String(txt).replace(/^\uFEFF/,'');
+  var primeira=txt.split(/\r?\n/).find(function(l){return l.trim();})||'';
+  var cont={';':0,',':0,'\t':0};
+  Object.keys(cont).forEach(function(d){cont[d]=primeira.split(d).length-1;});
+  var sep=cont[';']>=cont[',']&&cont[';']>=cont['\t']?';':(cont[',']>=cont['\t']?',':'\t');
+  if(!cont[';']&&!cont[',']&&!cont['\t']){sep=';';}
+  var rows=[],row=[],cel='',q=false;
+  for(var i=0;i<txt.length;i++){
+    var c=txt[i];
+    if(q){
+      if(c==='"'){if(txt[i+1]==='"'){cel+='"';i++;}else{q=false;}}else{cel+=c;}
+    }else if(c==='"'){q=true;}
+    else if(c===sep){row.push(cel);cel='';}
+    else if(c==='\n'||c==='\r'){
+      if(c==='\r'&&txt[i+1]==='\n'){i++;}
+      row.push(cel);cel='';
+      if(row.some(function(x){return x.trim();})){rows.push(row);}
+      row=[];
+    }else{cel+=c;}
+  }
+  row.push(cel);if(row.some(function(x){return x.trim();})){rows.push(row);}
+  return rows;
+}
+function csvFuncao(tok){
+  var k=nomeKey(tok);if(!k){return null;}
+  if(k==='pastor'||k==='presbitero'||k==='diacono'){return {tipo:'cargo',v:FUNCS.find(function(f){return nomeKey(f)===k;}),rot:FUNCS.find(function(f){return nomeKey(f)===k;})};}
+  if(k==='pregacao'||k==='pregador'){return {tipo:'papel',v:'preg',rot:'Pregação'};}
+  if(k==='avisos'||k==='aviso'){return {tipo:'papel',v:'avisos',rot:'Avisos'};}
+  if(k==='contato'||k==='contato visitantes'||k==='visitantes'||k==='contato de visitantes'){return {tipo:'papel',v:'visit',rot:'Contato visitantes'};}
+  var m=MINS.find(function(x){return nomeKey(x.nome)===k||x.k===k;});
+  if(m){return {tipo:'min',v:m.k,rot:m.nome};}
+  if(k==='voluntario'||k==='voluntaria'){return {tipo:'nada',rot:''};}
+  return {tipo:'desconhecida',rot:tok.trim()};
+}
+function csvAnalisa(rows){
+  var ini=0;
+  if(rows.length&&/^(nome|name|voluntario|pessoa)$/.test(nomeKey(rows[0][0]||''))){ini=1;}
+  var por={},ordem=[];
+  rows.slice(ini).forEach(function(r){
+    var nome=limpaNome(r[0]||'');if(!nome){return;}
+    var k=nomeKey(nome),o=por[k];
+    if(!o){o=por[k]={nome:nome,cargo:'',papeis:[],mins:[],desc:[],rot:[]};ordem.push(k);}
+    String(r.slice(1).join('|')).split(/[|;\/+]|,/).forEach(function(t){
+      var f=csvFuncao(t);if(!f){return;}
+      if(f.tipo==='desconhecida'){if(o.desc.indexOf(f.rot)<0){o.desc.push(f.rot);}return;}
+      if(f.tipo==='cargo'){o.cargo=o.cargo||f.v;}
+      else if(f.tipo==='papel'){if(o.papeis.indexOf(f.v)<0){o.papeis.push(f.v);}}
+      else if(f.tipo==='min'){if(o.mins.indexOf(f.v)<0){o.mins.push(f.v);}}
+      if(f.rot&&o.rot.indexOf(f.rot)<0){o.rot.push(f.rot);}
+    });
+  });
+  return ordem.map(function(k){
+    var o=por[k],ex=S.pessoas.find(function(p){return nomeKey(p.nome)===k;});
+    o.existe=ex?ex.id:'';
+    o.valida=!!(o.cargo||o.papeis.length||o.mins.length);
+    return o;
+  });
+}
+function renderCsv(){
+  var box=$('panel-csv');box.hidden=!can('cadastros');
+  if(!can('cadastros')){return;}
+  var keep=Array.prototype.map.call(document.querySelectorAll('#csv-cultos input:checked'),function(i){return i.value;});
+  var primeiro=!document.querySelector('#csv-cultos input');
+  $('csv-cultos').innerHTML=S.cultos.length?sortedCultos().map(function(c){
+    return '<label><input type="checkbox" value="'+esc(c.id)+'"'+((primeiro||keep.indexOf(c.id)>=0)?' checked':'')+'> '+esc(cultoLabel(c))+'</label>';
+  }).join(''):'<span class="empty">Nenhum culto cadastrado.</span>';
+}
+function csvPrevia(){
+  $('csv-previa').innerHTML=csvLinhas.map(function(o){
+    var st=!o.valida?'<span class="muted">Ignorada: sem função reconhecida</span>':(o.existe?'Já cadastrada: será atualizada':'Nova pessoa');
+    if(o.desc.length){st+='<div class="small muted">Não reconhecido: '+esc(o.desc.join(', '))+'</div>';}
+    return '<tr><td>'+esc(o.nome)+'</td><td>'+(o.rot.length?esc(o.rot.join(', ')):'<span class="muted">—</span>')+'</td><td>'+st+'</td></tr>';
+  }).join('');
+  var ok=csvLinhas.filter(function(o){return o.valida;}).length;
+  $('csv-previa-box').hidden=false;$('csv-confirmar').hidden=!ok;$('csv-cancelar').hidden=false;
+  $('csv-confirmar').textContent='Confirmar importação ('+ok+' pessoa'+(ok===1?'':'s')+')';
+}
+function csvLimpa(){csvLinhas=null;$('csv-previa-box').hidden=true;$('csv-confirmar').hidden=true;$('csv-cancelar').hidden=true;$('csv-previa').innerHTML='';}
+$('csv-arquivo').addEventListener('change',function(e){
+  var f=e.target.files&&e.target.files[0];if(!f){return;}
+  if(f.size>1024*1024){$('csv-msg').textContent='Arquivo grande demais (máximo 1 MB).';e.target.value='';return;}
+  function ler(enc){
+    var r=new FileReader();
+    r.onload=function(){
+      var t=String(r.result||'');
+      if(!enc&&t.indexOf('\uFFFD')>=0){ler('windows-1252');return;}
+      var linhas=csvAnalisa(csvParse(t));
+      if(!linhas.length){$('csv-msg').textContent='Nenhuma linha com nome encontrada no arquivo.';csvLimpa();return;}
+      if(linhas.length>500){$('csv-msg').textContent='O arquivo tem mais de 500 pessoas. Divida em arquivos menores.';csvLimpa();return;}
+      csvLinhas=linhas;
+      $('csv-msg').textContent=linhas.length+' linha(s) lidas. Confira abaixo e confirme.';
+      csvPrevia();
+    };
+    r.onerror=function(){$('csv-msg').textContent='Não foi possível ler o arquivo.';};
+    if(enc){r.readAsText(f,enc);}else{r.readAsText(f);}
+  }
+  ler(null);e.target.value='';
+});
+$('csv-cancelar').addEventListener('click',function(){csvLimpa();$('csv-msg').textContent='';});
+$('csv-confirmar').addEventListener('click',function(){
+  if(!csvLinhas||!can('cadastros')){return;}
+  var cm=Array.prototype.map.call(document.querySelectorAll('#csv-cultos input:checked'),function(i){return i.value;});
+  var novos=0,atual=0,ign=0;
+  csvLinhas.forEach(function(o){
+    if(!o.valida){ign++;return;}
+    var k=nomeKey(o.nome),p=S.pessoas.find(function(x){return nomeKey(x.nome)===k;});
+    if(!p){
+      if(S.pessoas.length>=500){ign++;return;}
+      p={id:'p'+uid(),nome:o.nome,funcao:'',igreja:'',cultos:[],papeis:[]};
+      MINS.forEach(function(m){p[m.k]=false;});
+      S.pessoas.push(p);novos++;
+    }else{atual++;}
+    if(o.cargo&&!p.funcao){p.funcao=o.cargo;}
+    o.papeis.forEach(function(x){if(p.papeis.indexOf(x)<0){p.papeis.push(x);}});
+    o.mins.forEach(function(m){p[m]=true;});
+    cm.forEach(function(id){if(p.cultos.indexOf(id)<0){p.cultos.push(id);}});
+  });
+  syncVols();csvLimpa();
+  $('csv-msg').textContent='Importação concluída: '+novos+' nova(s), '+atual+' atualizada(s)'+(ign?', '+ign+' ignorada(s)':'')+'.';
+  changed();
+});
+$('csv-modelo').addEventListener('click',function(){
+  var t='nome;funcao\r\nMaria Silva;Som\r\nJoão Souza;Louvor|Som\r\nAna Lima;Recepção\r\nPedro Alves;Pastor|Pregação|Avisos\r\n';
+  var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('\uFEFF'+t);a.download='modelo-pessoas.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+});
+
 /* ---------- usuários e permissões (só administrador) ---------- */
 var USERS=[],editUsr=null;
 var PERMNOME={pregacao:'Pregação, avisos e contato',cadastros:'Cultos, Pessoas e Famílias'};
@@ -5471,7 +5617,7 @@ function renderRegras(){
   }).join(''):'<li class="empty">Ninguém indisponível.</li>';
 }
 
-function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();}
+function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
 function changed(){pruneRefs();S.stale=true;touch();render();}
 
 /* botões de duas etapas (sem janela de confirmação) */
