@@ -997,6 +997,21 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
         <div class="row full"><button class="btn" type="submit">Gerar escala da Louvor</button></div>
       </form>
     </div>
+    <div class="panel">
+      <h2 id="louvor-b-titulo">Nova banda</h2>
+      <p class="hint">Monte bandas com voluntários que já estão no Louvor. No calendário, escolha a banda de cada culto com um toque; na geração automática as bandas entram em rodízio (uma banda por culto), respeitando indisponibilidades e quem já serve em outra função no mesmo culto.</p>
+      <div class="checks" id="louvor-b-usa-w"><label><input type="checkbox" id="louvor-b-usa"> Gerar a escala usando as bandas (quando houver bandas)</label></div>
+      <form class="f" id="form-louvor-b">
+        <label class="l full" for="louvor-b-nome">Nome da banda<input type="text" id="louvor-b-nome" required maxlength="60" autocomplete="off"></label>
+        <div class="l full" role="group" aria-labelledby="louvor-b-m-t">
+          <span id="louvor-b-m-t">Membros (voluntários do Louvor)</span>
+          <div class="ms-pane" id="louvor-b-membros"></div>
+        </div>
+        <div class="row full"><button class="btn" type="submit" id="louvor-b-salvar">Criar banda</button><button class="btn sec" type="button" id="louvor-b-cancelar" hidden>Cancelar edição</button></div>
+      </form>
+      <div class="hint" id="louvor-b-msg" aria-live="polite"></div>
+      <ul class="list" id="lista-louvor-b"></ul>
+    </div>
     <div class="grid2">
       <div class="panel">
         <h2 id="louvor-v-titulo">Novo voluntário</h2>
@@ -1652,6 +1667,12 @@ function normMin(s,k){
     indisp:(Array.isArray(lo.indisp)?lo.indisp:[]).filter(function(i){return i&&i.vid&&i.de&&i.ate;}),
     exige:(Array.isArray(lo.exige)?lo.exige:[]).filter(function(x){return x&&x.id&&Array.isArray(x.vids);}).map(function(x){return {id:x.id,cid:x.cid||'*',sems:Array.isArray(x.sems)?x.sems:[],vids:x.vids};})};
   Object.keys(s[k].escala).forEach(function(c){var it=s[k].escala[c];if(!it||!Array.isArray(it.ps)){delete s[k].escala[c];return;}if(!Array.isArray(it.m)){it.m=it.ps.map(function(){return false;});}it.fx=!!it.fx;});
+  if(k==='louvor'){
+    var L=s[k];
+    L.bandas=(Array.isArray(lo.bandas)?lo.bandas:[]).filter(function(b){return b&&b.id&&b.nome;}).slice(0,60).map(function(b){return {id:String(b.id),nome:String(b.nome).slice(0,60),membros:(Array.isArray(b.membros)?b.membros:[]).filter(function(x,i,a){return typeof x==='string'&&a.indexOf(x)===i;})};});
+    L.usaBandas=lo.usaBandas!==false;
+    Object.keys(L.escala).forEach(function(c){var it=L.escala[c];if(it.b&&!L.bandas.some(function(b){return b.id===it.b;})){delete it.b;}});
+  }
 }
 function syncVols(){derivarVols(S);}
 /* dados antigos: cada módulo tinha a própria lista de voluntários. Junta tudo em Pessoas, reconhecendo pelo nome. */
@@ -2097,7 +2118,7 @@ function textoDoMes(){
         var it=S.escala[mk(d,c.id,pp)],p=it&&pessoaById(it.p);
         out+='   '+PNOME[pp]+': '+(p?p.nome+pf(p):'a definir')+'\n';
       });
-      MINS.forEach(function(m){if(vagasEm(m.k,c,d)>0){var E=S[m.k].escala[d+'|'+c.id],nm=E?E.ps.filter(Boolean).map(function(id){var v=m.byId(id);return v?v.nome:'';}).filter(Boolean):[];out+='   '+m.nome+': '+(nm.length?nm.join(', '):'a definir')+'\n';}});
+      MINS.forEach(function(m){if(vagasEm(m.k,c,d)>0){var E=S[m.k].escala[d+'|'+c.id],nm=E?E.ps.filter(Boolean).map(function(id){var v=m.byId(id);return v?v.nome:'';}).filter(Boolean):[];out+='   '+m.nome+(E&&E.b&&m.k==='louvor'?' ('+bandaNome(E.b)+')':'')+': '+(nm.length?nm.join(', '):'a definir')+'\n';}});
     });
   }
   return out.trim();
@@ -2154,10 +2175,11 @@ function outraFuncaoNoCulto(pid,date,cid,exceto){
 function tiraDasEscalas(id,mod){
   MINS.forEach(function(m){
     if(mod&&mod!==m.k){return;}
+    if(m.k==='louvor'&&Array.isArray(S.louvor.bandas)){S.louvor.bandas.forEach(function(b){b.membros=b.membros.filter(function(x){return x!==id;});});}
     var E=S[m.k].escala;
     Object.keys(E).forEach(function(k){
       var it=E[k];
-      it.ps=it.ps.map(function(x,i){if(x===id){it.m[i]=false;return '';}return x;});
+      it.ps=it.ps.map(function(x,i){if(x===id){it.m[i]=false;delete it.b;return '';}return x;});
       if(!it.fx&&!it.ps.some(Boolean)){delete E[k];}
     });
   });
@@ -2466,6 +2488,9 @@ function pruneRefs(){
     M.exige=M.exige.map(function(x){return {id:x.id,cid:x.cid,sems:x.sems,vids:x.vids.filter(function(v){return !!m.byId(v);})};})
       .filter(function(x){return x.vids.length&&(x.cid==='*'||cultoById(x.cid));});
   });
+  var Lb=S.louvor;
+  Lb.bandas=(Lb.bandas||[]).map(function(b){return {id:b.id,nome:b.nome,membros:b.membros.filter(function(id){var p=pessoaById(id);return !!(p&&p.louvor);})};});
+  Object.keys(Lb.escala).forEach(function(k){var it=Lb.escala[k];if(it.b&&!Lb.bandas.some(function(b){return b.id===it.b;})){delete it.b;}});
 }
 
 /* aba Famílias */
@@ -4052,12 +4077,15 @@ function generate_louvor(from,to,cids,keep){
     var ps=(it.ps||[]).map(function(id){return vById_louvor(id)?id:'';});
     var m=it.m||[],fx=!!it.fx;
     if(inScope&&!keep&&!fx){ps=ps.map(function(id,i){return m[i]?id:'';});}
-    e[k]={ps:ps,m:ps.map(function(id,i){return fx||!!(id&&m[i]);}),fx:fx};
+    e[k]={ps:ps,m:ps.map(function(id,i){return fx||!!(id&&m[i]);}),fx:fx};if(it.b&&ps.some(Boolean)){e[k].b=it.b;}
   });
   var tot={},dates={};
   function note(id,d){tot[id]=(tot[id]||0)+1;(dates[id]=dates[id]||[]).push(dnum(d));}
   Object.keys(e).forEach(function(k){var d=k.split('|')[0];e[k].ps.forEach(function(id){if(id){note(id,d);}});});
   function gapOf(id,dn){var m=-1e9;(dates[id]||[]).forEach(function(x){if(x<dn&&x>m){m=x;}});return dn-m;}
+  var bandas=(O.bandas||[]).filter(function(b){return b.membros&&b.membros.length;}),bandMode=O.usaBandas!==false&&bandas.length>0,bt={},bd={};
+  function bgap(id,dn){var m=-1e9;(bd[id]||[]).forEach(function(x){if(x<dn&&x>m){m=x;}});return dn-m;}
+  Object.keys(e).forEach(function(k){var it=e[k];if(it.b){bt[it.b]=(bt[it.b]||0)+1;(bd[it.b]=bd[it.b]||[]).push(dnum(k.split('|')[0]));}});
   var vazios=0,end=addDays(from,400);if(to<end){end=to;}
   for(var d=from;d<=end;d=addDays(d,1)){
     if(!inRanges(d)){continue;}
@@ -4067,6 +4095,29 @@ function generate_louvor(from,to,cids,keep){
       .forEach(function(c){
         var key=d+'|'+c.id,n=vagasEm('louvor',c,d),it=entry_louvor(e,key,n);e[key]=it;
         if(it.fx){return;}
+        if(bandMode){
+          if(it.ps.some(Boolean)){return;}
+          var emDiaB={};
+          Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDiaB[id]=1;}});}});
+          var bl=[];
+          bandas.forEach(function(b){
+            var bad=0,dia=0;
+            b.membros.forEach(function(id){var v=vById_louvor(id);if(!v||indisp_louvor(id,d)||!volPodeCulto(v,c.id)||outraFuncaoNoCulto(id,d,c.id,'louvor').length){bad++;}else if(emDiaB[id]){dia++;}});
+            if(!bad){bl.push({b:b,dia:dia});}
+          });
+          if(!bl.length){vazios++;return;}
+          bl.sort(function(x,y){
+            if(x.dia!==y.dia){return x.dia-y.dia;}
+            var tx=bt[x.b.id]||0,ty=bt[y.b.id]||0;if(tx!==ty){return tx-ty;}
+            var gx=bgap(x.b.id,dn),gy=bgap(y.b.id,dn);if(gx!==gy){return gy-gx;}
+            return bandas.indexOf(x.b)-bandas.indexOf(y.b);
+          });
+          var eb=bl[0].b;
+          it.ps=eb.membros.slice();it.m=it.ps.map(function(){return false;});it.b=eb.id;
+          it.ps.forEach(function(id){note(id,d);});
+          bt[eb.id]=(bt[eb.id]||0)+1;(bd[eb.id]=bd[eb.id]||[]).push(dn);
+          return;
+        }
         S.louvor.exige.filter(function(r){return (r.cid==='*'||r.cid===c.id)&&(!r.sems.length||r.sems.indexOf(wk(d))>=0);}).forEach(function(r){
           r.vids.forEach(function(vid){
             if(!vById_louvor(vid)||indisp_louvor(vid,d)||it.ps.indexOf(vid)>=0){return;}
@@ -4110,21 +4161,24 @@ function html_louvor(date,c){
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=vById_louvor(id);return v?v.nome:'';}).filter(Boolean);
   if(!can('louvor')){
-    return '<div class="r"><div class="rt">Louvor</div><div class="who">'+(nomes.length?esc(nomes.join(', ')):'<span class="muted">A definir</span>')+'</div></div>';
+    var bnd=real&&real.b?bandaPorId(real.b):null;return '<div class="r"><div class="rt">Louvor'+(bnd?' · '+esc(bnd.nome):'')+'</div><div class="who">'+(nomes.length?esc(nomes.join(', ')):'<span class="muted">A definir</span>')+'</div></div>';
   }
+  var bs=bandas_louvor();
+  var selB=bs.length?'<select class="band-sel" data-banda-louvor="'+esc(key)+'" aria-label="Escalar banda" style="margin-bottom:6px"><option value="">Escalar banda…</option>'+bs.map(function(b){return '<option value="'+esc(b.id)+'"'+(real&&real.b===b.id?' selected':'')+'>'+esc(b.nome)+'</option>';}).join('')+'</select>':'';
   var outros={};
   Object.keys(S.louvor.escala).forEach(function(k){var a=k.split('|');if(a[0]===date&&a[1]!==c.id){S.louvor.escala[k].ps.forEach(function(id){if(id){outros[id]=1;}});}});
   var serv=servindoNoDia(date,S.escala);
   var avisos=[];
   var indis=ids.filter(function(id){return indisp_louvor(id,date);}).map(function(id){return vById_louvor(id).nome;});
   if(indis.length){avisos.push('Indisponível: '+indis.join(', '));}
-  if(nomes.length<n&&Object.keys(S.louvor.escala).length){avisos.push('Faltam '+(n-nomes.length)+' voluntário(s)');}
-  if(nomes.length>n){avisos.push('Mais voluntários que vagas ('+nomes.length+' de '+n+')');}
+  if(real&&real.b){var fora=ids.filter(function(id){var v=vById_louvor(id);return v&&!volPodeCulto(v,c.id);}).map(function(id){return vById_louvor(id).nome;});if(fora.length){avisos.push('Não serve neste culto: '+fora.join(', '));}}
+  if(nomes.length<n&&!(real&&real.b)&&Object.keys(S.louvor.escala).length){avisos.push('Faltam '+(n-nomes.length)+' voluntário(s)');}
+  if(nomes.length>n&&!(real&&real.b)){avisos.push('Mais voluntários que vagas ('+nomes.length+' de '+n+')');}
   if(ids.some(function(id){return outros[id];})){avisos.push('Já serve em outro culto neste dia');}
   var lista=S.louvor.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);}).map(function(v){
     return '<label><input type="checkbox" data-ms-louvor="'+esc(key)+'" value="'+esc(v.id)+'"'+(ids.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+(outros[v.id]?' <span class="small muted">(já serve neste dia)</span>':'')+(indisp_louvor(v.id,date)?' <span class="small muted">(indisponível)</span>':'')+(outraFuncaoNoCulto(v.id,date,c.id,'louvor').length?' <span class="small muted">(já serve neste culto: '+esc(outraFuncaoNoCulto(v.id,date,c.id,'louvor').join(', '))+')</span>':'')+(famScore('p:'+v.id,serv)>0?' <span class="small muted">(família serve neste dia)</span>':'')+'</label>';
   }).join('')||'<span class="empty">Cadastre voluntários na aba Louvor.</span>';
-  return '<div class="r"><div class="rt">Louvor ('+n+')</div><div class="oanse-sel">'
+  return '<div class="r"><div class="rt">Louvor ('+n+')</div><div class="oanse-sel">'+selB
     +'<details class="ms" data-ms-louvor="'+esc(key)+'"'+(open_louvor[key]?' open':'')+'><summary>'+(nomes.length?esc(nomes.join(', ')):'<span class="muted">Escolher voluntários</span>')+' <span class="small muted">('+nomes.length+'/'+n+')</span></summary>'
     +'<div class="ms-pane">'+lista+'</div>'
     +'<div class="ms-foot"><button type="button" class="btn sec mini" data-auto-louvor="'+esc(key)+'">Voltar ao automático</button>'+(real&&real.fx?' <span class="m">manual</span>':'')+'</div></details>'
@@ -4194,7 +4248,7 @@ function render_louvor(){
     return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('louvor-v-mes').textContent=MESES[view.m]+' '+view.y;
-  renderRegras_louvor();renderGerarMod('l');
+  renderBandas_louvor();renderRegras_louvor();renderGerarMod('l');
 }
 function reset_louvor(){edit_louvor=null;$('form-louvor-v').reset();$('louvor-v-titulo').textContent='Novo voluntário';$('louvor-v-salvar').textContent='Adicionar voluntário';$('louvor-v-cancelar').hidden=true;}
 function del_louvor(id){var p=pessoaById(id);if(p){p.louvor=false;}tiraDasEscalas(id,'louvor');syncVols();if(edit_louvor===id){reset_louvor();}changed();}
@@ -4307,6 +4361,83 @@ $('form-louvor-i').addEventListener('submit',function(e){
   $('form-louvor-i').reset();changed();
 });
 function indisp_louvor(vid,date){return S.louvor.indisp.find(function(i){return i.vid===vid&&date>=i.de&&date<=i.ate;});}
+
+/* ---------- Louvor: bandas ---------- */
+var edit_banda=null,bandaMarc=null;
+function bandas_louvor(){if(!Array.isArray(S.louvor.bandas)){S.louvor.bandas=[];}return S.louvor.bandas;}
+function bandaPorId(id){return bandas_louvor().find(function(b){return b.id===id;});}
+function bandaNome(id){var b=bandaPorId(id);return b?b.nome:'';}
+function onBanda_louvor(key,id){
+  var a=key.split('|');
+  if(!id){auto_louvor(key);return;}
+  var b=bandaPorId(id);if(!b){return;}
+  var ps=b.membros.filter(function(x){return !!vById_louvor(x);});
+  S.louvor.escala[key]={ps:ps,m:ps.map(function(){return true;}),fx:true,b:id};
+  var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
+  var v=generate_louvor(addDays(a[0],1),rangeBounds().ate,cids,false);
+  S.example=false;touch();render();restore_louvor();
+  setMsg('Banda '+b.nome+' escalada em '+br(a[0])+'; as datas seguintes foram recalculadas.'+(v?' '+v+' culto(s) ficaram sem banda.':''));
+}
+function resetBanda_louvor(){
+  edit_banda=null;bandaMarc=null;$('form-louvor-b').reset();
+  $('louvor-b-titulo').textContent='Nova banda';$('louvor-b-salvar').textContent='Criar banda';$('louvor-b-cancelar').hidden=true;
+}
+function renderBandas_louvor(){
+  var pode=can('louvor'),bs=bandas_louvor();
+  var marc=bandaMarc;bandaMarc=null;
+  if(!marc){marc=Array.prototype.map.call(document.querySelectorAll('#louvor-b-membros input:checked'),function(i){return i.value;});}
+  var vols=S.louvor.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
+  $('louvor-b-membros').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários do Louvor primeiro.</span>';
+  $('form-louvor-b').hidden=!pode;
+  $('louvor-b-usa-w').hidden=!pode;
+  $('louvor-b-usa').checked=S.louvor.usaBandas!==false;
+  var cont={};Object.keys(S.louvor.escala).forEach(function(k){var b=S.louvor.escala[k].b;if(b){cont[b]=(cont[b]||0)+1;}});
+  $('lista-louvor-b').innerHTML=bs.length?bs.map(function(b){
+    var nomes=b.membros.map(function(id){var v=vById_louvor(id);return v?v.nome:'';}).filter(Boolean);
+    return '<li><div class="main"><b>'+esc(b.nome)+'</b><span class="small muted">'+nomes.length+' membro(s): '+esc(nomes.join(', ')||'—')+' · escalada em '+(cont[b.id]||0)+' culto(s)</span></div>'
+      +(pode?'<div class="row"><button class="btn sec mini" data-act="edit-louvor-b" data-id="'+esc(b.id)+'">Editar</button><button class="btn danger mini" data-act="del-louvor-b" data-id="'+esc(b.id)+'">Excluir</button></div>':'')+'</li>';
+  }).join(''):'<li class="empty">Nenhuma banda criada ainda.</li>';
+}
+function editBanda_louvor(id){
+  var b=bandaPorId(id);if(!b){return;}
+  edit_banda=id;bandaMarc=b.membros.slice();$('louvor-b-nome').value=b.nome;
+  $('louvor-b-titulo').textContent='Editar banda';$('louvor-b-salvar').textContent='Salvar alterações';$('louvor-b-cancelar').hidden=false;
+  renderBandas_louvor();$('form-louvor-b').scrollIntoView({block:'nearest'});$('louvor-b-nome').focus();
+}
+function delBanda_louvor(id){
+  S.louvor.bandas=bandas_louvor().filter(function(b){return b.id!==id;});
+  Object.keys(S.louvor.escala).forEach(function(k){if(S.louvor.escala[k].b===id){delete S.louvor.escala[k].b;}});
+  if(edit_banda===id){resetBanda_louvor();}
+  changed();
+}
+$('form-louvor-b').addEventListener('submit',function(e){
+  e.preventDefault();if(!can('louvor')){return;}
+  var nome=limpaNome($('louvor-b-nome').value);if(!nome){return;}
+  var mem=Array.prototype.map.call(document.querySelectorAll('#louvor-b-membros input:checked'),function(i){return i.value;});
+  var msg=$('louvor-b-msg');msg.textContent='';
+  var bs=bandas_louvor();
+  if(bs.some(function(b){return b.id!==edit_banda&&nomeKey(b.nome)===nomeKey(nome);})){msg.textContent='Já existe uma banda com esse nome.';return;}
+  if(!mem.length){msg.textContent='Escolha pelo menos um membro.';return;}
+  if(bs.length>=60&&!edit_banda){msg.textContent='Limite de 60 bandas.';return;}
+  if(edit_banda){
+    var b=bandaPorId(edit_banda);if(b){b.nome=nome;b.membros=mem;}
+    var hj=iso(new Date());
+    Object.keys(S.louvor.escala).forEach(function(k){
+      var it=S.louvor.escala[k];
+      if(it.b===edit_banda&&k.split('|')[0]>=hj){it.ps=mem.slice();it.m=mem.map(function(){return !!it.fx;});}
+    });
+    msg.textContent='Banda atualizada (as datas futuras em que ela está escalada foram atualizadas).';
+  }else{
+    bs.push({id:'b'+uid(),nome:nome,membros:mem});
+    msg.textContent='Banda '+nome+' criada.';
+  }
+  var m0=msg.textContent;resetBanda_louvor();changed();$('louvor-b-msg').textContent=m0;
+});
+$('louvor-b-cancelar').addEventListener('click',resetBanda_louvor);
+$('louvor-b-usa').addEventListener('change',function(e){
+  if(!can('louvor')){return;}
+  S.louvor.usaBandas=!!e.target.checked;touch();
+});
 
 /* ---------- Parking ---------- */
 /* ---------- Parking: voluntários e escala por culto ---------- */
@@ -5773,6 +5904,8 @@ document.addEventListener('click',function(e){
   }
   else if(act==='edit-louvor-v'){editStart_louvor(id);}
   else if(act==='del-louvor-v'){del_louvor(id);}
+  else if(act==='edit-louvor-b'){editBanda_louvor(id);}
+  else if(act==='del-louvor-b'){delBanda_louvor(id);}
   else if(act==='del-louvor-x'){S.louvor.exige=S.louvor.exige.filter(function(x){return x.id!==id;});changed();}
   else if(act==='del-louvor-i'){S.louvor.indisp=S.louvor.indisp.filter(function(x){return x.id!==id;});changed();}
   else if(act==='louvor-limpar-mes'){
@@ -5916,7 +6049,7 @@ $('form-indisp').addEventListener('submit',function(e){
 
 /* escala */
 $('g-cultos').addEventListener('change',function(e){var t=e.target;if(t.value){unchecked[t.value]=!t.checked;}});
-$('cal').addEventListener('change',function(e){var t=e.target;if(t.matches&&t.matches('select[data-key]')){onPick(t.dataset.key,t.value);}else if(t.matches&&t.matches('input[data-oms]')){onToggleOanse(t.getAttribute('data-oms'));}else if(t.matches&&t.matches('input[data-lms]')){onToggleLit(t.getAttribute('data-lms'));}else if(t.matches&&t.matches('input[data-ms-bibkids]')){toggle_bibkids(t.getAttribute('data-ms-bibkids'));}else if(t.matches&&t.matches('input[data-ms-cantina]')){toggle_cantina(t.getAttribute('data-ms-cantina'));}else if(t.matches&&t.matches('input[data-ms-iluminacao]')){toggle_iluminacao(t.getAttribute('data-ms-iluminacao'));}else if(t.matches&&t.matches('input[data-ms-live]')){toggle_live(t.getAttribute('data-ms-live'));}else if(t.matches&&t.matches('input[data-ms-louvor]')){toggle_louvor(t.getAttribute('data-ms-louvor'));}else if(t.matches&&t.matches('input[data-ms-parking]')){toggle_parking(t.getAttribute('data-ms-parking'));}else if(t.matches&&t.matches('input[data-ms-projecao]')){toggle_projecao(t.getAttribute('data-ms-projecao'));}else if(t.matches&&t.matches('input[data-ms-recepcao]')){toggle_recepcao(t.getAttribute('data-ms-recepcao'));}else if(t.matches&&t.matches('input[data-ms-som]')){toggle_som(t.getAttribute('data-ms-som'));}});
+$('cal').addEventListener('change',function(e){var t=e.target;if(t.matches&&t.matches('select[data-key]')){onPick(t.dataset.key,t.value);}else if(t.matches&&t.matches('input[data-oms]')){onToggleOanse(t.getAttribute('data-oms'));}else if(t.matches&&t.matches('input[data-lms]')){onToggleLit(t.getAttribute('data-lms'));}else if(t.matches&&t.matches('input[data-ms-bibkids]')){toggle_bibkids(t.getAttribute('data-ms-bibkids'));}else if(t.matches&&t.matches('input[data-ms-cantina]')){toggle_cantina(t.getAttribute('data-ms-cantina'));}else if(t.matches&&t.matches('input[data-ms-iluminacao]')){toggle_iluminacao(t.getAttribute('data-ms-iluminacao'));}else if(t.matches&&t.matches('input[data-ms-live]')){toggle_live(t.getAttribute('data-ms-live'));}else if(t.matches&&t.matches('select[data-banda-louvor]')){onBanda_louvor(t.getAttribute('data-banda-louvor'),t.value);}else if(t.matches&&t.matches('input[data-ms-louvor]')){toggle_louvor(t.getAttribute('data-ms-louvor'));}else if(t.matches&&t.matches('input[data-ms-parking]')){toggle_parking(t.getAttribute('data-ms-parking'));}else if(t.matches&&t.matches('input[data-ms-projecao]')){toggle_projecao(t.getAttribute('data-ms-projecao'));}else if(t.matches&&t.matches('input[data-ms-recepcao]')){toggle_recepcao(t.getAttribute('data-ms-recepcao'));}else if(t.matches&&t.matches('input[data-ms-som]')){toggle_som(t.getAttribute('data-ms-som'));}});
 $('form-gerar').addEventListener('submit',function(e){e.preventDefault();gerar();});
 function moveMonth(n){var d=new Date(view.y,view.m+n,1);view={y:d.getFullYear(),m:d.getMonth()};renderEscala();if(!$('texto-box').hidden){$('texto').value=textoDoMes();}}
 function setModo(m){viewMode=m;try{localStorage.setItem('escala-modo',m);}catch(e){}renderEscala();}
