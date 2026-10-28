@@ -134,6 +134,7 @@ textarea.txt{width:100%;min-height:200px;font:13px/1.5 ui-monospace,Menlo,Consol
 .slot.dia{border-left-color:var(--accent);background:var(--surface);border-top:1px dashed var(--line)}
 .oanse-sel{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 200px}
 .oanse-sel>*{flex:none}
+.oanse-sel select.band-sel{flex:none!important;height:auto!important;width:100%;max-width:420px;padding:4px 6px;font-size:13px;background:var(--surface);margin:0}
 details.ms{min-width:0;max-width:420px}
 details.ms summary{list-style:none;cursor:pointer;border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:6px 28px 6px 8px;font-size:13px;position:relative;overflow-wrap:anywhere}
 details.ms summary::-webkit-details-marker{display:none}
@@ -4166,7 +4167,7 @@ function html_louvor(date,c){
     var bnd=real&&real.b?bandaPorId(real.b):null;return '<div class="r"><div class="rt">Louvor'+(bnd?' · '+esc(bnd.nome):'')+'</div><div class="who">'+(nomes.length?esc(nomes.join(', ')):'<span class="muted">A definir</span>')+'</div></div>';
   }
   var bs=bandas_louvor();
-  var selB=bs.length?'<select class="band-sel" data-banda-louvor="'+esc(key)+'" aria-label="Escalar banda" style="margin-bottom:6px"><option value="">Escalar banda…</option>'+bs.map(function(b){return '<option value="'+esc(b.id)+'"'+(real&&real.b===b.id?' selected':'')+'>'+esc(b.nome)+'</option>';}).join('')+'</select>':'';
+  var selB=bs.length?'<select class="band-sel" data-banda-louvor="'+esc(key)+'" aria-label="Escalar banda"><option value="">Escalar banda…</option>'+bs.map(function(b){return '<option value="'+esc(b.id)+'"'+(real&&real.b===b.id?' selected':'')+'>'+esc(b.nome)+'</option>';}).join('')+'</select>':'';
   var outros={};
   Object.keys(S.louvor.escala).forEach(function(k){var a=k.split('|');if(a[0]===date&&a[1]!==c.id){S.louvor.escala[k].ps.forEach(function(id){if(id){outros[id]=1;}});}});
   var serv=servindoNoDia(date,S.escala);
