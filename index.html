@@ -302,6 +302,12 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       <div id="msg-preg" class="hint" aria-live="polite"></div>
     </div>
 
+    <div class="panel" id="panel-temas">
+      <h2>Tema das pregações</h2>
+      <p class="hint">Cadastre o assunto que será pregado em cada data do mês aberto no calendário (use as setas do calendário para mudar de mês). O tema aparece no calendário, na página pública e no texto para WhatsApp.</p>
+      <div class="f" id="temas-lista"></div>
+    </div>
+
     <div class="panel">
       <h2>Quem prega quanto</h2>
       <p class="hint">O número em destaque é o total de todos os meses gerados. As datas são do mês que está aberto acima.</p>
@@ -1737,6 +1743,7 @@ function normalize(o){
   Object.keys(s.escala).forEach(function(k){var a=k.split('|');if(a.length<3||(a[2]==='visit'&&a[1]!=='*')){delete s.escala[k];}});
   s.lit.vagasSem=limpaVagasSem(lo.vagasSem);
   MINS.forEach(function(m){if(m.k!=='oanse'&&m.k!=='lit'){normMin(s,m.k);}});
+  (function(){var T={},o=s.temas&&typeof s.temas==='object'?s.temas:{};Object.keys(o).forEach(function(d){if(/^\d{4}-\d{2}-\d{2}$/.test(d)&&typeof o[d]==='string'&&o[d].trim()){T[d]=o[d].trim().slice(0,120);}});s.temas=T;})();
   if(antes<4&&(s.oanse.voluntarios.length||s.lit.voluntarios.length)){migraVols(s);MIGROU=true;}
   derivarVols(s);
   s.periodo=s.periodo&&s.periodo.de&&s.periodo.ate?s.periodo:b.periodo;
@@ -2086,7 +2093,8 @@ function renderEscala(){
     var cs=inP?S.cultos.filter(function(c){return c.dia===dt.getDay();}).sort(function(a,b){return a.hora.localeCompare(b.hora);}):[];
     var cls='day'+(inM?'':' out')+(d===TODAY?' today':'')+((!cs.length||!inM)?' nosl':'');
     if(cs.length&&inM){algum=true;}
-    var dnh=lista?'Data: '+dt.getDate()+'/'+(dt.getMonth()+1)+'<span class="muted" style="font-weight:400;font-size:14px"> · '+DIAS[dt.getDay()]+'</span>':dt.getDate()+'<span class="muted" style="font-weight:400"> '+DIAS3[dt.getDay()]+'</span>';
+    var tema=(cs.length&&inM&&S.temas&&S.temas[d])||'';
+    var dnh=lista?'Data: '+dt.getDate()+'/'+(dt.getMonth()+1)+'<span class="muted" style="font-weight:400;font-size:14px"> · '+DIAS[dt.getDay()]+'</span>'+(tema?'<span style="font-weight:500;font-size:15px"> · Tema: '+esc(tema)+'</span>':''):dt.getDate()+'<span class="muted" style="font-weight:400"> '+DIAS3[dt.getDay()]+'</span>'+(tema?'<div class="small" style="font-weight:500">Tema: '+esc(tema)+'</div>':'');
     h+='<div class="'+cls+'"><div class="dn">'+dnh+'</div><div class="slots">'+cs.map(function(c){return cultoHTML(d,c);}).join('')+(cs.length?visitHTML(d):'')+'</div></div>';
   }
   if(lista&&!algum){h='<div class="empty" style="padding:14px">Nenhum culto neste mês dentro do período da escala.</div>';}
@@ -2114,6 +2122,7 @@ function textoDoMes(){
     var dt=parse(d),cs=S.cultos.filter(function(c){return c.dia===dt.getDay();}).sort(function(a,b){return a.hora.localeCompare(b.hora);});
     if(!cs.length){continue;}
     out+='\n*'+DIAS3[dt.getDay()]+' '+brShort(d)+'*\n';
+    if(S.temas&&S.temas[d]){out+='Tema: '+S.temas[d]+'\n';}
     (function(){var it=S.escala[mk(d,'*','visit')],p=it&&pessoaById(it.p);out+=PNOME.visit+' (dia todo): '+(p?p.nome+pf(p):'a definir')+'\n';})();
     cs.forEach(function(c){
       out+=c.hora+' · '+c.igreja+'\n';
@@ -5807,7 +5816,7 @@ function renderRegras(){
   }).join(''):'<li class="empty">Ninguém indisponível.</li>';
 }
 
-function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
+function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderTemas();renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
 function changed(){pruneRefs();S.stale=true;touch();render();}
 
 /* botões de duas etapas (sem janela de confirmação) */
@@ -6002,7 +6011,7 @@ document.addEventListener('click',function(e){
     touch();render();$('oanse-msg').textContent='Toda a escala da OANSE foi limpa ('+nT+' culto(s)). Pregação, avisos e contato não foram alterados.';
   }
   else if(act==='zero'){
-    S.oanse={voluntarios:[],vagas:{},escala:{},indisp:[],exige:[]};MINS.forEach(function(m){S[m.k]=minVazio();m.reset();});S.familias=[];resetFam();
+    S.temas={};S.oanse={voluntarios:[],vagas:{},escala:{},indisp:[],exige:[]};MINS.forEach(function(m){S[m.k]=minVazio();m.reset();});S.familias=[];resetFam();
     S.cultos=[];S.pessoas=[];S.escala={};S.regras.indisp=[];S.regras.exige=[];S.example=false;S.stale=false;
     resetCulto();resetPessoa();touch();render();setMsg('Tudo limpo. Cadastre os cultos e depois as pessoas.');
   }else if(act==='limpar-tudo'){
@@ -6062,7 +6071,25 @@ $('form-indisp').addEventListener('submit',function(e){
 $('g-cultos').addEventListener('change',function(e){var t=e.target;if(t.value){unchecked[t.value]=!t.checked;}});
 $('cal').addEventListener('change',function(e){var t=e.target;if(t.matches&&t.matches('select[data-key]')){onPick(t.dataset.key,t.value);}else if(t.matches&&t.matches('input[data-oms]')){onToggleOanse(t.getAttribute('data-oms'));}else if(t.matches&&t.matches('input[data-lms]')){onToggleLit(t.getAttribute('data-lms'));}else if(t.matches&&t.matches('input[data-ms-bibkids]')){toggle_bibkids(t.getAttribute('data-ms-bibkids'));}else if(t.matches&&t.matches('input[data-ms-cantina]')){toggle_cantina(t.getAttribute('data-ms-cantina'));}else if(t.matches&&t.matches('input[data-ms-iluminacao]')){toggle_iluminacao(t.getAttribute('data-ms-iluminacao'));}else if(t.matches&&t.matches('input[data-ms-live]')){toggle_live(t.getAttribute('data-ms-live'));}else if(t.matches&&t.matches('select[data-banda-louvor]')){onBanda_louvor(t.getAttribute('data-banda-louvor'),t.value);}else if(t.matches&&t.matches('input[data-ms-louvor]')){toggle_louvor(t.getAttribute('data-ms-louvor'));}else if(t.matches&&t.matches('input[data-ms-parking]')){toggle_parking(t.getAttribute('data-ms-parking'));}else if(t.matches&&t.matches('input[data-ms-projecao]')){toggle_projecao(t.getAttribute('data-ms-projecao'));}else if(t.matches&&t.matches('input[data-ms-recepcao]')){toggle_recepcao(t.getAttribute('data-ms-recepcao'));}else if(t.matches&&t.matches('input[data-ms-som]')){toggle_som(t.getAttribute('data-ms-som'));}});
 $('form-gerar').addEventListener('submit',function(e){e.preventDefault();gerar();});
-function moveMonth(n){var d=new Date(view.y,view.m+n,1);view={y:d.getFullYear(),m:d.getMonth()};renderEscala();if(!$('texto-box').hidden){$('texto').value=textoDoMes();}}
+
+/* tema da pregação por data */
+function renderTemas(){
+  var box=$('temas-lista'),ym=view.y+'-'+pad(view.m+1),h='';
+  for(var d=ym+'-01';d.slice(0,7)===ym;d=addDays(d,1)){
+    var dt=parse(d);
+    if(!inRanges(d)||!S.cultos.some(function(c){return c.dia===dt.getDay();})){continue;}
+    h+='<label class="l full" for="tema-'+d+'">'+dt.getDate()+'/'+(dt.getMonth()+1)+' · '+DIAS[dt.getDay()]+'<input type="text" id="tema-'+d+'" data-tema="'+d+'" maxlength="120" autocomplete="off" value="'+esc(S.temas[d]||'')+'" placeholder="Tema da pregação"></label>';
+  }
+  box.innerHTML=h||'<p class="empty">Nenhuma data com culto neste mês dentro do período da escala.</p>';
+}
+$('temas-lista').addEventListener('input',function(e){
+  var i=e.target;if(!i.dataset||!i.dataset.tema||!can('pregacao')){return;}
+  var v=i.value.trim().slice(0,120);
+  if(v){S.temas[i.dataset.tema]=v;}else{delete S.temas[i.dataset.tema];}
+  touch();renderEscala();if(!$('texto-box').hidden){$('texto').value=textoDoMes();}
+});
+
+function moveMonth(n){var d=new Date(view.y,view.m+n,1);view={y:d.getFullYear(),m:d.getMonth()};renderEscala();renderTemas();if(!$('texto-box').hidden){$('texto').value=textoDoMes();}}
 function setModo(m){viewMode=m;try{localStorage.setItem('escala-modo',m);}catch(e){}renderEscala();}
 $('v-cal').addEventListener('click',function(){setModo('cal');});
 $('v-lista').addEventListener('click',function(){setModo('lista');});

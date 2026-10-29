@@ -13,7 +13,7 @@ const MAX_BYTES = 400 * 1024;
 
 /* permissão -> partes dos dados que ela libera */
 const PERMS = {
-  pregacao: ['escala', 'regras'],
+  pregacao: ['escala', 'regras', 'temas'],
   oanse: ['oanse'],
   liturgia: ['lit'],
   bibkids: ['bibkids'],
