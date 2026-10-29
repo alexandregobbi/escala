@@ -304,7 +304,8 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
 
     <div class="panel" id="panel-temas">
       <h2>Tema das pregações</h2>
-      <p class="hint">Cadastre o assunto que será pregado em cada data do mês aberto no calendário (use as setas do calendário para mudar de mês). O tema aparece no calendário, na página pública e no texto para WhatsApp.</p>
+      <p class="hint">Cadastre o assunto que será pregado em cada data do mês aberto no calendário (ou use as setas abaixo para mudar de mês). O tema aparece no calendário, na página pública e no texto para WhatsApp.</p>
+      <div class="row" style="align-items:center;gap:10px"><button type="button" class="btn sec mini" id="temas-prev" aria-label="Mês anterior">←</button><b id="temas-mes"></b><button type="button" class="btn sec mini" id="temas-next" aria-label="Próximo mês">→</button></div>
       <div class="f" id="temas-lista"></div>
     </div>
 
@@ -6075,6 +6076,7 @@ $('form-gerar').addEventListener('submit',function(e){e.preventDefault();gerar()
 /* tema da pregação por data */
 function renderTemas(){
   var box=$('temas-lista'),ym=view.y+'-'+pad(view.m+1),h='';
+  $('temas-mes').textContent=MESES[view.m]+' '+view.y;
   for(var d=ym+'-01';d.slice(0,7)===ym;d=addDays(d,1)){
     var dt=parse(d);
     if(!inRanges(d)||!S.cultos.some(function(c){return c.dia===dt.getDay();})){continue;}
@@ -6082,6 +6084,8 @@ function renderTemas(){
   }
   box.innerHTML=h||'<p class="empty">Nenhuma data com culto neste mês dentro do período da escala.</p>';
 }
+$('temas-prev').addEventListener('click',function(){moveMonth(-1);});
+$('temas-next').addEventListener('click',function(){moveMonth(1);});
 $('temas-lista').addEventListener('input',function(e){
   var i=e.target;if(!i.dataset||!i.dataset.tema||!can('pregacao')){return;}
   var v=i.value.trim().slice(0,120);
