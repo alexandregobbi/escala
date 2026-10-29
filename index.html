@@ -1001,7 +1001,6 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <h2 id="louvor-b-titulo">Nova banda</h2>
       <p class="hint">Monte bandas com voluntários que já estão no Louvor. No calendário, escolha a banda de cada culto com um toque; na geração automática as bandas entram em rodízio (uma banda por culto), respeitando indisponibilidades e quem já serve em outra função no mesmo culto.</p>
-      <div class="checks" id="louvor-b-usa-w"><label><input type="checkbox" id="louvor-b-usa"> Gerar a escala usando as bandas (quando houver bandas)</label></div>
       <form class="f" id="form-louvor-b">
         <label class="l full" for="louvor-b-nome">Nome da banda<input type="text" id="louvor-b-nome" required maxlength="60" autocomplete="off"></label>
         <div class="l full" role="group" aria-labelledby="louvor-b-m-t">
@@ -1673,7 +1672,7 @@ function normMin(s,k){
   if(k==='louvor'){
     var L=s[k];
     L.bandas=(Array.isArray(lo.bandas)?lo.bandas:[]).filter(function(b){return b&&b.id&&b.nome;}).slice(0,60).map(function(b){return {id:String(b.id),nome:String(b.nome).slice(0,60),membros:(Array.isArray(b.membros)?b.membros:[]).filter(function(x,i,a){return typeof x==='string'&&a.indexOf(x)===i;})};});
-    L.usaBandas=lo.usaBandas!==false;
+    L.usaBandas=true;
     Object.keys(L.escala).forEach(function(c){var it=L.escala[c];if(it.b&&!L.bandas.some(function(b){return b.id===it.b;})){delete it.b;}});
   }
 }
@@ -2891,7 +2890,7 @@ function gerarMod(pre){
   var extra='';
   if(m.k==='louvor'){
     var nb=bandas_louvor().filter(function(b){return b.membros.length;}).length;
-    extra=!nb?' Atenção: não há nenhuma banda com membros cadastrada, então escalei voluntários individuais. Crie as bandas e gere de novo.':(S.louvor.usaBandas===false?' Atenção: a opção "Gerar a escala usando as bandas" está desmarcada, então escalei voluntários individuais.':' Usando '+nb+' banda(s).');
+    extra=!nb?' Atenção: não há nenhuma banda com membros cadastrada, então escalei voluntários individuais. Crie as bandas e gere de novo.':' Usando '+nb+' banda(s).';
     $(m.msg).textContent='Escala da '+m.nome+' gerada para '+cids.length+' culto(s).'+extra+(v?' '+v+' culto(s) ficaram sem banda (todos os membros indisponíveis ou em outra função).':'');
   }else{
     $(m.msg).textContent='Escala da '+m.nome+' gerada para '+cids.length+' culto(s).'+(v?' '+v+' vaga(s) ficaram sem voluntário.':' Todas as vagas preenchidas.');
@@ -4093,7 +4092,7 @@ function generate_louvor(from,to,cids,keep){
   function note(id,d){tot[id]=(tot[id]||0)+1;(dates[id]=dates[id]||[]).push(dnum(d));}
   Object.keys(e).forEach(function(k){var d=k.split('|')[0];e[k].ps.forEach(function(id){if(id){note(id,d);}});});
   function gapOf(id,dn){var m=-1e9;(dates[id]||[]).forEach(function(x){if(x<dn&&x>m){m=x;}});return dn-m;}
-  var bandas=(O.bandas||[]).filter(function(b){return b.membros&&b.membros.length;}),bandMode=O.usaBandas!==false&&bandas.length>0,bt={},bd={};
+  var bandas=(O.bandas||[]).filter(function(b){return b.membros&&b.membros.length;}),bandMode=bandas.length>0,bt={},bd={};
   function bgap(id,dn){var m=-1e9;(bd[id]||[]).forEach(function(x){if(x<dn&&x>m){m=x;}});return dn-m;}
   Object.keys(e).forEach(function(k){var it=e[k];if(it.b){bt[it.b]=(bt[it.b]||0)+1;(bd[it.b]=bd[it.b]||[]).push(dnum(k.split('|')[0]));}});
   var vazios=0,end=addDays(from,400);if(to<end){end=to;}
@@ -4406,8 +4405,6 @@ function renderBandas_louvor(){
   var vols=S.louvor.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('louvor-b-membros').innerHTML=vols.length?vols.map(function(v){return '<label><input type="checkbox" value="'+esc(v.id)+'"'+(marc.indexOf(v.id)>=0?' checked':'')+'> '+esc(v.nome)+'</label>';}).join(''):'<span class="empty">Cadastre voluntários do Louvor primeiro.</span>';
   $('form-louvor-b').hidden=!pode;
-  $('louvor-b-usa-w').hidden=!pode;
-  $('louvor-b-usa').checked=S.louvor.usaBandas!==false;
   var cont={};Object.keys(S.louvor.escala).forEach(function(k){var b=S.louvor.escala[k].b;if(b){cont[b]=(cont[b]||0)+1;}});
   $('lista-louvor-b').innerHTML=bs.length?bs.map(function(b){
     var nomes=b.membros.map(function(id){var v=vById_louvor(id);return v?v.nome:'';}).filter(Boolean);
@@ -4451,10 +4448,6 @@ $('form-louvor-b').addEventListener('submit',function(e){
   var m0=msg.textContent;resetBanda_louvor();changed();$('louvor-b-msg').textContent=m0;
 });
 $('louvor-b-cancelar').addEventListener('click',resetBanda_louvor);
-$('louvor-b-usa').addEventListener('change',function(e){
-  if(!can('louvor')){return;}
-  S.louvor.usaBandas=!!e.target.checked;touch();
-});
 
 /* ---------- Parking ---------- */
 /* ---------- Parking: voluntários e escala por culto ---------- */
