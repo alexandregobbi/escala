@@ -2094,7 +2094,7 @@ function renderEscala(){
     var cls='day'+(inM?'':' out')+(d===TODAY?' today':'')+((!cs.length||!inM)?' nosl':'');
     if(cs.length&&inM){algum=true;}
     var tema=(cs.length&&inM&&S.temas&&S.temas[d])||'';
-    var dnh=lista?'Data: '+dt.getDate()+'/'+(dt.getMonth()+1)+'<span class="muted" style="font-weight:400;font-size:14px"> · '+DIAS[dt.getDay()]+'</span>'+(tema?'<span style="font-weight:500;font-size:15px"> · Tema: '+esc(tema)+'</span>':''):dt.getDate()+'<span class="muted" style="font-weight:400"> '+DIAS3[dt.getDay()]+'</span>'+(tema?'<div class="small" style="font-weight:500">Tema: '+esc(tema)+'</div>':'');
+    var dnh=lista?'Data: '+dt.getDate()+'/'+(dt.getMonth()+1)+''+(tema?'':'<span class="muted" style="font-weight:400;font-size:14px"> · '+DIAS[dt.getDay()]+'</span>')+(tema?'<span style="font-weight:500;font-size:15px"> · Tema: '+esc(tema)+'</span>':''):dt.getDate()+'<span class="muted" style="font-weight:400"> '+DIAS3[dt.getDay()]+'</span>'+(tema?'<div class="small" style="font-weight:500">Tema: '+esc(tema)+'</div>':'');
     h+='<div class="'+cls+'"><div class="dn">'+dnh+'</div><div class="slots">'+cs.map(function(c){return cultoHTML(d,c);}).join('')+(cs.length?visitHTML(d):'')+'</div></div>';
   }
   if(lista&&!algum){h='<div class="empty" style="padding:14px">Nenhum culto neste mês dentro do período da escala.</div>';}
