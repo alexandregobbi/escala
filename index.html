@@ -2888,7 +2888,7 @@ function gerarMod(pre){
   var v=m.gen(de,ate,cids,$(pre+'g-manter').checked);
   var d=parse(de);view={y:d.getFullYear(),m:d.getMonth()};
   S.example=false;touch();render();
-  $(m.msg).textContent='Escala da '+m.nome+' gerada para '+cids.length+' culto(s).'+(v?' '+v+' vaga(s) ficaram sem voluntário.':' Todas as vagas preenchidas.');
+  $(m.msg).textContent='Escala da '+m.nome+' gerada para '+cids.length+' culto(s).'+(m.k==='louvor'?(v?' '+v+' culto(s) ficaram sem banda (todos os membros indisponíveis ou em outra função).':' Todos os cultos com banda.'):(v?' '+v+' vaga(s) ficaram sem voluntário.':' Todas as vagas preenchidas.'));
 }
 MINS.forEach(function(m){
   $('form-'+m.pre+'g').addEventListener('submit',function(e){e.preventDefault();gerarMod(m.pre);});
@@ -3094,7 +3094,7 @@ function render_bibkids(){
     return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('bibkids-v-mes').textContent=MESES[view.m]+' '+view.y;
-  renderRegras_bibkids();renderGerarMod('l');
+  renderRegras_bibkids();renderGerarMod('bibkids');
 }
 function reset_bibkids(){edit_bibkids=null;$('form-bibkids-v').reset();$('bibkids-v-titulo').textContent='Novo voluntário';$('bibkids-v-salvar').textContent='Adicionar voluntário';$('bibkids-v-cancelar').hidden=true;}
 function del_bibkids(id){var p=pessoaById(id);if(p){p.bibkids=false;}tiraDasEscalas(id,'bibkids');syncVols();if(edit_bibkids===id){reset_bibkids();}changed();}
@@ -3376,7 +3376,7 @@ function render_cantina(){
     return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('cantina-v-mes').textContent=MESES[view.m]+' '+view.y;
-  renderRegras_cantina();renderGerarMod('l');
+  renderRegras_cantina();renderGerarMod('cantina');
 }
 function reset_cantina(){edit_cantina=null;$('form-cantina-v').reset();$('cantina-v-titulo').textContent='Novo voluntário';$('cantina-v-salvar').textContent='Adicionar voluntário';$('cantina-v-cancelar').hidden=true;}
 function del_cantina(id){var p=pessoaById(id);if(p){p.cantina=false;}tiraDasEscalas(id,'cantina');syncVols();if(edit_cantina===id){reset_cantina();}changed();}
@@ -3658,7 +3658,7 @@ function render_iluminacao(){
     return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('iluminacao-v-mes').textContent=MESES[view.m]+' '+view.y;
-  renderRegras_iluminacao();renderGerarMod('l');
+  renderRegras_iluminacao();renderGerarMod('iluminacao');
 }
 function reset_iluminacao(){edit_iluminacao=null;$('form-iluminacao-v').reset();$('iluminacao-v-titulo').textContent='Novo voluntário';$('iluminacao-v-salvar').textContent='Adicionar voluntário';$('iluminacao-v-cancelar').hidden=true;}
 function del_iluminacao(id){var p=pessoaById(id);if(p){p.iluminacao=false;}tiraDasEscalas(id,'iluminacao');syncVols();if(edit_iluminacao===id){reset_iluminacao();}changed();}
@@ -3940,7 +3940,7 @@ function render_live(){
     return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('live-v-mes').textContent=MESES[view.m]+' '+view.y;
-  renderRegras_live();renderGerarMod('l');
+  renderRegras_live();renderGerarMod('live');
 }
 function reset_live(){edit_live=null;$('form-live-v').reset();$('live-v-titulo').textContent='Novo voluntário';$('live-v-salvar').textContent='Adicionar voluntário';$('live-v-cancelar').hidden=true;}
 function del_live(id){var p=pessoaById(id);if(p){p.live=false;}tiraDasEscalas(id,'live');syncVols();if(edit_live===id){reset_live();}changed();}
@@ -4104,19 +4104,20 @@ function generate_louvor(from,to,cids,keep){
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDiaB[id]=1;}});}});
           var bl=[];
           bandas.forEach(function(b){
-            var bad=0,dia=0;
-            b.membros.forEach(function(id){var v=vById_louvor(id);if(!v||indisp_louvor(id,d)||!volPodeCulto(v,c.id)||outraFuncaoNoCulto(id,d,c.id,'louvor').length){bad++;}else if(emDiaB[id]){dia++;}});
-            if(!bad){bl.push({b:b,dia:dia});}
+            var bad=0,dia=0,ok=[];
+            b.membros.forEach(function(id){var v=vById_louvor(id);if(!v||indisp_louvor(id,d)||outraFuncaoNoCulto(id,d,c.id,'louvor').length){bad++;}else{ok.push(id);if(emDiaB[id]){dia++;}}});
+            if(ok.length){bl.push({b:b,dia:dia,bad:bad,ok:ok});}
           });
           if(!bl.length){vazios++;return;}
           bl.sort(function(x,y){
+            if(x.bad!==y.bad){return x.bad-y.bad;}
             if(x.dia!==y.dia){return x.dia-y.dia;}
             var tx=bt[x.b.id]||0,ty=bt[y.b.id]||0;if(tx!==ty){return tx-ty;}
             var gx=bgap(x.b.id,dn),gy=bgap(y.b.id,dn);if(gx!==gy){return gy-gx;}
             return bandas.indexOf(x.b)-bandas.indexOf(y.b);
           });
           var eb=bl[0].b;
-          it.ps=eb.membros.slice();it.m=it.ps.map(function(){return false;});it.b=eb.id;
+          it.ps=bl[0].ok.slice();it.m=it.ps.map(function(){return false;});it.b=eb.id;
           it.ps.forEach(function(id){note(id,d);});
           bt[eb.id]=(bt[eb.id]||0)+1;(bd[eb.id]=bd[eb.id]||[]).push(dn);
           return;
@@ -4257,7 +4258,7 @@ function render_louvor(){
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('louvor-v-mes').textContent=MESES[view.m]+' '+view.y;
   $('louvor-vagas-lista').parentNode.hidden=true;
-  renderBandas_louvor();renderRegras_louvor();renderGerarMod('l');
+  renderBandas_louvor();renderRegras_louvor();renderGerarMod('louvor');
 }
 function reset_louvor(){edit_louvor=null;$('form-louvor-v').reset();$('louvor-v-titulo').textContent='Novo voluntário';$('louvor-v-salvar').textContent='Adicionar voluntário';$('louvor-v-cancelar').hidden=true;}
 function del_louvor(id){var p=pessoaById(id);if(p){p.louvor=false;}tiraDasEscalas(id,'louvor');syncVols();if(edit_louvor===id){reset_louvor();}changed();}
@@ -4616,7 +4617,7 @@ function render_parking(){
     return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('parking-v-mes').textContent=MESES[view.m]+' '+view.y;
-  renderRegras_parking();renderGerarMod('l');
+  renderRegras_parking();renderGerarMod('parking');
 }
 function reset_parking(){edit_parking=null;$('form-parking-v').reset();$('parking-v-titulo').textContent='Novo voluntário';$('parking-v-salvar').textContent='Adicionar voluntário';$('parking-v-cancelar').hidden=true;}
 function del_parking(id){var p=pessoaById(id);if(p){p.parking=false;}tiraDasEscalas(id,'parking');syncVols();if(edit_parking===id){reset_parking();}changed();}
@@ -4898,7 +4899,7 @@ function render_projecao(){
     return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('projecao-v-mes').textContent=MESES[view.m]+' '+view.y;
-  renderRegras_projecao();renderGerarMod('l');
+  renderRegras_projecao();renderGerarMod('projecao');
 }
 function reset_projecao(){edit_projecao=null;$('form-projecao-v').reset();$('projecao-v-titulo').textContent='Novo voluntário';$('projecao-v-salvar').textContent='Adicionar voluntário';$('projecao-v-cancelar').hidden=true;}
 function del_projecao(id){var p=pessoaById(id);if(p){p.projecao=false;}tiraDasEscalas(id,'projecao');syncVols();if(edit_projecao===id){reset_projecao();}changed();}
@@ -5180,7 +5181,7 @@ function render_recepcao(){
     return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('recepcao-v-mes').textContent=MESES[view.m]+' '+view.y;
-  renderRegras_recepcao();renderGerarMod('l');
+  renderRegras_recepcao();renderGerarMod('recepcao');
 }
 function reset_recepcao(){edit_recepcao=null;$('form-recepcao-v').reset();$('recepcao-v-titulo').textContent='Novo voluntário';$('recepcao-v-salvar').textContent='Adicionar voluntário';$('recepcao-v-cancelar').hidden=true;}
 function del_recepcao(id){var p=pessoaById(id);if(p){p.recepcao=false;}tiraDasEscalas(id,'recepcao');syncVols();if(edit_recepcao===id){reset_recepcao();}changed();}
@@ -5462,7 +5463,7 @@ function render_som(){
     return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
   $('som-v-mes').textContent=MESES[view.m]+' '+view.y;
-  renderRegras_som();renderGerarMod('l');
+  renderRegras_som();renderGerarMod('som');
 }
 function reset_som(){edit_som=null;$('form-som-v').reset();$('som-v-titulo').textContent='Novo voluntário';$('som-v-salvar').textContent='Adicionar voluntário';$('som-v-cancelar').hidden=true;}
 function del_som(id){var p=pessoaById(id);if(p){p.som=false;}tiraDasEscalas(id,'som');syncVols();if(edit_som===id){reset_som();}changed();}
