@@ -2888,7 +2888,14 @@ function gerarMod(pre){
   var v=m.gen(de,ate,cids,$(pre+'g-manter').checked);
   var d=parse(de);view={y:d.getFullYear(),m:d.getMonth()};
   S.example=false;touch();render();
-  $(m.msg).textContent='Escala da '+m.nome+' gerada para '+cids.length+' culto(s).'+(m.k==='louvor'?(v?' '+v+' culto(s) ficaram sem banda (todos os membros indisponíveis ou em outra função).':' Todos os cultos com banda.'):(v?' '+v+' vaga(s) ficaram sem voluntário.':' Todas as vagas preenchidas.'));
+  var extra='';
+  if(m.k==='louvor'){
+    var nb=bandas_louvor().filter(function(b){return b.membros.length;}).length;
+    extra=!nb?' Atenção: não há nenhuma banda com membros cadastrada, então escalei voluntários individuais. Crie as bandas e gere de novo.':(S.louvor.usaBandas===false?' Atenção: a opção "Gerar a escala usando as bandas" está desmarcada, então escalei voluntários individuais.':' Usando '+nb+' banda(s).');
+    $(m.msg).textContent='Escala da '+m.nome+' gerada para '+cids.length+' culto(s).'+extra+(v?' '+v+' culto(s) ficaram sem banda (todos os membros indisponíveis ou em outra função).':'');
+  }else{
+    $(m.msg).textContent='Escala da '+m.nome+' gerada para '+cids.length+' culto(s).'+(v?' '+v+' vaga(s) ficaram sem voluntário.':' Todas as vagas preenchidas.');
+  }
 }
 MINS.forEach(function(m){
   $('form-'+m.pre+'g').addEventListener('submit',function(e){e.preventDefault();gerarMod(m.pre);});
