@@ -999,8 +999,10 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       </form>
     </div>
     <div class="panel">
-      <h2 id="louvor-b-titulo">Nova banda</h2>
-      <p class="hint">Monte bandas com voluntários que já estão no Louvor. No calendário, escolha a banda de cada culto com um toque; na geração automática as bandas entram em rodízio (uma banda por culto), respeitando indisponibilidades e quem já serve em outra função no mesmo culto.</p>
+      <h2>Bandas</h2>
+      <p class="hint">No calendário, escolha a banda de cada culto com um toque. Na geração automática as bandas entram em rodízio (uma banda por culto), respeitando indisponibilidades e quem já serve em outra função no mesmo culto.</p>
+      <ul class="list" id="lista-louvor-b"></ul>
+      <h3 id="louvor-b-titulo">Nova banda</h3>
       <form class="f" id="form-louvor-b">
         <label class="l full" for="louvor-b-nome">Nome da banda<input type="text" id="louvor-b-nome" required maxlength="60" autocomplete="off"></label>
         <div class="l full" role="group" aria-labelledby="louvor-b-m-t">
@@ -1010,7 +1012,6 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
         <div class="row full"><button class="btn" type="submit" id="louvor-b-salvar">Criar banda</button><button class="btn sec" type="button" id="louvor-b-cancelar" hidden>Cancelar edição</button></div>
       </form>
       <div class="hint" id="louvor-b-msg" aria-live="polite"></div>
-      <ul class="list" id="lista-louvor-b"></ul>
     </div>
     <div class="grid2">
       <div class="panel">
