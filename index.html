@@ -2101,7 +2101,7 @@ function renderEscala(){
   if(lista&&!algum){h='<div class="empty" style="padding:14px">Nenhum culto neste mês dentro do período da escala.</div>';}
   $('cal').innerHTML=h;
   var rows='';
-  S.pessoas.filter(function(p){return p.papeis.length;}).sort(function(a,b){return a.nome.localeCompare(b.nome);}).forEach(function(p){
+  S.pessoas.filter(function(p){return p.papeis.length;}).sort(function(a,b){var ord={'Pastor':0,'Presbítero':1,'Diácono':2},oa=ord[a.funcao],ob=ord[b.funcao];oa=oa===undefined?3:oa;ob=ob===undefined?3:ob;return oa!==ob?oa-ob:a.nome.localeCompare(b.nome);}).forEach(function(p){
     var cells=PAPEIS.map(function(pp){
       var ym=view.y+'-'+pad(view.m+1);
       var ds=Object.keys(S.escala).filter(function(k){var a=k.split('|');return a[2]===pp&&S.escala[k].p===p.id&&a[0].slice(0,7)===ym;})
