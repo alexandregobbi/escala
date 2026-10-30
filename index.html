@@ -362,7 +362,19 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
         <div class="row full"><button class="btn" type="submit" id="pe-salvar">Cadastrar pessoa</button><button class="btn sec" type="button" id="pe-cancelar" hidden>Cancelar edição</button></div>
       </form>
     </div>
+    <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+    <div class="panel" id="panel-merge">
+      <h2>Mesclar duas pessoas</h2>
+      <p class="hint">Use quando a mesma pessoa foi cadastrada duas vezes. Todas as escalas, funções, cultos, indisponibilidades, regras, famílias e bandas da pessoa removida passam para a pessoa mantida. Nada do que já foi escalado se perde.</p>
+      <form class="f" id="form-merge">
+        <label class="l full" for="mg-keep">Manter (nome que fica)<select id="mg-keep"></select></label>
+        <label class="l full" for="mg-drop">Juntar nesta (será removida)<select id="mg-drop"></select></label>
+        <div class="row full"><button class="btn" type="submit">Mesclar</button></div>
+      </form>
+      <div class="hint" id="mg-msg" aria-live="polite"></div>
+    </div>
     <div class="panel"><h2>Pessoas cadastradas</h2><ul class="list" id="lista-pessoas"></ul></div>
+    </div>
     <div class="panel" id="panel-csv" style="grid-column:1/-1">
       <h2>Importar pessoas por arquivo CSV</h2>
       <p class="hint">Duas colunas: <b>nome</b> e <b>função</b>. A função pode ser um ministério (Bibkids, Cantina, Iluminação, Live, Louvor, OANSE, Liturgia, Parking, Projeção, Recepção, Som), uma atividade (Pregação, Avisos, Contato visitantes) ou um cargo (Pastor, Presbítero, Diácono). Para várias funções na mesma pessoa, separe com <b>|</b> (ex.: Som|Louvor) ou repita o nome em outra linha. A primeira linha pode ser o cabeçalho. Quem já está cadastrado é atualizado, sem perder o que já tem.</p>
@@ -5798,7 +5810,7 @@ function renderPessoas(){
     var tags=p.cultos.map(cultoById).filter(Boolean).map(function(c){return '<span class="chip tag">'+DIAS3[c.dia]+' '+esc(c.hora)+'</span>';}).join('');
     var at=p.papeis.map(function(x){return PNOME[x];}).concat(MINS.filter(function(m){return p[m.k];}).map(function(m){return m.nome;})).join(', ');
     return '<li><div class="main"><span><b>'+esc(p.nome)+'</b> '+chip(p.funcao)+'</span><span class="small muted">'+esc(p.igreja||'Sem igreja')+' · '+at+'</span><span class="tags">'+(tags||'<span class="small muted">Sem cultos</span>')+'</span></div>'
-      +'<div class="row"><button class="btn sec mini" data-act="edit-pessoa" data-id="'+esc(p.id)+'">Editar</button><button class="btn danger mini" data-act="del-pessoa" data-id="'+esc(p.id)+'">Remover</button></div></li>';
+      +'<div class="row"><button class="btn sec mini" data-act="edit-pessoa" data-id="'+esc(p.id)+'">Editar</button><button class="btn sec mini" data-act="merge-pessoa" data-id="'+esc(p.id)+'">Mesclar</button><button class="btn danger mini" data-act="del-pessoa" data-id="'+esc(p.id)+'">Remover</button></div></li>';
   }).join(''):'<li class="empty">Nenhuma pessoa cadastrada ainda.</li>';
 }
 
@@ -5817,7 +5829,7 @@ function renderRegras(){
   }).join(''):'<li class="empty">Ninguém indisponível.</li>';
 }
 
-function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderTemas();renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
+function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderTemas();renderMerge();renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
 function changed(){pruneRefs();S.stale=true;touch();render();}
 
 /* botões de duas etapas (sem janela de confirmação) */
@@ -5831,6 +5843,51 @@ function disarm(b){b.dataset.armed='0';if(b.dataset.orig){b.textContent=b.datase
 
 function resetCulto(){editCulto=null;$('form-culto').reset();$('c-hora').value='19:00';$('c-titulo').textContent='Novo culto';$('c-salvar').textContent='Cadastrar culto';$('c-cancelar').hidden=true;}
 function resetPessoa(){editPessoa=null;$('form-pessoa').reset();$('pe-titulo').textContent='Nova pessoa';$('pe-salvar').textContent='Cadastrar pessoa';$('pe-cancelar').hidden=true;renderPessoaForm();}
+
+
+/* mesclar duas pessoas mantendo as escalas */
+function renderMerge(){
+  var box=$('panel-merge');box.hidden=!can('cadastros');
+  var ks=$('mg-keep').value,ds=$('mg-drop').value;
+  var opts=S.pessoas.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.nome)+(p.funcao?' ('+esc(p.funcao)+')':'')+'</option>';}).join('');
+  $('mg-keep').innerHTML=opts;$('mg-drop').innerHTML=opts;
+  if(pessoaById(ks)){$('mg-keep').value=ks;}if(pessoaById(ds)){$('mg-drop').value=ds;}
+}
+function mesclaPessoas(keepId,dropId){
+  var k=pessoaById(keepId),d=pessoaById(dropId);if(!k||!d||k===d){return false;}
+  var uni=function(a,b){var r=a.slice();b.forEach(function(x){if(r.indexOf(x)<0){r.push(x);}});return r;};
+  if(!k.funcao&&d.funcao){k.funcao=d.funcao;}
+  if(!k.igreja&&d.igreja){k.igreja=d.igreja;}
+  k.cultos=uni(k.cultos||[],d.cultos||[]);k.papeis=uni(k.papeis||[],d.papeis||[]);
+  MINS.forEach(function(m){k[m.k]=!!(k[m.k]||d[m.k]);});
+  Object.keys(S.escala).forEach(function(c){if(S.escala[c].p===dropId){S.escala[c].p=keepId;}});
+  S.regras.indisp.forEach(function(i){if(i.pid===dropId){i.pid=keepId;}});
+  S.regras.exige.forEach(function(x){if(x.pid===dropId){x.pid=keepId;}});
+  MINS.forEach(function(m){
+    var M=S[m.k];
+    Object.keys(M.escala).forEach(function(c){
+      var it=M.escala[c],vistos={},ps=[],ms=[];
+      it.ps.forEach(function(id,i){var x=id===dropId?keepId:id;if(x&&vistos[x]){return;}if(x){vistos[x]=1;}ps.push(x);ms.push(!!it.m[i]);});
+      it.ps=ps;it.m=ms;
+    });
+    M.indisp.forEach(function(i){if(i.vid===dropId){i.vid=keepId;}});
+    M.exige.forEach(function(x){x.vids=uni([],x.vids.map(function(v){return v===dropId?keepId:v;}));});
+  });
+  (S.louvor.bandas||[]).forEach(function(b){b.membros=uni([],b.membros.map(function(v){return v===dropId?keepId:v;}));});
+  S.familias.forEach(function(f){f.membros=uni([],f.membros.map(function(v){return v==='p:'+dropId?'p:'+keepId:v;}));});
+  S.pessoas=S.pessoas.filter(function(p){return p.id!==dropId;});
+  if(editPessoa===dropId){resetPessoa();}
+  return true;
+}
+$('form-merge').addEventListener('submit',function(e){
+  e.preventDefault();if(!can('cadastros')){return;}
+  var kid=$('mg-keep').value,did=$('mg-drop').value,msg=$('mg-msg');
+  if(!kid||!did||kid===did){msg.textContent='Escolha duas pessoas diferentes.';return;}
+  var kn=pessoaById(kid).nome,dn=pessoaById(did).nome;
+  if(!window.confirm('Juntar "'+dn+'" em "'+kn+'"? A pessoa "'+dn+'" será removida e todas as escalas dela passam para "'+kn+'".')){return;}
+  mesclaPessoas(kid,did);changed();
+  $('mg-msg').textContent='“'+dn+'” foi juntada(o) em “'+kn+'”. As escalas foram mantidas.';
+});
 
 function formPeriodo(){return {de:$('p-de').value||S.periodo.de,ate:$('p-ate').value||S.periodo.ate};}
 document.addEventListener('click',function(e){
@@ -5864,6 +5921,9 @@ document.addEventListener('click',function(e){
     $('pe-p-preg').checked=p.papeis.indexOf('preg')>=0;$('pe-p-avisos').checked=p.papeis.indexOf('avisos')>=0;$('pe-p-visit').checked=p.papeis.indexOf('visit')>=0;MINS.forEach(function(m){$('pe-'+m.k).checked=!!p[m.k];});
     $('pe-titulo').textContent='Editar pessoa';$('pe-salvar').textContent='Salvar alterações';$('pe-cancelar').hidden=false;
     $('form-pessoa').scrollIntoView({block:'nearest'});$('pe-nome').focus();
+  }else if(act==='merge-pessoa'){
+    if($('mg-keep').value===id){$('mg-keep').selectedIndex=($('mg-keep').selectedIndex+1)%Math.max(1,$('mg-keep').options.length);}
+    $('mg-drop').value=id;$('panel-merge').scrollIntoView({block:'nearest'});
   }else if(act==='del-pessoa'){
     tiraDasEscalas(id);
     S.pessoas=S.pessoas.filter(function(p){return p.id!==id;});
