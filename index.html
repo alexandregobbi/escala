@@ -280,6 +280,17 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
 
   <!-- PREGAÇÃO -->
   <section id="tab-pregacao" class="tabpane" hidden style="flex-direction:column;gap:18px">
+    <div class="panel" id="panel-gerar-todos" hidden>
+      <h2>Gerar todas as escalas</h2>
+      <p class="hint">Só para o administrador. Gera de uma vez pregação, avisos e contato, e depois cada ministério (OANSE, Liturgia, Bibkids, Cantina, Iluminação, Live, Louvor, Parking, Projeção, Recepção e Som), nessa ordem. Cada ministério usa os cultos com vagas e só altera a própria escala. Ajustes feitos à mão ficam fixos.</p>
+      <form class="f" id="form-todos">
+        <label class="l" for="ga-de">De<input type="date" id="ga-de" required></label>
+        <label class="l" for="ga-ate">Até<input type="date" id="ga-ate" required></label>
+        <div class="full checks"><label><input type="checkbox" id="ga-manter"> Manter o que já está preenchido e só completar os espaços vazios</label></div>
+        <div class="row full"><button class="btn" type="submit">Gerar todas as escalas</button></div>
+      </form>
+      <div class="hint" id="ga-msg" aria-live="polite"></div>
+    </div>
     <div class="panel" id="panel-gerar">
       <div class="row sp">
         <h2>Gerar escala de pregação, avisos e contato</h2>
@@ -5829,7 +5840,7 @@ function renderRegras(){
   }).join(''):'<li class="empty">Ninguém indisponível.</li>';
 }
 
-function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderTemas();renderMerge();renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
+function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderTemas();renderMerge();renderGerarTodos();renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
 function changed(){pruneRefs();S.stale=true;touch();render();}
 
 /* botões de duas etapas (sem janela de confirmação) */
@@ -5844,6 +5855,36 @@ function disarm(b){b.dataset.armed='0';if(b.dataset.orig){b.textContent=b.datase
 function resetCulto(){editCulto=null;$('form-culto').reset();$('c-hora').value='19:00';$('c-titulo').textContent='Novo culto';$('c-salvar').textContent='Cadastrar culto';$('c-cancelar').hidden=true;}
 function resetPessoa(){editPessoa=null;$('form-pessoa').reset();$('pe-titulo').textContent='Nova pessoa';$('pe-salvar').textContent='Cadastrar pessoa';$('pe-cancelar').hidden=true;renderPessoaForm();}
 
+
+/* gerar tudo (administrador) */
+function ehAdminTotal(){return can('cadastros')&&can('pregacao')&&MINS.every(function(m){return can(m.perm);});}
+function renderGerarTodos(){
+  var box=$('panel-gerar-todos');box.hidden=!ehAdminTotal();
+  if(!$('ga-de').value){$('ga-de').value=S.periodo.de;}
+  if(!$('ga-ate').value){$('ga-ate').value=S.periodo.ate;}
+}
+$('form-todos').addEventListener('submit',function(e){
+  e.preventDefault();if(!ehAdminTotal()){return;}
+  var de=$('ga-de').value,ate=$('ga-ate').value,out=$('ga-msg'),keep=$('ga-manter').checked;
+  if(!de||!ate||de>ate){out.textContent='Informe um período válido: a data inicial deve vir antes da final.';return;}
+  if(dnum(ate)-dnum(de)>400){out.textContent='Use um período de até 400 dias.';return;}
+  if(!S.cultos.length||!S.pessoas.length){out.textContent='Cadastre ao menos um culto e uma pessoa antes de gerar.';return;}
+  S.periodo={de:de,ate:ate};
+  S.periodos=mergeRanges(S.periodos.concat([{de:de,ate:ate}]));
+  var todos=S.cultos.map(function(c){return c.id;});
+  var res=[],v0=generate(de,ate,selectedCultos().length?selectedCultos():todos,keep);
+  res.push('Pregação/avisos/contato'+(v0.length?' ('+v0.length+' sem pessoa)':''));
+  MINS.forEach(function(m){
+    if(!S[m.k].voluntarios.length){res.push(m.nome+' (sem voluntários, pulado)');return;}
+    var cids=S.cultos.filter(function(c){return temVagas(m.k,c);}).map(function(c){return c.id;});
+    if(!cids.length){res.push(m.nome+' (sem vagas, pulado)');return;}
+    var v=m.gen(de,ate,cids,keep);
+    res.push(m.nome+(v?' ('+v+' vaga(s) sem voluntário)':''));
+  });
+  var d=parse(de);view={y:d.getFullYear(),m:d.getMonth()};
+  S.example=false;S.stale=false;touch();render();
+  $('ga-msg').textContent='Geradas: '+res.join('; ')+'.';
+});
 
 /* mesclar duas pessoas mantendo as escalas */
 function renderMerge(){
