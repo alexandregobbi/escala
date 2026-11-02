@@ -258,6 +258,10 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       </div>
       <div id="msg" class="hint" aria-live="polite"></div>
       <div class="cal-head" aria-hidden="true"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
+      <details class="ms" id="filtro-fn" style="margin:8px 0"><summary id="filtro-resumo">Funções: todas</summary>
+        <div class="ms-pane" id="filtro-lista"></div>
+        <div class="ms-foot"><button type="button" class="btn sec mini" id="filtro-todas">Mostrar todas</button></div>
+      </details>
       <div id="cal" class="cal"></div>
       <div class="hint" id="cal-hint">Troque o pregador direto no calendário. Os cultos seguintes (que não foram ajustados à mão) são recalculados pelas regras.</div>
       <div id="texto-box" hidden style="display:flex;flex-direction:column;gap:8px">
@@ -2083,12 +2087,12 @@ function visitHTML(date){
     +'<select data-key="'+esc(key)+'" aria-label="'+PNOME.visit+' de '+esc(DIAS3[w]+' '+br(date))+'">'+h+'</select>'+warn+'</div></div>';
 }
 function cultoHTML(date,c){
-  var rows=PCULTO.map(function(p){return rowHTML(date,c,p);});
+  var rows=PCULTO.filter(fOn).map(function(p){return rowHTML(date,c,p);});
   var vazio=rows.some(function(r){return r.empty;});
   var head=viewMode==='lista'?'<b>'+esc(c.igreja)+(c.desc?' · '+esc(c.desc):'')+'</b><span>'+esc(c.hora)+'</span>'
     :'<b>'+esc(c.hora)+'</b><span title="'+esc(c.desc||'')+'">'+esc(igShort(c.igreja))+'</span>';
   return '<div class="slot'+(vazio?' vazio':'')+'"><div class="sh">'+head+'</div>'
-    +rows.map(function(r){return r.html;}).join('')+MINS.map(function(m){return m.html(date,c);}).join('')+'</div>';
+    +rows.map(function(r){return r.html;}).join('')+MINS.filter(function(m){return fOn(m.k);}).map(function(m){return m.html(date,c);}).join('')+'</div>';
 }
 
 function renderBanner(){
@@ -2101,7 +2105,6 @@ function renderBanner(){
 }
 
 function renderEscala(){
-  $('p-de').value=S.periodo.de;$('p-ate').value=S.periodo.ate;
   $('m-label').textContent=MESES[view.m]+' '+view.y;
   var lista=viewMode==='lista';
   $('cal').className='cal'+(lista?' list':'');
@@ -2112,15 +2115,15 @@ function renderEscala(){
   var start=addDays(iso(first),-first.getDay()),end=addDays(iso(last),6-last.getDay());
   var h='',algum=false;
   for(var d=start;d<=end;d=addDays(d,1)){
-    var dt=parse(d),inM=dt.getMonth()===view.m,inP=inRanges(d);
+    var dt=parse(d),inM=dt.getMonth()===view.m,inP=inRanges(d)&&d>=TODAY;
     var cs=inP?S.cultos.filter(function(c){return c.dia===dt.getDay();}).sort(function(a,b){return a.hora.localeCompare(b.hora);}):[];
     var cls='day'+(inM?'':' out')+(d===TODAY?' today':'')+((!cs.length||!inM)?' nosl':'');
     if(cs.length&&inM){algum=true;}
     var tema=(cs.length&&inM&&S.temas&&S.temas[d])||'';
     var dnh=lista?'Data: '+dt.getDate()+'/'+(dt.getMonth()+1)+''+(tema?'':'<span class="muted" style="font-weight:400;font-size:14px"> · '+DIAS[dt.getDay()]+'</span>')+(tema?'<span style="font-weight:500;font-size:15px"> · Tema: '+esc(tema)+'</span>':''):dt.getDate()+'<span class="muted" style="font-weight:400"> '+DIAS3[dt.getDay()]+'</span>'+(tema?'<div class="small" style="font-weight:500">Tema: '+esc(tema)+'</div>':'');
-    h+='<div class="'+cls+'"><div class="dn">'+dnh+'</div><div class="slots">'+cs.map(function(c){return cultoHTML(d,c);}).join('')+(cs.length?visitHTML(d):'')+'</div></div>';
+    h+='<div class="'+cls+'"><div class="dn">'+dnh+'</div><div class="slots">'+cs.map(function(c){return cultoHTML(d,c);}).join('')+(cs.length&&fOn('visit')?visitHTML(d):'')+'</div></div>';
   }
-  if(lista&&!algum){h='<div class="empty" style="padding:14px">Nenhum culto neste mês dentro do período da escala.</div>';}
+  if(lista&&!algum){h='<div class="empty" style="padding:14px">Nenhuma data futura com culto neste mês dentro do período da escala.</div>';}
   $('cal').innerHTML=h;
   var rows='';
   S.pessoas.filter(function(p){return p.papeis.length;}).sort(function(a,b){var ord={'Pastor':0,'Presbítero':1,'Diácono':2},oa=ord[a.funcao],ob=ord[b.funcao];oa=oa===undefined?3:oa;ob=ob===undefined?3:ob;return oa!==ob?oa-ob:a.nome.localeCompare(b.nome);}).forEach(function(p){
@@ -5845,7 +5848,7 @@ function renderRegras(){
   }).join(''):'<li class="empty">Ninguém indisponível.</li>';
 }
 
-function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderTemas();renderMerge();renderGerarTodos();aplicaMeses();$('preg-info').textContent=ateQuando(Object.keys(S.escala).filter(function(k){return !!S.escala[k].p&&!!pessoaById(S.escala[k].p);}));renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
+function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderTemas();renderMerge();renderGerarTodos();aplicaMeses();if(!$('filtro-fn').open){renderFiltro();}$('preg-info').textContent=ateQuando(Object.keys(S.escala).filter(function(k){return !!S.escala[k].p&&!!pessoaById(S.escala[k].p);}));renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
 function changed(){pruneRefs();S.stale=true;touch();render();}
 
 /* botões de duas etapas (sem janela de confirmação) */
@@ -5873,6 +5876,24 @@ function aplicaMes(pf){
 }
 function aplicaMeses(){PREF_MES.forEach(aplicaMes);}
 PREF_MES.forEach(function(pf){$(pf+'-mes').addEventListener('change',function(){aplicaMes(pf);});});
+
+/* filtro de funções na tela principal */
+var FILTRO={};
+try{var fs=JSON.parse(localStorage.getItem('escala-filtro')||'{}');if(fs&&typeof fs==='object'){FILTRO=fs;}}catch(e){}
+function fOn(k){return !Object.keys(FILTRO).length||!!FILTRO[k];}
+function funcoesFiltro(){return [['preg','Pregador'],['avisos','Avisos'],['visit','Contato visitantes']].concat(MINS.map(function(m){return [m.k,m.nome];}));}
+function renderFiltro(){
+  var fns=funcoesFiltro(),sel=Object.keys(FILTRO).filter(function(k){return FILTRO[k];});
+  $('filtro-lista').innerHTML=fns.map(function(f){return '<label><input type="checkbox" value="'+f[0]+'"'+(FILTRO[f[0]]?' checked':'')+'> '+esc(f[1])+'</label>';}).join('');
+  $('filtro-resumo').textContent='Funções: '+(sel.length?fns.filter(function(f){return FILTRO[f[0]];}).map(function(f){return f[1];}).join(', '):'todas');
+}
+function salvaFiltro(){try{localStorage.setItem('escala-filtro',JSON.stringify(FILTRO));}catch(e){}}
+$('filtro-lista').addEventListener('change',function(e){
+  var i=e.target;if(!i.value){return;}
+  if(i.checked){FILTRO[i.value]=true;}else{delete FILTRO[i.value];}
+  salvaFiltro();renderFiltro();renderEscala();
+});
+$('filtro-todas').addEventListener('click',function(){FILTRO={};salvaFiltro();renderFiltro();renderEscala();});
 
 /* gerar tudo (administrador) */
 function ehAdminTotal(){return can('cadastros')&&can('pregacao')&&MINS.every(function(m){return can(m.perm);});}
