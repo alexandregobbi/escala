@@ -325,9 +325,14 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
 
     <div class="panel">
       <h2>Quem prega quanto</h2>
-      <p class="hint">O número em destaque é o total de todos os meses gerados. As datas são do mês que está aberto acima.</p>
+      <p class="hint">Total de escalas de cada pessoa por mês, nos meses em que há escala gerada.</p>
+      <div class="row" role="group" aria-label="Tipo de escala" id="resumo-papel" style="margin-bottom:8px">
+        <button type="button" class="btn sec mini" data-rp="preg" aria-pressed="true">Pregação</button>
+        <button type="button" class="btn sec mini" data-rp="avisos" aria-pressed="false">Avisos</button>
+        <button type="button" class="btn sec mini" data-rp="visit" aria-pressed="false">Contato visitantes</button>
+      </div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Pessoa</th><th>Função</th><th>Pregação</th><th>Avisos</th><th>Contato visitantes</th></tr></thead>
+        <thead id="resumo-head"></thead>
         <tbody id="resumo"></tbody>
       </table></div>
     </div>
@@ -2125,19 +2130,21 @@ function renderEscala(){
   }
   if(lista&&!algum){h='<div class="empty" style="padding:14px">Nenhuma data futura com culto neste mês dentro do período da escala.</div>';}
   $('cal').innerHTML=h;
-  var rows='';
-  S.pessoas.filter(function(p){return p.papeis.length;}).sort(function(a,b){var ord={'Pastor':0,'Presbítero':1,'Diácono':2},oa=ord[a.funcao],ob=ord[b.funcao];oa=oa===undefined?3:oa;ob=ob===undefined?3:ob;return oa!==ob?oa-ob:a.nome.localeCompare(b.nome);}).forEach(function(p){
-    var cells=PAPEIS.map(function(pp){
-      var ym=view.y+'-'+pad(view.m+1);
-      var ds=Object.keys(S.escala).filter(function(k){var a=k.split('|');return a[2]===pp&&S.escala[k].p===p.id&&a[0].slice(0,7)===ym;})
-        .map(function(k){return k.split('|')[0];}).sort();
-      var all=Object.keys(S.escala).filter(function(k){return k.split('|')[2]===pp&&S.escala[k].p===p.id;}).length;
-      return '<td><b class="num">'+all+'</b> <span class="small muted">(neste mês: '+ds.length+')</span> '+ds.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' ')+'</td>';
-    }).join('');
-    rows+='<tr><td>'+esc(p.nome)+'</td><td>'+chip(p.funcao)+'</td>'+cells+'</tr>';
+  var rows='',rp=resumoPapel,cnt={},mesesR={};
+  Object.keys(S.escala).forEach(function(k){
+    var a=k.split('|'),it=S.escala[k];if(a[2]!==rp||!it.p){return;}
+    var ym=a[0].slice(0,7);mesesR[ym]=1;(cnt[it.p]=cnt[it.p]||{})[ym]=((cnt[it.p]||{})[ym]||0)+1;
+  });
+  var mesesL=Object.keys(mesesR).sort();
+  $('resumo-head').innerHTML='<tr><th>Pessoa</th><th>Função</th>'+mesesL.map(function(ym){return '<th>'+MESES[+ym.slice(5,7)-1].slice(0,3)+'/'+ym.slice(2,4)+'</th>';}).join('')+'<th>Total</th></tr>';
+  Array.prototype.forEach.call(document.querySelectorAll('#resumo-papel button'),function(b){b.setAttribute('aria-pressed',b.getAttribute('data-rp')===rp?'true':'false');});
+  S.pessoas.filter(function(p){return p.papeis.indexOf(rp)>=0;}).sort(function(a,b){var ord={'Pastor':0,'Presbítero':1,'Diácono':2},oa=ord[a.funcao],ob=ord[b.funcao];oa=oa===undefined?3:oa;ob=ob===undefined?3:ob;return oa!==ob?oa-ob:a.nome.localeCompare(b.nome);}).forEach(function(p){
+    var c=cnt[p.id]||{},tot=0;
+    var cells=mesesL.map(function(ym){var n=c[ym]||0;tot+=n;return '<td>'+(n?'<b class="num">'+n+'</b>':'<span class="muted">—</span>')+'</td>';}).join('');
+    rows+='<tr><td>'+esc(p.nome)+'</td><td>'+chip(p.funcao)+'</td>'+cells+'<td><b class="num">'+tot+'</b></td></tr>';
   });
   MINS.forEach(function(m){m.restore();});renderPublico();
-  $('resumo').innerHTML=rows||'<tr><td colspan="5" class="empty">Cadastre pessoas para ver o resumo.</td></tr>';
+  $('resumo').innerHTML=rows||'<tr><td colspan="'+(mesesL.length+3)+'" class="empty">Nenhuma pessoa com essa função cadastrada.</td></tr>';
 }
 
 function textoDoMes(){
@@ -5877,6 +5884,8 @@ function aplicaMes(pf){
 function aplicaMeses(){PREF_MES.forEach(aplicaMes);}
 PREF_MES.forEach(function(pf){$(pf+'-mes').addEventListener('change',function(){aplicaMes(pf);});});
 
+var resumoPapel='preg';
+$('resumo-papel').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('button[data-rp]');if(!b){return;}resumoPapel=b.getAttribute('data-rp');renderEscala();});
 /* filtro de funções na tela principal */
 var FILTRO={};
 try{var fs=JSON.parse(localStorage.getItem('escala-filtro')||'{}');if(fs&&typeof fs==='object'){FILTRO=fs;}}catch(e){}
