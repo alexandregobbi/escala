@@ -290,7 +290,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       <form class="f" id="form-todos">
         <label class="l full" for="ga-mes">Mês da escala<input type="month" id="ga-mes" required></label><input type="hidden" id="ga-de"><input type="hidden" id="ga-ate">
         <div class="full checks"><label><input type="checkbox" id="ga-manter"> Manter o que já está preenchido e só completar os espaços vazios</label></div>
-        <div class="row full"><button class="btn" type="submit">Gerar todas as escalas</button></div>
+        <div class="row full"><button class="btn" type="submit">Gerar todas as escalas</button><button class="btn danger" type="button" id="ga-apagar">Apagar todas as escalas, exceto o mês escolhido</button></div>
       </form>
       <div class="hint" id="ga-msg" aria-live="polite"></div>
     </div>
@@ -5923,6 +5923,19 @@ $('form-todos').addEventListener('submit',function(e){
   var d=parse(de);view={y:d.getFullYear(),m:d.getMonth()};
   S.example=false;S.stale=false;touch();render();
   $('ga-msg').textContent='Geradas: '+res.join('; ')+'.';
+});
+
+$('ga-apagar').addEventListener('click',function(){
+  if(!ehAdminTotal()){return;}
+  aplicaMes('ga');
+  var ym=$('ga-mes').value,out=$('ga-msg');
+  if(!/^\d{4}-\d{2}$/.test(ym)){out.textContent='Escolha o mês que deve ser mantido.';return;}
+  var nome=MESES[+ym.slice(5,7)-1]+' de '+ym.slice(0,4);
+  if(!window.confirm('Apagar TODAS as escalas (pregação, avisos, contato e todos os ministérios, inclusive ajustes manuais) de todos os meses, exceto '+nome+'? Isso não pode ser desfeito.')){return;}
+  var n=0,del=function(E){Object.keys(E).forEach(function(k){if(k.slice(0,7)!==ym){delete E[k];n++;}});};
+  del(S.escala);MINS.forEach(function(m){del(S[m.k].escala);});
+  S.example=false;touch();render();
+  $('ga-msg').textContent='Escalas apagadas: '+n+' registro(s) fora de '+nome+'. Apenas '+nome+' foi mantido.';
 });
 
 /* mesclar duas pessoas mantendo as escalas */
