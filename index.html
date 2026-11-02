@@ -2918,7 +2918,7 @@ function ateQuando(chaves,ym){
   return ult?'Escala existente lançada até '+br(ult)+'.':'Nenhuma escala lançada ainda.';
 }
 function renderGerarMod(pre){
-  var inf=$(pre+'g-info');if(inf){inf.textContent=ateQuando(Object.keys(S[modPorPre(pre).k].escala));}
+  var inf=$(pre+'g-info');if(inf){var E=S[modPorPre(pre).k].escala;inf.textContent=ateQuando(Object.keys(E).filter(function(k){return E[k].ps&&E[k].ps.some(Boolean);}));}
   var m=modPorPre(pre);uncMod[pre]=uncMod[pre]||{};
   var cs=sortedCultos().filter(function(c){return temVagas(m.k,c);});
   $(pre+'g-cultos').innerHTML=cs.length?cs.map(function(c){
@@ -5858,7 +5858,7 @@ function renderRegras(){
   }).join(''):'<li class="empty">Ninguém indisponível.</li>';
 }
 
-function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderTemas();renderMerge();renderGerarTodos();$('preg-info').textContent=ateQuando(Object.keys(S.escala));renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
+function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderTemas();renderMerge();renderGerarTodos();$('preg-info').textContent=ateQuando(Object.keys(S.escala).filter(function(k){return !!S.escala[k].p;}));renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
 function changed(){pruneRefs();S.stale=true;touch();render();}
 
 /* botões de duas etapas (sem janela de confirmação) */
