@@ -540,7 +540,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <div class="row sp"><h2>Quem serve quanto</h2><span class="hint" id="vol-mes"></span></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Voluntário</th><th>Total</th><th>Datas no mês aberto</th></tr></thead>
+        <thead id="vol-dist-head"></thead>
         <tbody id="vol-dist"></tbody>
       </table></div>
     </div>
@@ -635,7 +635,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <div class="row sp"><h2>Quem serve quanto</h2><span class="hint" id="lv-mes"></span></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Voluntário</th><th>Total</th><th>Datas no mês aberto</th></tr></thead>
+        <thead id="lv-dist-head"></thead>
         <tbody id="lv-dist"></tbody>
       </table></div>
     </div>
@@ -730,7 +730,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <div class="row sp"><h2>Quem serve quanto</h2><span class="hint" id="bibkids-v-mes"></span></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Voluntário</th><th>Total</th><th>Datas no mês aberto</th></tr></thead>
+        <thead id="bibkids-v-dist-head"></thead>
         <tbody id="bibkids-v-dist"></tbody>
       </table></div>
     </div>
@@ -825,7 +825,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <div class="row sp"><h2>Quem serve quanto</h2><span class="hint" id="cantina-v-mes"></span></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Voluntário</th><th>Total</th><th>Datas no mês aberto</th></tr></thead>
+        <thead id="cantina-v-dist-head"></thead>
         <tbody id="cantina-v-dist"></tbody>
       </table></div>
     </div>
@@ -920,7 +920,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <div class="row sp"><h2>Quem serve quanto</h2><span class="hint" id="iluminacao-v-mes"></span></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Voluntário</th><th>Total</th><th>Datas no mês aberto</th></tr></thead>
+        <thead id="iluminacao-v-dist-head"></thead>
         <tbody id="iluminacao-v-dist"></tbody>
       </table></div>
     </div>
@@ -1015,7 +1015,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <div class="row sp"><h2>Quem serve quanto</h2><span class="hint" id="live-v-mes"></span></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Voluntário</th><th>Total</th><th>Datas no mês aberto</th></tr></thead>
+        <thead id="live-v-dist-head"></thead>
         <tbody id="live-v-dist"></tbody>
       </table></div>
     </div>
@@ -1125,7 +1125,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <div class="row sp"><h2>Quem serve quanto</h2><span class="hint" id="louvor-v-mes"></span></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Voluntário</th><th>Total</th><th>Datas no mês aberto</th></tr></thead>
+        <thead id="louvor-v-dist-head"></thead>
         <tbody id="louvor-v-dist"></tbody>
       </table></div>
     </div>
@@ -1220,7 +1220,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <div class="row sp"><h2>Quem serve quanto</h2><span class="hint" id="parking-v-mes"></span></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Voluntário</th><th>Total</th><th>Datas no mês aberto</th></tr></thead>
+        <thead id="parking-v-dist-head"></thead>
         <tbody id="parking-v-dist"></tbody>
       </table></div>
     </div>
@@ -1315,7 +1315,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <div class="row sp"><h2>Quem serve quanto</h2><span class="hint" id="projecao-v-mes"></span></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Voluntário</th><th>Total</th><th>Datas no mês aberto</th></tr></thead>
+        <thead id="projecao-v-dist-head"></thead>
         <tbody id="projecao-v-dist"></tbody>
       </table></div>
     </div>
@@ -1410,7 +1410,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <div class="row sp"><h2>Quem serve quanto</h2><span class="hint" id="recepcao-v-mes"></span></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Voluntário</th><th>Total</th><th>Datas no mês aberto</th></tr></thead>
+        <thead id="recepcao-v-dist-head"></thead>
         <tbody id="recepcao-v-dist"></tbody>
       </table></div>
     </div>
@@ -1505,7 +1505,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <div class="row sp"><h2>Quem serve quanto</h2><span class="hint" id="som-v-mes"></span></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Voluntário</th><th>Total</th><th>Datas no mês aberto</th></tr></thead>
+        <thead id="som-v-dist-head"></thead>
         <tbody id="som-v-dist"></tbody>
       </table></div>
     </div>
@@ -2414,15 +2414,7 @@ function renderOanse(){
     return vagasHTML('oanse',c,'data-vaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
-  $('vol-dist').innerHTML=V.length?V.map(function(v){
-    var all=0,mes=[];
-    Object.keys(S.oanse.escala).forEach(function(k){
-      var a=k.split('|');
-      if(S.oanse.escala[k].ps.indexOf(v.id)>=0){all++;if(a[0].slice(0,7)===ym){mes.push(a[0]);}}
-    });
-    mes.sort();
-    return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
-  }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
+  distMeses('oanse','vol-dist',V);
   $('vol-mes').textContent=MESES[view.m]+' '+view.y;
   renderOanseRegras();renderGerarMod('o');
 }
@@ -2782,15 +2774,7 @@ function renderLit(){
     return vagasHTML('lit',c,'data-lvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
-  $('lv-dist').innerHTML=V.length?V.map(function(v){
-    var all=0,mes=[];
-    Object.keys(S.lit.escala).forEach(function(k){
-      var a=k.split('|');
-      if(S.lit.escala[k].ps.indexOf(v.id)>=0){all++;if(a[0].slice(0,7)===ym){mes.push(a[0]);}}
-    });
-    mes.sort();
-    return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
-  }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
+  distMeses('lit','lv-dist',V);
   $('lv-mes').textContent=MESES[view.m]+' '+view.y;
   renderLitRegras();renderGerarMod('l');
 }
@@ -3139,15 +3123,7 @@ function render_bibkids(){
     return vagasHTML('bibkids',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
-  $('bibkids-v-dist').innerHTML=V.length?V.map(function(v){
-    var all=0,mes=[];
-    Object.keys(S.bibkids.escala).forEach(function(k){
-      var a=k.split('|');
-      if(S.bibkids.escala[k].ps.indexOf(v.id)>=0){all++;if(a[0].slice(0,7)===ym){mes.push(a[0]);}}
-    });
-    mes.sort();
-    return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
-  }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
+  distMeses('bibkids','bibkids-v-dist',V);
   $('bibkids-v-mes').textContent=MESES[view.m]+' '+view.y;
   renderRegras_bibkids();renderGerarMod('bibkids');
 }
@@ -3421,15 +3397,7 @@ function render_cantina(){
     return vagasHTML('cantina',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
-  $('cantina-v-dist').innerHTML=V.length?V.map(function(v){
-    var all=0,mes=[];
-    Object.keys(S.cantina.escala).forEach(function(k){
-      var a=k.split('|');
-      if(S.cantina.escala[k].ps.indexOf(v.id)>=0){all++;if(a[0].slice(0,7)===ym){mes.push(a[0]);}}
-    });
-    mes.sort();
-    return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
-  }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
+  distMeses('cantina','cantina-v-dist',V);
   $('cantina-v-mes').textContent=MESES[view.m]+' '+view.y;
   renderRegras_cantina();renderGerarMod('cantina');
 }
@@ -3703,15 +3671,7 @@ function render_iluminacao(){
     return vagasHTML('iluminacao',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
-  $('iluminacao-v-dist').innerHTML=V.length?V.map(function(v){
-    var all=0,mes=[];
-    Object.keys(S.iluminacao.escala).forEach(function(k){
-      var a=k.split('|');
-      if(S.iluminacao.escala[k].ps.indexOf(v.id)>=0){all++;if(a[0].slice(0,7)===ym){mes.push(a[0]);}}
-    });
-    mes.sort();
-    return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
-  }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
+  distMeses('iluminacao','iluminacao-v-dist',V);
   $('iluminacao-v-mes').textContent=MESES[view.m]+' '+view.y;
   renderRegras_iluminacao();renderGerarMod('iluminacao');
 }
@@ -3985,15 +3945,7 @@ function render_live(){
     return vagasHTML('live',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
-  $('live-v-dist').innerHTML=V.length?V.map(function(v){
-    var all=0,mes=[];
-    Object.keys(S.live.escala).forEach(function(k){
-      var a=k.split('|');
-      if(S.live.escala[k].ps.indexOf(v.id)>=0){all++;if(a[0].slice(0,7)===ym){mes.push(a[0]);}}
-    });
-    mes.sort();
-    return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
-  }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
+  distMeses('live','live-v-dist',V);
   $('live-v-mes').textContent=MESES[view.m]+' '+view.y;
   renderRegras_live();renderGerarMod('live');
 }
@@ -4302,15 +4254,7 @@ function render_louvor(){
     return vagasHTML('louvor',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
-  $('louvor-v-dist').innerHTML=V.length?V.map(function(v){
-    var all=0,mes=[];
-    Object.keys(S.louvor.escala).forEach(function(k){
-      var a=k.split('|');
-      if(S.louvor.escala[k].ps.indexOf(v.id)>=0){all++;if(a[0].slice(0,7)===ym){mes.push(a[0]);}}
-    });
-    mes.sort();
-    return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
-  }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
+  distMeses('louvor','louvor-v-dist',V);
   $('louvor-v-mes').textContent=MESES[view.m]+' '+view.y;
   $('louvor-vagas-lista').parentNode.hidden=true;
   renderBandas_louvor();renderRegras_louvor();renderGerarMod('louvor');
@@ -4656,15 +4600,7 @@ function render_parking(){
     return vagasHTML('parking',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
-  $('parking-v-dist').innerHTML=V.length?V.map(function(v){
-    var all=0,mes=[];
-    Object.keys(S.parking.escala).forEach(function(k){
-      var a=k.split('|');
-      if(S.parking.escala[k].ps.indexOf(v.id)>=0){all++;if(a[0].slice(0,7)===ym){mes.push(a[0]);}}
-    });
-    mes.sort();
-    return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
-  }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
+  distMeses('parking','parking-v-dist',V);
   $('parking-v-mes').textContent=MESES[view.m]+' '+view.y;
   renderRegras_parking();renderGerarMod('parking');
 }
@@ -4938,15 +4874,7 @@ function render_projecao(){
     return vagasHTML('projecao',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
-  $('projecao-v-dist').innerHTML=V.length?V.map(function(v){
-    var all=0,mes=[];
-    Object.keys(S.projecao.escala).forEach(function(k){
-      var a=k.split('|');
-      if(S.projecao.escala[k].ps.indexOf(v.id)>=0){all++;if(a[0].slice(0,7)===ym){mes.push(a[0]);}}
-    });
-    mes.sort();
-    return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
-  }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
+  distMeses('projecao','projecao-v-dist',V);
   $('projecao-v-mes').textContent=MESES[view.m]+' '+view.y;
   renderRegras_projecao();renderGerarMod('projecao');
 }
@@ -5220,15 +5148,7 @@ function render_recepcao(){
     return vagasHTML('recepcao',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
-  $('recepcao-v-dist').innerHTML=V.length?V.map(function(v){
-    var all=0,mes=[];
-    Object.keys(S.recepcao.escala).forEach(function(k){
-      var a=k.split('|');
-      if(S.recepcao.escala[k].ps.indexOf(v.id)>=0){all++;if(a[0].slice(0,7)===ym){mes.push(a[0]);}}
-    });
-    mes.sort();
-    return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
-  }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
+  distMeses('recepcao','recepcao-v-dist',V);
   $('recepcao-v-mes').textContent=MESES[view.m]+' '+view.y;
   renderRegras_recepcao();renderGerarMod('recepcao');
 }
@@ -5502,15 +5422,7 @@ function render_som(){
     return vagasHTML('som',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
-  $('som-v-dist').innerHTML=V.length?V.map(function(v){
-    var all=0,mes=[];
-    Object.keys(S.som.escala).forEach(function(k){
-      var a=k.split('|');
-      if(S.som.escala[k].ps.indexOf(v.id)>=0){all++;if(a[0].slice(0,7)===ym){mes.push(a[0]);}}
-    });
-    mes.sort();
-    return '<tr><td>'+esc(v.nome)+'</td><td><b class="num">'+all+'</b></td><td>'+(mes.length?mes.map(function(x){return '<span class="chip tag">'+brShort(x)+'</span>';}).join(' '):'<span class="muted">—</span>')+'</td></tr>';
-  }).join(''):'<tr><td colspan="3" class="empty">Sem voluntários.</td></tr>';
+  distMeses('som','som-v-dist',V);
   $('som-v-mes').textContent=MESES[view.m]+' '+view.y;
   renderRegras_som();renderGerarMod('som');
 }
@@ -5946,6 +5858,22 @@ $('ga-apagar').addEventListener('click',function(){
   S.example=false;touch();render();
   $('ga-msg').textContent='Escalas apagadas: '+n+' registro(s) fora de '+nome+'. Apenas '+nome+' foi mantido.';
 });
+
+/* total de escalas de cada voluntário, por mês */
+function distMeses(k,id,V){
+  var E=S[k].escala,cnt={},ms={};
+  Object.keys(E).forEach(function(c){
+    var ym=c.slice(0,7);
+    E[c].ps.forEach(function(x){if(!x){return;}ms[ym]=1;(cnt[x]=cnt[x]||{})[ym]=(cnt[x][ym]||0)+1;});
+  });
+  var L=Object.keys(ms).sort();
+  $(id+'-head').innerHTML='<tr><th>Voluntário</th>'+L.map(function(ym){return '<th>'+MESES[+ym.slice(5,7)-1].slice(0,3)+'/'+ym.slice(2,4)+'</th>';}).join('')+'<th>Total</th></tr>';
+  $(id).innerHTML=V.length?V.map(function(v){
+    var c=cnt[v.id]||{},tot=0;
+    var cells=L.map(function(ym){var n=c[ym]||0;tot+=n;return '<td>'+(n?'<b class="num">'+n+'</b>':'<span class="muted">—</span>')+'</td>';}).join('');
+    return '<tr><td>'+esc(v.nome)+'</td>'+cells+'<td><b class="num">'+tot+'</b></td></tr>';
+  }).join(''):'<tr><td colspan="'+(L.length+2)+'" class="empty">Sem voluntários.</td></tr>';
+}
 
 /* mesclar duas pessoas mantendo as escalas */
 function renderMerge(){
