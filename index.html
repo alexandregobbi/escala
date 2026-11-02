@@ -296,6 +296,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
         <h2>Gerar escala de pregação, avisos e contato</h2>
         <span class="hint">Gera pregação, avisos e contato com visitantes. A OANSE e a Liturgia têm o próprio botão de gerar. Ajustes feitos à mão ficam fixos.</span>
       </div>
+      <div class="hint" id="preg-info"></div>
       <form class="f" id="form-gerar">
         <label class="l" for="p-de">De<input type="date" id="p-de" required></label>
         <label class="l" for="p-ate">Até<input type="date" id="p-ate" required></label>
@@ -447,6 +448,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <h2>Gerar escala da OANSE</h2>
       <p class="hint">Gera só a OANSE. Pregação, avisos e contato não são alterados. O que você marcou à mão fica fixo.</p>
+      <div class="hint" id="og-info"></div>
       <form class="f" id="form-og">
         <label class="l" for="og-de">De<input type="date" id="og-de" required></label>
         <label class="l" for="og-ate">Até<input type="date" id="og-ate" required></label>
@@ -542,6 +544,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <h2>Gerar escala da Liturgia</h2>
       <p class="hint">Gera só a Liturgia. Pregação, avisos e contato não são alterados. O que você marcou à mão fica fixo.</p>
+      <div class="hint" id="lg-info"></div>
       <form class="f" id="form-lg">
         <label class="l" for="lg-de">De<input type="date" id="lg-de" required></label>
         <label class="l" for="lg-ate">Até<input type="date" id="lg-ate" required></label>
@@ -637,6 +640,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <h2>Gerar escala da Bibkids</h2>
       <p class="hint">Gera só a Bibkids. Pregação, avisos e contato não são alterados. O que você marcou à mão fica fixo.</p>
+      <div class="hint" id="bibkidsg-info"></div>
       <form class="f" id="form-bibkidsg">
         <label class="l" for="bibkidsg-de">De<input type="date" id="bibkidsg-de" required></label>
         <label class="l" for="bibkidsg-ate">Até<input type="date" id="bibkidsg-ate" required></label>
@@ -732,6 +736,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <h2>Gerar escala da Cantina</h2>
       <p class="hint">Gera só a Cantina. Pregação, avisos e contato não são alterados. O que você marcou à mão fica fixo.</p>
+      <div class="hint" id="cantinag-info"></div>
       <form class="f" id="form-cantinag">
         <label class="l" for="cantinag-de">De<input type="date" id="cantinag-de" required></label>
         <label class="l" for="cantinag-ate">Até<input type="date" id="cantinag-ate" required></label>
@@ -827,6 +832,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <h2>Gerar escala da Iluminação</h2>
       <p class="hint">Gera só a Iluminação. Pregação, avisos e contato não são alterados. O que você marcou à mão fica fixo.</p>
+      <div class="hint" id="iluminacaog-info"></div>
       <form class="f" id="form-iluminacaog">
         <label class="l" for="iluminacaog-de">De<input type="date" id="iluminacaog-de" required></label>
         <label class="l" for="iluminacaog-ate">Até<input type="date" id="iluminacaog-ate" required></label>
@@ -922,6 +928,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <h2>Gerar escala da Live</h2>
       <p class="hint">Gera só a Live. Pregação, avisos e contato não são alterados. O que você marcou à mão fica fixo.</p>
+      <div class="hint" id="liveg-info"></div>
       <form class="f" id="form-liveg">
         <label class="l" for="liveg-de">De<input type="date" id="liveg-de" required></label>
         <label class="l" for="liveg-ate">Até<input type="date" id="liveg-ate" required></label>
@@ -1017,6 +1024,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <h2>Gerar escala da Louvor</h2>
       <p class="hint">Gera só a Louvor. Pregação, avisos e contato não são alterados. O que você marcou à mão fica fixo.</p>
+      <div class="hint" id="louvorg-info"></div>
       <form class="f" id="form-louvorg">
         <label class="l" for="louvorg-de">De<input type="date" id="louvorg-de" required></label>
         <label class="l" for="louvorg-ate">Até<input type="date" id="louvorg-ate" required></label>
@@ -1127,6 +1135,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <h2>Gerar escala da Parking</h2>
       <p class="hint">Gera só a Parking. Pregação, avisos e contato não são alterados. O que você marcou à mão fica fixo.</p>
+      <div class="hint" id="parkingg-info"></div>
       <form class="f" id="form-parkingg">
         <label class="l" for="parkingg-de">De<input type="date" id="parkingg-de" required></label>
         <label class="l" for="parkingg-ate">Até<input type="date" id="parkingg-ate" required></label>
@@ -1222,6 +1231,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <h2>Gerar escala da Projeção</h2>
       <p class="hint">Gera só a Projeção. Pregação, avisos e contato não são alterados. O que você marcou à mão fica fixo.</p>
+      <div class="hint" id="projecaog-info"></div>
       <form class="f" id="form-projecaog">
         <label class="l" for="projecaog-de">De<input type="date" id="projecaog-de" required></label>
         <label class="l" for="projecaog-ate">Até<input type="date" id="projecaog-ate" required></label>
@@ -1317,6 +1327,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <h2>Gerar escala da Recepção</h2>
       <p class="hint">Gera só a Recepção. Pregação, avisos e contato não são alterados. O que você marcou à mão fica fixo.</p>
+      <div class="hint" id="recepcaog-info"></div>
       <form class="f" id="form-recepcaog">
         <label class="l" for="recepcaog-de">De<input type="date" id="recepcaog-de" required></label>
         <label class="l" for="recepcaog-ate">Até<input type="date" id="recepcaog-ate" required></label>
@@ -1412,6 +1423,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <div class="panel">
       <h2>Gerar escala da Som</h2>
       <p class="hint">Gera só a Som. Pregação, avisos e contato não são alterados. O que você marcou à mão fica fixo.</p>
+      <div class="hint" id="somg-info"></div>
       <form class="f" id="form-somg">
         <label class="l" for="somg-de">De<input type="date" id="somg-de" required></label>
         <label class="l" for="somg-ate">Até<input type="date" id="somg-ate" required></label>
@@ -2900,7 +2912,13 @@ function litIndisp(vid,date){return S.lit.indisp.find(function(i){return i.vid==
 /* ---------- gerar a escala de cada módulo ---------- */
 var uncMod={};
 function modPorPre(pre){return MINS.find(function(m){return m.pre===pre;});}
+/* até quando a escala existente foi lançada */
+function ateQuando(chaves,ym){
+  var ult='';chaves.forEach(function(k){var d=k.split('|')[0];if(d>ult){ult=d;}});
+  return ult?'Escala existente lançada até '+br(ult)+'.':'Nenhuma escala lançada ainda.';
+}
 function renderGerarMod(pre){
+  var inf=$(pre+'g-info');if(inf){inf.textContent=ateQuando(Object.keys(S[modPorPre(pre).k].escala));}
   var m=modPorPre(pre);uncMod[pre]=uncMod[pre]||{};
   var cs=sortedCultos().filter(function(c){return temVagas(m.k,c);});
   $(pre+'g-cultos').innerHTML=cs.length?cs.map(function(c){
@@ -5840,7 +5858,7 @@ function renderRegras(){
   }).join(''):'<li class="empty">Ninguém indisponível.</li>';
 }
 
-function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderTemas();renderMerge();renderGerarTodos();renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
+function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderTemas();renderMerge();renderGerarTodos();$('preg-info').textContent=ateQuando(Object.keys(S.escala));renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
 function changed(){pruneRefs();S.stale=true;touch();render();}
 
 /* botões de duas etapas (sem janela de confirmação) */
