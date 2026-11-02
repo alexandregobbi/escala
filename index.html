@@ -2918,7 +2918,7 @@ function ateQuando(chaves,ym){
   return ult?'Escala existente lançada até '+br(ult)+'.':'Nenhuma escala lançada ainda.';
 }
 function renderGerarMod(pre){
-  var inf=$(pre+'g-info');if(inf){var mm=modPorPre(pre),E=S[mm.k].escala;inf.textContent=ateQuando(Object.keys(E).filter(function(k){return E[k].ps&&E[k].ps.some(function(id){return !!id&&!!mm.byId(id);});}));}
+  var inf=$(pre+'g-info');if(inf){var mm=modPorPre(pre),E=S[mm.k].escala;inf.textContent=ateQuando(Object.keys(E).filter(function(k){var a=k.split('|'),c=cultoById(a[1]);return !!E[k].ps&&!!c&&vagasEm(mm.k,c,a[0])>0&&E[k].ps.some(function(id){return !!id&&!!mm.byId(id);});}));}
   var m=modPorPre(pre);uncMod[pre]=uncMod[pre]||{};
   var cs=sortedCultos().filter(function(c){return temVagas(m.k,c);});
   $(pre+'g-cultos').innerHTML=cs.length?cs.map(function(c){
