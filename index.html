@@ -221,20 +221,11 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <button role="tab" data-tab="cultos" aria-selected="false">Cultos</button>
     <button role="tab" data-tab="pessoas" aria-selected="false">Pessoas</button>
     <button role="tab" data-tab="regras" aria-selected="false">Regras</button>
-    <button role="tab" data-tab="oanse" aria-selected="false">OANSE</button>
-    <button role="tab" data-tab="liturgia" aria-selected="false">Liturgia</button>
-    <button role="tab" data-tab="bibkids" aria-selected="false">Bibkids</button>
-    <button role="tab" data-tab="cantina" aria-selected="false">Cantina</button>
-    <button role="tab" data-tab="iluminacao" aria-selected="false">Iluminação</button>
-    <button role="tab" data-tab="live" aria-selected="false">Live</button>
-    <button role="tab" data-tab="louvor" aria-selected="false">Louvor</button>
-    <button role="tab" data-tab="parking" aria-selected="false">Parking</button>
-    <button role="tab" data-tab="projecao" aria-selected="false">Projeção</button>
-    <button role="tab" data-tab="recepcao" aria-selected="false">Recepção</button>
-    <button role="tab" data-tab="som" aria-selected="false">Som</button>
+    <button type="button" id="menu-min-btn" aria-haspopup="true" aria-expanded="false" aria-selected="false">Ministérios ▾</button>
     <button role="tab" data-tab="familias" aria-selected="false">Famílias</button>
     <button role="tab" data-tab="usuarios" aria-selected="false">Usuários</button>
   </nav>
+  <div class="panel" id="menu-min" hidden style="margin-top:8px"><div class="small muted" style="margin-bottom:6px">Ministérios</div><div class="row" id="menu-min-lista" style="flex-wrap:wrap;gap:6px"></div></div>
 
   <div id="banner"></div>
 
@@ -1850,7 +1841,8 @@ function showTab(name){
   if(!tabOk(name)){name='escala';}
   curTab=name;
   if(name==='usuarios'&&typeof carregaUsuarios==='function'){carregaUsuarios();}
-  Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(x){x.setAttribute('aria-selected',x.dataset.tab===name?'true':'false');});
+  Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(x){x.setAttribute('aria-selected',x.dataset.tab?(x.dataset.tab===name?'true':'false'):(MINS.some(function(m){return m.tab===name;})?'true':'false'));});
+  $('menu-min').hidden=true;$('menu-min-btn').setAttribute('aria-expanded','false');renderMenuMin();
   Array.prototype.forEach.call(document.querySelectorAll('.tabpane'),function(p){p.hidden=(p.id!=='tab-'+name);});
 }
 function applyMode(){
@@ -1858,7 +1850,8 @@ function applyMode(){
   document.querySelector('nav.tabs').hidden=ro;
   ['panel-gerar','banner','status','cal-hint'].forEach(function(id){$(id).hidden=ro;});
   document.querySelector('footer.bk').hidden=ro||!USER.admin;
-  Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(x){x.hidden=!tabOk(x.dataset.tab);});
+  Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(x){x.hidden=x.dataset.tab?!tabOk(x.dataset.tab):!MINS.some(function(m){return tabOk(m.tab);});});
+  renderMenuMin();
   $('adm-quem').textContent=ro?'':USER.nome+(USER.admin?'':' (acesso limitado)');
   $('adm-abrir').hidden=!ro||!$('adm-form').hidden;
   $('adm-sair').hidden=ro;
@@ -6209,6 +6202,22 @@ $('btn-copiar').addEventListener('click',function(){
 document.querySelector('nav.tabs').addEventListener('click',function(e){
   var b=e.target.closest('button[data-tab]');if(!b){return;}
   showTab(b.dataset.tab);
+});
+
+/* menu Ministérios */
+function renderMenuMin(){
+  $('menu-min-lista').innerHTML=MINS.filter(function(m){return tabOk(m.tab);}).map(function(m){
+    return '<button type="button" class="btn sec mini" data-goto="'+esc(m.tab)+'" aria-pressed="'+(curTab===m.tab?'true':'false')+'">'+esc(m.nome)+'</button>';
+  }).join('');
+}
+$('menu-min-btn').addEventListener('click',function(){
+  var box=$('menu-min'),abre=box.hidden;
+  box.hidden=!abre;$('menu-min-btn').setAttribute('aria-expanded',abre?'true':'false');
+  if(abre){renderMenuMin();}
+});
+$('menu-min-lista').addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('button[data-goto]');if(!b){return;}
+  showTab(b.getAttribute('data-goto'));window.scrollTo(0,0);
 });
 
 /* backup */
