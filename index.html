@@ -1797,7 +1797,7 @@ function saveUI(){try{localStorage.setItem(UIKEY,JSON.stringify({tab:curTab,y:vi
 function restoreUI(){
   try{
     var u=JSON.parse(localStorage.getItem(UIKEY)||'null');
-    if(u){if(typeof u.y==='number'&&typeof u.m==='number'){view={y:u.y,m:u.m};}if(u.tab){curTab=u.tab;}return u.sy||0;}
+    if(u){if(u.tab){curTab=u.tab;}return u.sy||0;}
   }catch(e){}
   return 0;
 }
