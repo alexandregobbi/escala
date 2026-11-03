@@ -221,6 +221,17 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <button role="tab" data-tab="cultos" aria-selected="false">Cultos</button>
     <button role="tab" data-tab="pessoas" aria-selected="false">Pessoas</button>
     <button type="button" id="menu-min-btn" aria-haspopup="true" aria-expanded="false" aria-selected="false">Ministérios ▾</button>
+    <button role="tab" data-tab="oanse" data-min="1" aria-selected="false" hidden>OANSE</button>
+    <button role="tab" data-tab="liturgia" data-min="1" aria-selected="false" hidden>Liturgia</button>
+    <button role="tab" data-tab="bibkids" data-min="1" aria-selected="false" hidden>Bibkids</button>
+    <button role="tab" data-tab="cantina" data-min="1" aria-selected="false" hidden>Cantina</button>
+    <button role="tab" data-tab="iluminacao" data-min="1" aria-selected="false" hidden>Iluminação</button>
+    <button role="tab" data-tab="live" data-min="1" aria-selected="false" hidden>Live</button>
+    <button role="tab" data-tab="louvor" data-min="1" aria-selected="false" hidden>Louvor</button>
+    <button role="tab" data-tab="parking" data-min="1" aria-selected="false" hidden>Parking</button>
+    <button role="tab" data-tab="projecao" data-min="1" aria-selected="false" hidden>Projeção</button>
+    <button role="tab" data-tab="recepcao" data-min="1" aria-selected="false" hidden>Recepção</button>
+    <button role="tab" data-tab="som" data-min="1" aria-selected="false" hidden>Som</button>
     <button role="tab" data-tab="familias" aria-selected="false">Famílias</button>
     <button role="tab" data-tab="usuarios" aria-selected="false">Usuários</button>
   </nav>
@@ -1852,7 +1863,7 @@ function applyMode(){
   document.querySelector('nav.tabs').hidden=ro;
   ['panel-gerar','banner','status','cal-hint'].forEach(function(id){$(id).hidden=ro;});
   document.querySelector('footer.bk').hidden=ro||!USER.admin;
-  Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(x){x.hidden=x.dataset.tab?!tabOk(x.dataset.tab):!MINS.some(function(m){return tabOk(m.tab);});});
+  Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(x){x.hidden=x.dataset.tab?(x.dataset.min?(!!USER.admin||!tabOk(x.dataset.tab)):!tabOk(x.dataset.tab)):(!USER.admin||!MINS.some(function(m){return tabOk(m.tab);}));});
   renderMenuMin();
   $('adm-quem').textContent=ro?'':USER.nome+(USER.admin?'':' (acesso limitado)');
   $('adm-abrir').hidden=!ro||!$('adm-form').hidden;
