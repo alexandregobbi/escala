@@ -252,6 +252,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
         <div class="ms-pane" id="filtro-lista"></div>
         <div class="ms-foot"><button type="button" class="btn sec mini" id="filtro-todas">Mostrar todas</button></div>
       </details>
+      <label class="l" for="filtro-pessoa" style="margin:0 0 8px;max-width:420px">Filtrar por voluntário<select id="filtro-pessoa"></select></label>
       <div id="cal" class="cal"></div>
       <div class="hint" id="cal-hint">Troque o pregador direto no calendário. Os cultos seguintes (que não foram ajustados à mão) são recalculados pelas regras.</div>
       <div id="texto-box" hidden style="display:flex;flex-direction:column;gap:8px">
@@ -2087,12 +2088,13 @@ function visitHTML(date){
     +'<select data-key="'+esc(key)+'" aria-label="'+PNOME.visit+' de '+esc(DIAS3[w]+' '+br(date))+'">'+h+'</select>'+warn+'</div></div>';
 }
 function cultoHTML(date,c){
-  var rows=PCULTO.filter(fOn).map(function(p){return rowHTML(date,c,p);});
+  var rows=PCULTO.filter(function(p){if(!fOn(p)){return false;}if(!PF){return true;}var it=S.escala[mk(date,c.id,p)];return !!it&&it.p===PF;}).map(function(p){return rowHTML(date,c,p);});
   var vazio=rows.some(function(r){return r.empty;});
+  if(PF&&!rows.length&&!MINS.some(function(m){var it=S[m.k].escala[date+'|'+c.id];return fOn(m.k)&&!!it&&it.ps.indexOf(PF)>=0;})){return '';}
   var head=viewMode==='lista'?'<b>'+esc(c.igreja)+(c.desc?' · '+esc(c.desc):'')+'</b><span>'+esc(c.hora)+'</span>'
     :'<b>'+esc(c.hora)+'</b><span title="'+esc(c.desc||'')+'">'+esc(igShort(c.igreja))+'</span>';
   return '<div class="slot'+(vazio?' vazio':'')+'"><div class="sh">'+head+'</div>'
-    +rows.map(function(r){return r.html;}).join('')+MINS.filter(function(m){return fOn(m.k);}).map(function(m){return m.html(date,c);}).join('')+'</div>';
+    +rows.map(function(r){return r.html;}).join('')+MINS.filter(function(m){if(!fOn(m.k)){return false;}if(!PF){return true;}var it=S[m.k].escala[date+'|'+c.id];return !!it&&it.ps.indexOf(PF)>=0;}).map(function(m){return m.html(date,c);}).join('')+'</div>';
 }
 
 function renderBanner(){
@@ -2118,12 +2120,14 @@ function renderEscala(){
     var dt=parse(d),inM=dt.getMonth()===view.m,inP=inRanges(d)&&d>=TODAY;
     var cs=inP?S.cultos.filter(function(c){return c.dia===dt.getDay();}).sort(function(a,b){return a.hora.localeCompare(b.hora);}):[];
     var cls='day'+(inM?'':' out')+(d===TODAY?' today':'')+((!cs.length||!inM)?' nosl':'');
-    if(cs.length&&inM){algum=true;}
+    if(cs.length&&inM&&!PF){algum=true;}
     var tema=(cs.length&&inM&&S.temas&&S.temas[d])||'';
     var dnh=lista?'Data: '+dt.getDate()+'/'+(dt.getMonth()+1)+''+(tema?'':'<span class="muted" style="font-weight:400;font-size:14px"> · '+DIAS[dt.getDay()]+'</span>')+(tema?'<span style="font-weight:500;font-size:15px"> · Tema: '+esc(tema)+'</span>':''):dt.getDate()+'<span class="muted" style="font-weight:400"> '+DIAS3[dt.getDay()]+'</span>'+(tema?'<div class="small" style="font-weight:500">Tema: '+esc(tema)+'</div>':'');
-    h+='<div class="'+cls+'"><div class="dn">'+dnh+'</div><div class="slots">'+cs.map(function(c){return cultoHTML(d,c);}).join('')+(cs.length&&fOn('visit')?visitHTML(d):'')+'</div></div>';
+    var inner=cs.map(function(c){return cultoHTML(d,c);}).join('')+(cs.length&&fOn('visit')&&(!PF||(S.escala[mk(d,'*','visit')]||{}).p===PF)?visitHTML(d):'');
+    if(PF&&!inner){if(lista||!inM){continue;}}else if(PF&&inM){algum=true;}
+    h+='<div class="'+cls+'"><div class="dn">'+dnh+'</div><div class="slots">'+inner+'</div></div>';
   }
-  if(lista&&!algum){h='<div class="empty" style="padding:14px">Nenhuma data futura com culto neste mês dentro do período da escala.</div>';}
+  if(lista&&!algum){h='<div class="empty" style="padding:14px">'+(PF?'Nenhuma escala futura desta pessoa neste mês.':'Nenhuma data futura com culto neste mês dentro do período da escala.')+'</div>';}
   $('cal').innerHTML=h;
   var rows='',rp=resumoPapel,cnt={},mesesR={};
   Object.keys(S.escala).forEach(function(k){
@@ -5762,7 +5766,7 @@ function renderRegras(){
   }).join(''):'<li class="empty">Ninguém indisponível.</li>';
 }
 
-function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderTemas();renderMerge();renderGerarTodos();aplicaMeses();if(!$('filtro-fn').open){renderFiltro();}$('preg-info').textContent=ateQuando(Object.keys(S.escala).filter(function(k){return !!S.escala[k].p&&!!pessoaById(S.escala[k].p);}));renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
+function render(){syncVols();renderBanner();renderGerarCultos();renderEscala();renderTemas();renderMerge();renderGerarTodos();aplicaMeses();if(!$('filtro-fn').open){renderFiltro();}renderFiltroPessoa();$('preg-info').textContent=ateQuando(Object.keys(S.escala).filter(function(k){return !!S.escala[k].p&&!!pessoaById(S.escala[k].p);}));renderCultos();renderPessoas();renderRegras();MINS.forEach(function(m){m.render();});renderFamilias();renderCsv();}
 function changed(){pruneRefs();S.stale=true;touch();render();}
 
 /* botões de duas etapas (sem janela de confirmação) */
@@ -5793,6 +5797,16 @@ PREF_MES.forEach(function(pf){$(pf+'-mes').addEventListener('change',function(){
 
 var resumoPapel='preg';
 $('resumo-papel').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('button[data-rp]');if(!b){return;}resumoPapel=b.getAttribute('data-rp');renderEscala();});
+/* filtro por voluntário na tela principal */
+var PF='';
+function renderFiltroPessoa(){
+  var s=$('filtro-pessoa');
+  s.innerHTML='<option value="">Todos os voluntários</option>'+S.pessoas.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.nome)+'</option>';}).join('');
+  if(PF&&!pessoaById(PF)){PF='';}
+  s.value=PF;
+}
+$('filtro-pessoa').addEventListener('change',function(e){PF=e.target.value;renderEscala();});
+
 /* filtro de funções na tela principal */
 var FILTRO={};
 try{var fs=JSON.parse(localStorage.getItem('escala-filtro')||'{}');if(fs&&typeof fs==='object'){FILTRO=fs;}}catch(e){}
