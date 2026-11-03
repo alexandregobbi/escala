@@ -220,7 +220,6 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <button role="tab" data-tab="pregacao" aria-selected="false">Pregação</button>
     <button role="tab" data-tab="cultos" aria-selected="false">Cultos</button>
     <button role="tab" data-tab="pessoas" aria-selected="false">Pessoas</button>
-    <button role="tab" data-tab="regras" aria-selected="false">Regras</button>
     <button type="button" id="menu-min-btn" aria-haspopup="true" aria-expanded="false" aria-selected="false">Ministérios ▾</button>
     <button role="tab" data-tab="familias" aria-selected="false">Famílias</button>
     <button role="tab" data-tab="usuarios" aria-selected="false">Usuários</button>
@@ -327,6 +326,42 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
         <tbody id="resumo"></tbody>
       </table></div>
     </div>
+
+    <h2 style="margin:6px 0 0">Regras da pregação, avisos e contato</h2>
+    <div class="notice">A escala é sempre equilibrada: pregação e avisos são distribuídos por igual entre quem participa de cada culto. Só pastores podem ser escalados em dois cultos no mesmo dia (por exemplo, manhã e noite), e nunca em cultos no mesmo horário. As regras abaixo são as exceções.</div>
+    <div class="grid2">
+      <div class="panel">
+        <h2>Exigir função em um culto</h2>
+        <p class="hint">Exemplo: no 1º domingo do mês, a pregação do culto da manhã é sempre de um pastor. Se escolher uma pessoa, ela assume o espaço. Para Contato visitantes, a regra vale para o dia todo, seja qual for o culto escolhido.</p>
+        <form class="f" id="form-exige">
+          <label class="l full" for="x-culto">Culto<select id="x-culto"></select></label>
+          <div class="l full" role="group" aria-labelledby="x-sem-t">
+            <span id="x-sem-t">Semanas do mês (sem marcar nenhuma, vale para todas)</span>
+            <div class="checks" id="x-sems">
+              <label><input type="checkbox" value="1"> 1ª</label><label><input type="checkbox" value="2"> 2ª</label><label><input type="checkbox" value="3"> 3ª</label><label><input type="checkbox" value="4"> 4ª</label><label><input type="checkbox" value="5"> 5ª</label>
+            </div>
+          </div>
+          <label class="l" for="x-papel">Atividade<select id="x-papel"><option value="preg">Pregação</option><option value="avisos">Avisos</option><option value="visit">Contato visitantes</option></select></label>
+          <label class="l" for="x-func">Função exigida<select id="x-func"><option value="">Qualquer função</option><option>Pastor</option><option>Presbítero</option><option>Diácono</option></select></label>
+          <label class="l" for="x-pessoa">Pessoa exigida<select id="x-pessoa"></select></label>
+          <div class="row full"><button class="btn" type="submit">Adicionar regra</button></div>
+          <div class="hint full" id="x-msg" aria-live="polite"></div>
+        </form>
+        <ul class="list" id="lista-exige"></ul>
+      </div>
+      <div class="panel">
+        <h2>Indisponibilidades</h2>
+        <p class="hint">Períodos em que uma pessoa não pode pregar (viagem, férias, saúde).</p>
+        <form class="f" id="form-indisp">
+          <label class="l full" for="i-pessoa">Pessoa<select id="i-pessoa"></select></label>
+          <label class="l" for="i-de">De<input type="date" id="i-de" required></label>
+        <label class="l" for="i-ate">Até<input type="date" id="i-ate" required></label>
+          <label class="l full" for="i-obs">Motivo (opcional)<input type="text" id="i-obs" placeholder="Ex.: viagem"></label>
+          <div class="row full"><button class="btn" type="submit">Adicionar indisponibilidade</button></div>
+        </form>
+        <ul class="list" id="lista-indisp"></ul>
+      </div>
+    </div>
   </section>
 
   <!-- CULTOS -->
@@ -404,42 +439,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
   </section>
 
   <!-- REGRAS -->
-  <section id="tab-regras" class="tabpane" hidden style="flex-direction:column;gap:18px">
-    <div class="notice">A escala é sempre equilibrada: pregação e avisos são distribuídos por igual entre quem participa de cada culto. Só pastores podem ser escalados em dois cultos no mesmo dia (por exemplo, manhã e noite), e nunca em cultos no mesmo horário. As regras abaixo são as exceções.</div>
-    <div class="grid2">
-      <div class="panel">
-        <h2>Exigir função em um culto</h2>
-        <p class="hint">Exemplo: no 1º domingo do mês, a pregação do culto da manhã é sempre de um pastor. Se escolher uma pessoa, ela assume o espaço. Para Contato visitantes, a regra vale para o dia todo, seja qual for o culto escolhido.</p>
-        <form class="f" id="form-exige">
-          <label class="l full" for="x-culto">Culto<select id="x-culto"></select></label>
-          <div class="l full" role="group" aria-labelledby="x-sem-t">
-            <span id="x-sem-t">Semanas do mês (sem marcar nenhuma, vale para todas)</span>
-            <div class="checks" id="x-sems">
-              <label><input type="checkbox" value="1"> 1ª</label><label><input type="checkbox" value="2"> 2ª</label><label><input type="checkbox" value="3"> 3ª</label><label><input type="checkbox" value="4"> 4ª</label><label><input type="checkbox" value="5"> 5ª</label>
-            </div>
-          </div>
-          <label class="l" for="x-papel">Atividade<select id="x-papel"><option value="preg">Pregação</option><option value="avisos">Avisos</option><option value="visit">Contato visitantes</option></select></label>
-          <label class="l" for="x-func">Função exigida<select id="x-func"><option value="">Qualquer função</option><option>Pastor</option><option>Presbítero</option><option>Diácono</option></select></label>
-          <label class="l" for="x-pessoa">Pessoa exigida<select id="x-pessoa"></select></label>
-          <div class="row full"><button class="btn" type="submit">Adicionar regra</button></div>
-          <div class="hint full" id="x-msg" aria-live="polite"></div>
-        </form>
-        <ul class="list" id="lista-exige"></ul>
-      </div>
-      <div class="panel">
-        <h2>Indisponibilidades</h2>
-        <p class="hint">Períodos em que uma pessoa não pode pregar (viagem, férias, saúde).</p>
-        <form class="f" id="form-indisp">
-          <label class="l full" for="i-pessoa">Pessoa<select id="i-pessoa"></select></label>
-          <label class="l" for="i-de">De<input type="date" id="i-de" required></label>
-        <label class="l" for="i-ate">Até<input type="date" id="i-ate" required></label>
-          <label class="l full" for="i-obs">Motivo (opcional)<input type="text" id="i-obs" placeholder="Ex.: viagem"></label>
-          <div class="row full"><button class="btn" type="submit">Adicionar indisponibilidade</button></div>
-        </form>
-        <ul class="list" id="lista-indisp"></ul>
-      </div>
-    </div>
-  </section>
+
 
   <!-- OANSE -->
   <section id="tab-oanse" class="tabpane" hidden style="flex-direction:column;gap:18px">
@@ -1838,6 +1838,7 @@ function load(force){
   },function(){online=false;});
 }
 function showTab(name){
+  if(name==='regras'){name='pregacao';}
   if(!tabOk(name)){name='escala';}
   curTab=name;
   if(name==='usuarios'&&typeof carregaUsuarios==='function'){carregaUsuarios();}
