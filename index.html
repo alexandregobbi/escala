@@ -2413,7 +2413,7 @@ $('cal').addEventListener('click',function(e){
 function renderOanse(){
   var V=S.oanse.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-vols').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('oanse')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-vol" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-vol" data-id="'+esc(v.id)+'">Tirar da OANSE</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('oanse')?'<div class="row">'+'<button class="btn sec mini" data-act="edit-vol" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-vol" data-id="'+esc(v.id)+'">Tirar da OANSE</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-vol').parentNode.hidden=!can('oanse');
   $('vol-imp').hidden=!can('cadastros');
@@ -2773,7 +2773,7 @@ $('cal').addEventListener('click',function(e){
 function renderLit(){
   var V=S.lit.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-lvs').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('liturgia')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-lv" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-lv" data-id="'+esc(v.id)+'">Tirar da Liturgia</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('liturgia')?'<div class="row">'+'<button class="btn sec mini" data-act="edit-lv" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-lv" data-id="'+esc(v.id)+'">Tirar da Liturgia</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-lv').parentNode.hidden=!can('liturgia');
   $('lv-imp').hidden=!can('cadastros');
@@ -3122,7 +3122,7 @@ $('cal').addEventListener('click',function(e){
 function render_bibkids(){
   var V=S.bibkids.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-bibkids-vs').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('bibkids')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-bibkids-v" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-bibkids-v" data-id="'+esc(v.id)+'">Tirar da Bibkids</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('bibkids')?'<div class="row">'+'<button class="btn sec mini" data-act="edit-bibkids-v" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-bibkids-v" data-id="'+esc(v.id)+'">Tirar da Bibkids</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-bibkids-v').parentNode.hidden=!can('bibkids');
   $('bibkids-v-imp').hidden=!can('cadastros');
@@ -3396,7 +3396,7 @@ $('cal').addEventListener('click',function(e){
 function render_cantina(){
   var V=S.cantina.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-cantina-vs').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('cantina')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-cantina-v" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-cantina-v" data-id="'+esc(v.id)+'">Tirar da Cantina</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('cantina')?'<div class="row">'+'<button class="btn sec mini" data-act="edit-cantina-v" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-cantina-v" data-id="'+esc(v.id)+'">Tirar da Cantina</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-cantina-v').parentNode.hidden=!can('cantina');
   $('cantina-v-imp').hidden=!can('cadastros');
@@ -3670,7 +3670,7 @@ $('cal').addEventListener('click',function(e){
 function render_iluminacao(){
   var V=S.iluminacao.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-iluminacao-vs').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('iluminacao')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-iluminacao-v" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-iluminacao-v" data-id="'+esc(v.id)+'">Tirar da Iluminação</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('iluminacao')?'<div class="row">'+'<button class="btn sec mini" data-act="edit-iluminacao-v" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-iluminacao-v" data-id="'+esc(v.id)+'">Tirar da Iluminação</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-iluminacao-v').parentNode.hidden=!can('iluminacao');
   $('iluminacao-v-imp').hidden=!can('cadastros');
@@ -3944,7 +3944,7 @@ $('cal').addEventListener('click',function(e){
 function render_live(){
   var V=S.live.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-live-vs').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('live')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-live-v" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-live-v" data-id="'+esc(v.id)+'">Tirar da Live</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('live')?'<div class="row">'+'<button class="btn sec mini" data-act="edit-live-v" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-live-v" data-id="'+esc(v.id)+'">Tirar da Live</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-live-v').parentNode.hidden=!can('live');
   $('live-v-imp').hidden=!can('cadastros');
@@ -4253,7 +4253,7 @@ $('cal').addEventListener('click',function(e){
 function render_louvor(){
   var V=S.louvor.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-louvor-vs').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('louvor')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-louvor-v" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-louvor-v" data-id="'+esc(v.id)+'">Tirar da Louvor</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('louvor')?'<div class="row">'+'<button class="btn sec mini" data-act="edit-louvor-v" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-louvor-v" data-id="'+esc(v.id)+'">Tirar da Louvor</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-louvor-v').parentNode.hidden=!can('louvor');
   $('louvor-v-imp').hidden=!can('cadastros');
@@ -4599,7 +4599,7 @@ $('cal').addEventListener('click',function(e){
 function render_parking(){
   var V=S.parking.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-parking-vs').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('parking')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-parking-v" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-parking-v" data-id="'+esc(v.id)+'">Tirar da Parking</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('parking')?'<div class="row">'+'<button class="btn sec mini" data-act="edit-parking-v" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-parking-v" data-id="'+esc(v.id)+'">Tirar da Parking</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-parking-v').parentNode.hidden=!can('parking');
   $('parking-v-imp').hidden=!can('cadastros');
@@ -4873,7 +4873,7 @@ $('cal').addEventListener('click',function(e){
 function render_projecao(){
   var V=S.projecao.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-projecao-vs').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('projecao')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-projecao-v" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-projecao-v" data-id="'+esc(v.id)+'">Tirar da Projeção</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('projecao')?'<div class="row">'+'<button class="btn sec mini" data-act="edit-projecao-v" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-projecao-v" data-id="'+esc(v.id)+'">Tirar da Projeção</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-projecao-v').parentNode.hidden=!can('projecao');
   $('projecao-v-imp').hidden=!can('cadastros');
@@ -5147,7 +5147,7 @@ $('cal').addEventListener('click',function(e){
 function render_recepcao(){
   var V=S.recepcao.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-recepcao-vs').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('recepcao')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-recepcao-v" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-recepcao-v" data-id="'+esc(v.id)+'">Tirar da Recepção</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('recepcao')?'<div class="row">'+'<button class="btn sec mini" data-act="edit-recepcao-v" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-recepcao-v" data-id="'+esc(v.id)+'">Tirar da Recepção</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-recepcao-v').parentNode.hidden=!can('recepcao');
   $('recepcao-v-imp').hidden=!can('cadastros');
@@ -5421,7 +5421,7 @@ $('cal').addEventListener('click',function(e){
 function render_som(){
   var V=S.som.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-som-vs').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('som')?'<div class="row">'+(can('cadastros')?'<button class="btn sec mini" data-act="edit-som-v" data-id="'+esc(v.id)+'">Editar</button>':'')+'<button class="btn danger mini" data-act="del-som-v" data-id="'+esc(v.id)+'">Tirar da Som</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('som')?'<div class="row">'+'<button class="btn sec mini" data-act="edit-som-v" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-som-v" data-id="'+esc(v.id)+'">Tirar da Som</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-som-v').parentNode.hidden=!can('som');
   $('som-v-imp').hidden=!can('cadastros');

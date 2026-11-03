@@ -155,8 +155,14 @@ function mergePessoas(storedList, sentList, storedCultos, perms) {
         if (typeof sp[m] === 'boolean') cur[m] = sp[m];
       });
       if (mods.some((m) => cur[m])) {
-        cur.cultos = Array.isArray(cur.cultos) ? cur.cultos : [];
-        cs.forEach((id) => { if (cur.cultos.indexOf(id) < 0) cur.cultos.push(id); });
+        // administrador de ministério pode ajustar os cultos e o nome de quem está no seu ministério
+        if (Array.isArray(sp.cultos)) cur.cultos = cs;
+        const nome = String(sp.nome || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+        if (nome && nomeKey(nome) !== nomeKey(cur.nome) && !names.has(nomeKey(nome))) {
+          names.delete(nomeKey(cur.nome));
+          names.add(nomeKey(nome));
+          cur.nome = nome;
+        }
       }
       return;
     }
