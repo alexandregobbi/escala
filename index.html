@@ -2189,12 +2189,13 @@ function textoDoMes(){
 
 /* ---------- sugestões de troca para manter o equilíbrio ---------- */
 var SUGP=null;
-function sugGrupos(mod){return mod==='preg'?['preg','avisos','visit']:[''];}
+function sugGrupos(mod,key){return mod==='preg'?[key.split('|')[2]]:[''];}
 function sugSlots(mod){
   var out=[];
   if(mod==='preg'){
     Object.keys(S.escala).forEach(function(k){
       var a=k.split('|'),it=S.escala[k];if(!it||!pessoaById(it.p)){return;}
+      if(a[2]!=='visit'&&pessoaById(it.p).funcao!=='Presbítero'){return;}
       out.push({key:k,idx:0,papel:a[2],date:a[0],cid:a[1],pid:it.p,lock:!!it.manual||exigeDe(a[0],a[1],a[2]).length>0});
     });
   }else{
@@ -2211,7 +2212,7 @@ function sugSlots(mod){
   return out;
 }
 function sugPool(mod,g){
-  if(mod==='preg'){return S.pessoas.filter(function(p){return p.papeis.indexOf(g)>=0;}).map(function(p){return p.id;});}
+  if(mod==='preg'){return S.pessoas.filter(function(p){return p.papeis.indexOf(g)>=0&&(g==='visit'||p.funcao==='Presbítero');}).map(function(p){return p.id;});}
   return S[mod].voluntarios.filter(function(v){return mod!=='louvor'||LOUVOR_MODO!=='ministro'||ehMinistroLouvor(v.id);}).map(function(v){return v.id;});
 }
 function sugIndisp(mod,id,date){return (S[mod].indisp||[]).some(function(i){return i.vid===id&&date>=i.de&&date<=i.ate;});}
@@ -2233,7 +2234,7 @@ function sugCalc(mod,key){
   var date=key.split('|')[0],ym=date.slice(0,7),res=[];
   var E=mod==='preg'?S.escala:S[mod].escala,orig=JSON.stringify(E);
   try{
-    sugGrupos(mod).forEach(function(g){
+    sugGrupos(mod,key).forEach(function(g){
       for(var n=0;n<8;n++){
         var slots=sugSlots(mod).filter(function(s){return s.date.slice(0,7)===ym&&(g===''||s.papel===g);});
         var cnt={};slots.forEach(function(s){cnt[s.pid]=(cnt[s.pid]||0)+1;});
@@ -2272,12 +2273,12 @@ function sugMostra(){
   var box=document.getElementById('sug-box');
   if(!box){box=document.createElement('div');box.id='sug-box';document.body.appendChild(box);}
   var mm=MINS.find(function(m){return m.k===SUGP.mod;});
-  var tit=SUGP.mod==='preg'?'Pregação, avisos e contato':(mm?mm.nome:SUGP.mod);
+  var tit=SUGP.mod==='preg'?(PNOME[SUGP.list[0].papel]||'').toLowerCase():(mm?mm.nome:SUGP.mod);
   box.innerHTML='<div class="sug-back"><div class="sug-card" role="dialog" aria-modal="true" aria-label="Sugestões para equilibrar a escala">'
-    +'<h2>Equilibrar a escala?</h2><p class="small muted">Depois da sua mudança, algumas pessoas ficaram com mais escalas que outras em '+esc(tit)+' neste mês. Marque as trocas que quer aplicar:</p>'
+    +'<h2>Equilibrar a escala?</h2><p class="small muted">Depois da sua mudança, algumas pessoas ficaram com mais escalas que outras ('+esc(tit)+') neste mês. '+(SUGP.mod==='preg'?(SUGP.list[0].papel==='visit'?'O contato é equilibrado entre todos os marcados com essa função.':'Aqui o equilíbrio é entre presbíteros.'):'')+' Marque as trocas que quer aplicar:</p>'
     +'<div class="sug-list">'+SUGP.list.map(function(x,i){
       var c=cultoById(x.cid);
-      return '<label><input type="checkbox" data-sug="'+i+'" checked> <span><b>'+br(x.date)+'</b> · '+esc(c?cultoLabel(c):'')+(x.papel?' · '+esc(PNOME[x.papel]):'')+'<br>'+esc(sugNome(x.hi))+' → <b>'+esc(sugNome(x.lo))+'</b> <span class="small muted">('+esc(sugNome(x.hi))+' tem '+x.nh+' no mês; '+esc(sugNome(x.lo))+' tem '+x.nl+')</span></span></label>';
+      return '<label><input type="checkbox" data-sug="'+i+'" checked> <span><b>'+br(x.date)+'</b>'+(c?' · '+esc(cultoLabel(c)):'')+(x.papel?' · '+esc(PNOME[x.papel]):'')+'<br>'+esc(sugNome(x.hi))+' → <b>'+esc(sugNome(x.lo))+'</b> <span class="small muted">('+esc(sugNome(x.hi))+' tem '+x.nh+' no mês; '+esc(sugNome(x.lo))+' tem '+x.nl+')</span></span></label>';
     }).join('')+'</div>'
     +'<div class="row"><button type="button" class="btn" id="sug-ok">Aplicar selecionadas</button><button type="button" class="btn sec" id="sug-no">Agora não</button></div></div></div>';
   document.getElementById('sug-no').onclick=sugFecha;
