@@ -317,6 +317,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
           <button class="btn" type="submit" id="btn-gerar">Gerar escala</button>
           <button class="btn danger" type="button" id="btn-limpar" data-act="limpar">Limpar automáticas</button>
           <button class="btn danger" type="button" id="btn-limpar-tudo" data-act="limpar-tudo">Limpar tudo</button>
+          <button class="btn danger" type="button" id="btn-limpar-mes" data-act="preg-limpar-mes">Apagar o mês escolhido</button>
         </div>
       </form>
       <div id="msg-preg" class="hint" aria-live="polite"></div>
@@ -6284,6 +6285,14 @@ document.addEventListener('click',function(e){
   }else if(act==='oanse-limpar-tudo'){
     var nT=Object.keys(S.oanse.escala).length;S.oanse.escala={};
     touch();render();$('oanse-msg').textContent='Toda a escala da OANSE foi limpa ('+nT+' culto(s)). Pregação, avisos e contato não foram alterados.';
+  }
+  else if(act==='preg-limpar-mes'){
+    aplicaMes('p');
+    var ymP=$('p-mes').value,nP=0;
+    if(/^\d{4}-\d{2}$/.test(ymP)){
+      Object.keys(S.escala).forEach(function(k){if(k.slice(0,7)===ymP){delete S.escala[k];nP++;}});
+      touch();render();setMsg('Pregação, avisos e contato de '+MESES[+ymP.slice(5,7)-1]+'/'+ymP.slice(0,4)+' apagados ('+nP+' registro(s)), incluindo ajustes manuais. Os ministérios não foram alterados.');
+    }
   }
   else if(act==='zero'){
     S.temas={};S.oanse={voluntarios:[],vagas:{},escala:{},indisp:[],exige:[]};MINS.forEach(function(m){S[m.k]=minVazio();m.reset();});S.familias=[];resetFam();
