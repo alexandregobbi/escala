@@ -5865,7 +5865,7 @@ $('filtro-pessoa').addEventListener('change',function(e){PF=e.target.value;rende
 var FILTRO={};
 try{var fs=JSON.parse(localStorage.getItem('escala-filtro')||'{}');if(fs&&typeof fs==='object'){FILTRO=fs;}}catch(e){}
 function fOn(k){return !Object.keys(FILTRO).length||!!FILTRO[k];}
-function funcoesFiltro(){return [['preg','Pregador'],['avisos','Avisos'],['visit','Contato visitantes']].concat(MINS.map(function(m){return [m.k,m.nome];}));}
+function funcoesFiltro(){return [['preg','Pregador'],['avisos','Avisos'],['visit','Contato visitantes']].concat(MINS.map(function(m){return [m.k,(m.k==='louvor'&&LOUVOR_MODO==='ministro')?'Ministro de louvor':m.nome];}));}
 function renderFiltro(){
   var fns=funcoesFiltro(),sel=Object.keys(FILTRO).filter(function(k){return FILTRO[k];});
   $('filtro-lista').innerHTML=fns.map(function(f){return '<label><input type="checkbox" value="'+f[0]+'"'+(FILTRO[f[0]]?' checked':'')+'> '+esc(f[1])+'</label>';}).join('');
