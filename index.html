@@ -290,7 +290,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       <p class="hint">Só para o administrador. Gera de uma vez pregação, avisos e contato, e depois cada ministério (OANSE, Liturgia, Bibkids, Cantina, Iluminação, Live, Louvor, Parking, Projeção, Recepção e Som), nessa ordem. Cada ministério usa os cultos com vagas e só altera a própria escala. Ajustes feitos à mão ficam fixos.</p>
       <form class="f" id="form-todos">
         <label class="l full" for="ga-mes">Mês da escala<input type="month" id="ga-mes" required></label><input type="hidden" id="ga-de"><input type="hidden" id="ga-ate">
-        <div class="full checks"><label><input type="checkbox" id="ga-manter"> Manter o que já está preenchido e só completar os espaços vazios</label></div>
+        <p class="hint full">Só completa os espaços vazios: nada que já esteja preenchido é alterado.</p><input type="checkbox" id="ga-manter" checked hidden>
         <div class="row full"><button class="btn" type="submit">Gerar todas as escalas</button><button class="btn danger" type="button" id="ga-apagar">Apagar todas as escalas, exceto o mês escolhido</button></div>
       </form>
       <div class="hint" id="ga-msg" aria-live="polite"></div>
@@ -5888,7 +5888,7 @@ function renderGerarTodos(){
 }
 $('form-todos').addEventListener('submit',function(e){
   e.preventDefault();if(!ehAdminTotal()){return;}
-  var de=$('ga-de').value,ate=$('ga-ate').value,out=$('ga-msg'),keep=$('ga-manter').checked;
+  var de=$('ga-de').value,ate=$('ga-ate').value,out=$('ga-msg'),keep=true;
   if(!de||!ate||de>ate){out.textContent='Informe um período válido: a data inicial deve vir antes da final.';return;}
   if(dnum(ate)-dnum(de)>400){out.textContent='Use um período de até 400 dias.';return;}
   if(!S.cultos.length||!S.pessoas.length){out.textContent='Cadastre ao menos um culto e uma pessoa antes de gerar.';return;}
