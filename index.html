@@ -4107,7 +4107,7 @@ function generate_louvor(from,to,cids,keep){
     var ps=(it.ps||[]).map(function(id){return vById_louvor(id)?id:'';});
     var m=it.m||[],fx=!!it.fx;
     if(inScope&&!keep&&!fx){ps=ps.map(function(id,i){return m[i]?id:'';});}
-    if(LOUVOR_MODO==='ministro'&&!fx){ps=ps.map(function(id){return ehMinistroLouvor(id)?id:'';});}
+    if(LOUVOR_MODO==='ministro'){var achou=false;ps=ps.map(function(id){if(!achou&&ehMinistroLouvor(id)){achou=true;return id;}return '';});}
     e[k]={ps:ps,m:ps.map(function(id,i){return fx||!!(id&&m[i]);}),fx:fx};if(it.b&&ps.some(Boolean)&&LOUVOR_MODO==='banda'){e[k].b=it.b;}
   });
   var tot={},dates={};
@@ -4192,6 +4192,7 @@ function html_louvor(date,c){
   var n=1;
   var key=date+'|'+c.id,real=S.louvor.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
+  if(LOUVOR_MODO==='ministro'){ids=ids.filter(ehMinistroLouvor).slice(0,1);}
   var nomes=ids.map(function(id){var v=vById_louvor(id);return v?v.nome:'';}).filter(Boolean);
   if(LOUVOR_MODO==='ministro'){
     var mid=ids[0]||'',mv=mid?vById_louvor(mid):null;
@@ -4199,15 +4200,12 @@ function html_louvor(date,c){
     var mins=S.louvor.voluntarios.filter(function(v){return ehMinistroLouvor(v.id);}).sort(function(a,b){return a.nome.localeCompare(b.nome);});
     var aviM=[];
     if(mv&&indisp_louvor(mid,date)){aviM.push('Indisponível: '+mv.nome);}
-    if(mv&&!ehMinistroLouvor(mid)){aviM.push('Escala anterior sem ministro ('+mv.nome+'); escolha ou gere de novo');}
-    if(ids.length>1){aviM.push('Escala anterior com '+ids.length+' pessoas; escolha o ministro ou gere de novo');}
     if(mv){var og=outraFuncaoNoCulto(mid,date,c.id,'louvor');if(og.length){aviM.push('Já serve neste culto: '+og.join(', '));}}
     if(!mins.length){aviM.push('Nenhum ministro de louvor marcado na aba Louvor.');}
     var opts='<option value="">— sem ministro —</option>'+mins.map(function(v){
       var nt=indisp_louvor(v.id,date)?' (indisponível)':'';
       return '<option value="'+esc(v.id)+'"'+(v.id===mid?' selected':'')+'>'+esc(v.nome+nt)+'</option>';
     }).join('');
-    if(mv&&!ehMinistroLouvor(mid)){opts+='<option value="'+esc(mid)+'" selected>'+esc(mv.nome)+' (não é ministro)</option>';}
     return '<div class="r"><div class="rt">Ministro de louvor</div><div class="oanse-sel"><select class="band-sel" data-ministro-louvor="'+esc(key)+'" aria-label="Ministro de louvor">'+opts+'</select>'
       +(real&&real.fx?' <span class="m">manual</span>':'')+(aviM.length?'<div class="w">'+esc(aviM.join(' · '))+'</div>':'')+'</div></div>';
   }
