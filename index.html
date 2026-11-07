@@ -2274,6 +2274,7 @@ function sugere(mod,key){
       sugPool(mod,g).forEach(function(id){if(cnt[id]==null){cnt[id]=0;}});
       var txt=Object.keys(cnt).sort(function(x,y){return cnt[y]-cnt[x];}).map(function(id){return sugNome(id)+' '+cnt[id];}).join(', ');
       setMsg(($('msg').textContent||'')+' Sem sugestões de troca (nenhuma troca possível nas datas seguintes deste mês). Contagem no mês: '+txt+'.');
+      SUGP={mod:mod,list:[],info:txt,papel:g};sugMostra();
     }catch(e){}
   },0);}
 }
@@ -2283,6 +2284,10 @@ function sugMostra(){
   var box=document.getElementById('sug-box');
   if(!box){box=document.createElement('div');box.id='sug-box';document.body.appendChild(box);}
   var mm=MINS.find(function(m){return m.k===SUGP.mod;});
+  if(!SUGP.list.length){
+    box.innerHTML='<div class="sug-back"><div class="sug-card" role="dialog" aria-modal="true"><h2>Escala equilibrada</h2><p class="small muted">Não encontrei nenhuma troca possível nas datas seguintes deste mês que melhore o equilíbrio'+(SUGP.mod==='preg'&&SUGP.papel!=='visit'?' (entre presbíteros)':'')+'.</p><p class="small"><b>Contagem no mês:</b> '+esc(SUGP.info||'')+'</p><div class="row"><button type="button" class="btn sec" id="sug-no">Fechar</button></div></div></div>';
+    document.getElementById('sug-no').onclick=sugFecha;return;
+  }
   var tit=SUGP.mod==='preg'?(PNOME[SUGP.list[0].papel]||'').toLowerCase():(mm?mm.nome:SUGP.mod);
   box.innerHTML='<div class="sug-back"><div class="sug-card" role="dialog" aria-modal="true" aria-label="Sugestões para equilibrar a escala">'
     +'<h2>Equilibrar a escala?</h2><p class="small muted">Depois da sua mudança, algumas pessoas ficaram com mais escalas que outras ('+esc(tit)+') neste mês. '+(SUGP.mod==='preg'?(SUGP.list[0].papel==='visit'?'O contato é equilibrado entre todos os marcados com essa função.':'Aqui o equilíbrio é entre presbíteros.'):'')+' Marque as trocas que quer aplicar:</p>'
