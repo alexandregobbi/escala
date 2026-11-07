@@ -154,6 +154,7 @@ function mergePessoas(storedList, sentList, storedCultos, perms) {
       mods.forEach((m) => {
         if (typeof sp[m] === 'boolean') cur[m] = sp[m];
       });
+      if (mods.indexOf('louvor') >= 0 && cur.louvor && typeof sp.ministroLouvor === 'boolean') cur.ministroLouvor = sp.ministroLouvor;
       if (mods.some((m) => cur[m])) {
         // administrador de ministério pode ajustar os cultos e o nome de quem está no seu ministério
         if (Array.isArray(sp.cultos)) cur.cultos = cs;

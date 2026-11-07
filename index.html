@@ -1572,7 +1572,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <button class="btn sec mini" id="bk-baixar" type="button">Baixar backup</button>
     <button class="btn sec mini" id="bk-restaurar" type="button">Restaurar backup</button>
     <input type="file" id="bk-arquivo" accept="application/json,.json" hidden>
-    <span class="small muted" id="versao">Versão 2026-11-03 · tabelas por mês</span>
+    <span class="small muted" id="versao">Versão 2026-11-07 · ministro de louvor</span>
     <span id="bk-msg" aria-live="polite"></span>
   </footer>
 </div>
@@ -1755,6 +1755,7 @@ function normalize(o){
   s.cultos=Array.isArray(s.cultos)?s.cultos:[];
   s.pessoas=Array.isArray(s.pessoas)?s.pessoas:[];
   s.pessoas.forEach(function(p){
+    p.ministroLouvor=!!p.ministroLouvor;
     p.cultos=Array.isArray(p.cultos)?p.cultos:[];
     p.papeis=Array.isArray(p.papeis)?p.papeis.filter(function(x){return PAPEIS.indexOf(x)>=0;}):['preg','avisos'];
     if(antes<3&&p.papeis.indexOf('visit')<0){p.papeis.push('visit');}
@@ -2934,8 +2935,13 @@ function gerarMod(pre){
   var extra='';
   if(m.k==='louvor'){
     var nb=bandas_louvor().filter(function(b){return b.membros.length;}).length;
+    if(LOUVOR_MODO==='ministro'){
+      var nm=S.louvor.voluntarios.filter(function(x){return ehMinistroLouvor(x.id);}).length;
+      $(m.msg).textContent=!nm?'Nenhum ministro de louvor marcado. Marque os ministros na lista de voluntários do Louvor e gere de novo.':'Escala do Louvor gerada para '+cids.length+' culto(s) com '+nm+' ministro(s).'+(v?' '+v+' culto(s) ficaram sem ministro (indisponíveis ou em outra função).':'');
+    }else{
     extra=!nb?' Atenção: não há nenhuma banda com membros cadastrada, então escalei voluntários individuais. Crie as bandas e gere de novo.':' Usando '+nb+' banda(s).';
     $(m.msg).textContent='Escala da '+m.nome+' gerada para '+cids.length+' culto(s).'+extra+(v?' '+v+' culto(s) ficaram sem banda (todos os membros indisponíveis ou em outra função).':'');
+    }
   }else{
     $(m.msg).textContent='Escala da '+m.nome+' gerada para '+cids.length+' culto(s).'+(v?' '+v+' vaga(s) ficaram sem voluntário.':' Todas as vagas preenchidas.');
   }
@@ -4074,6 +4080,9 @@ function indisp_live(vid,date){return S.live.indisp.find(function(i){return i.vi
 
 /* ---------- Louvor ---------- */
 /* ---------- Louvor: voluntários e escala por culto ---------- */
+/* 'ministro': a escala mostra só o ministro de louvor. Troque para 'banda' para voltar a escalar por bandas. */
+var LOUVOR_MODO='ministro';
+function ehMinistroLouvor(id){var p=pessoaById(id);return !!(p&&p.louvor&&p.ministroLouvor);}
 var edit_louvor=null;
 function vById_louvor(id){return S.louvor.voluntarios.find(function(v){return v.id===id;});}
 function vagas_louvor(c){
@@ -4098,15 +4107,17 @@ function generate_louvor(from,to,cids,keep){
     var ps=(it.ps||[]).map(function(id){return vById_louvor(id)?id:'';});
     var m=it.m||[],fx=!!it.fx;
     if(inScope&&!keep&&!fx){ps=ps.map(function(id,i){return m[i]?id:'';});}
-    e[k]={ps:ps,m:ps.map(function(id,i){return fx||!!(id&&m[i]);}),fx:fx};if(it.b&&ps.some(Boolean)){e[k].b=it.b;}
+    if(LOUVOR_MODO==='ministro'&&!fx){ps=ps.map(function(id){return ehMinistroLouvor(id)?id:'';});}
+    e[k]={ps:ps,m:ps.map(function(id,i){return fx||!!(id&&m[i]);}),fx:fx};if(it.b&&ps.some(Boolean)&&LOUVOR_MODO==='banda'){e[k].b=it.b;}
   });
   var tot={},dates={};
   function note(id,d){tot[id]=(tot[id]||0)+1;(dates[id]=dates[id]||[]).push(dnum(d));}
   Object.keys(e).forEach(function(k){var d=k.split('|')[0];e[k].ps.forEach(function(id){if(id){note(id,d);}});});
   function gapOf(id,dn){var m=-1e9;(dates[id]||[]).forEach(function(x){if(x<dn&&x>m){m=x;}});return dn-m;}
-  var bandas=(O.bandas||[]).filter(function(b){return b.membros&&b.membros.length;}),bandMode=bandas.length>0,bt={},bd={};
+  var bandas=(O.bandas||[]).filter(function(b){return b.membros&&b.membros.length;}),bandMode=LOUVOR_MODO==='banda'&&bandas.length>0,bt={},bd={};
   function bgap(id,dn){var m=-1e9;(bd[id]||[]).forEach(function(x){if(x<dn&&x>m){m=x;}});return dn-m;}
   Object.keys(e).forEach(function(k){var it=e[k];if(it.b){bt[it.b]=(bt[it.b]||0)+1;(bd[it.b]=bd[it.b]||[]).push(dnum(k.split('|')[0]));}});
+  var VM=LOUVOR_MODO==='ministro'?V.filter(function(v){return ehMinistroLouvor(v.id);}):V;
   var vazios=0,end=addDays(from,400);if(to<end){end=to;}
   for(var d=from;d<=end;d=addDays(d,1)){
     if(!inRanges(d)){continue;}
@@ -4151,20 +4162,20 @@ function generate_louvor(from,to,cids,keep){
           if(it.ps[i]){continue;}
           var emDia={};
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
-          var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!indisp_louvor(v.id,d)&&volPodeCulto(v,c.id)&&outraFuncaoNoCulto(v.id,d,c.id,'louvor').length===0;});
+          var cand=VM.filter(function(v){return it.ps.indexOf(v.id)<0&&!indisp_louvor(v.id,d)&&volPodeCulto(v,c.id)&&outraFuncaoNoCulto(v.id,d,c.id,'louvor').length===0;});
           var livres=cand.filter(function(v){return !emDia[v.id];});
           if(livres.length){cand=livres;}
           if(!cand.length){vazios++;continue;}
           if(S.familias.length){
             var serv=servindoNoDia(d,S.escala,'louvor',e);
-            var mn=Math.min.apply(null,V.filter(function(v){return !indisp_louvor(v.id,d);}).map(function(v){return tot[v.id]||0;}));
+            var mn=Math.min.apply(null,VM.filter(function(v){return !indisp_louvor(v.id,d);}).map(function(v){return tot[v.id]||0;}));
             var par=cand.filter(function(v){return (tot[v.id]||0)<=mn+1&&famScore('p:'+v.id,serv)>0;});
             if(par.length){cand=par;}
           }
           cand.sort(function(a,b){
             var ta=tot[a.id]||0,tb=tot[b.id]||0;if(ta!==tb){return ta-tb;}
             var ga=gapOf(a.id,dn),gb=gapOf(b.id,dn);if(ga!==gb){return gb-ga;}
-            return ((V.indexOf(a)+dn)%V.length)-((V.indexOf(b)+dn)%V.length);
+            return ((VM.indexOf(a)+dn)%VM.length)-((VM.indexOf(b)+dn)%VM.length);
           });
           it.ps[i]=cand[0].id;it.m[i]=false;note(cand[0].id,d);
         }
@@ -4182,6 +4193,24 @@ function html_louvor(date,c){
   var key=date+'|'+c.id,real=S.louvor.escala[key];
   var ids=(real?real.ps:[]).filter(Boolean);
   var nomes=ids.map(function(id){var v=vById_louvor(id);return v?v.nome:'';}).filter(Boolean);
+  if(LOUVOR_MODO==='ministro'){
+    var mid=ids[0]||'',mv=mid?vById_louvor(mid):null;
+    if(!can('louvor')){return '<div class="r"><div class="rt">Ministro de louvor</div><div class="who">'+(mv?esc(mv.nome):'<span class="muted">A definir</span>')+'</div></div>';}
+    var mins=S.louvor.voluntarios.filter(function(v){return ehMinistroLouvor(v.id);}).sort(function(a,b){return a.nome.localeCompare(b.nome);});
+    var aviM=[];
+    if(mv&&indisp_louvor(mid,date)){aviM.push('Indisponível: '+mv.nome);}
+    if(mv&&!ehMinistroLouvor(mid)){aviM.push('Escala anterior sem ministro ('+mv.nome+'); escolha ou gere de novo');}
+    if(ids.length>1){aviM.push('Escala anterior com '+ids.length+' pessoas; escolha o ministro ou gere de novo');}
+    if(mv){var og=outraFuncaoNoCulto(mid,date,c.id,'louvor');if(og.length){aviM.push('Já serve neste culto: '+og.join(', '));}}
+    if(!mins.length){aviM.push('Nenhum ministro de louvor marcado na aba Louvor.');}
+    var opts='<option value="">— sem ministro —</option>'+mins.map(function(v){
+      var nt=indisp_louvor(v.id,date)?' (indisponível)':'';
+      return '<option value="'+esc(v.id)+'"'+(v.id===mid?' selected':'')+'>'+esc(v.nome+nt)+'</option>';
+    }).join('');
+    if(mv&&!ehMinistroLouvor(mid)){opts+='<option value="'+esc(mid)+'" selected>'+esc(mv.nome)+' (não é ministro)</option>';}
+    return '<div class="r"><div class="rt">Ministro de louvor</div><div class="oanse-sel"><select class="band-sel" data-ministro-louvor="'+esc(key)+'" aria-label="Ministro de louvor">'+opts+'</select>'
+      +(real&&real.fx?' <span class="m">manual</span>':'')+(aviM.length?'<div class="w">'+esc(aviM.join(' · '))+'</div>':'')+'</div></div>';
+  }
   if(!can('louvor')){
     var bnd=real&&real.b?bandaPorId(real.b):null;return '<div class="r"><div class="rt">Louvor'+(bnd?' · '+esc(bnd.nome):'')+'</div><div class="who">'+(nomes.length?esc(nomes.join(', ')):'<span class="muted">A definir</span>')+'</div></div>';
   }
@@ -4231,6 +4260,16 @@ function toggle_louvor(key){
   S.example=false;touch();render();restore_louvor();
   setMsg('Louvor de '+br(a[0])+' atualizada; as datas seguintes foram recalculadas.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
 }
+function onMinistro_louvor(key,id){
+  var a=key.split('|');
+  if(!id){auto_louvor(key);return;}
+  if(!vById_louvor(id)){return;}
+  S.louvor.escala[key]={ps:[id],m:[true],fx:true};
+  var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
+  var v=generate_louvor(addDays(a[0],1),rangeBounds().ate,cids,false);
+  S.example=false;touch();render();restore_louvor();
+  setMsg('Ministro de louvor de '+br(a[0])+' definido; as datas seguintes foram recalculadas.'+(v?' '+v+' culto(s) ficaram sem ministro.':''));
+}
 function auto_louvor(key){
   var a=key.split('|');
   delete S.louvor.escala[key];
@@ -4254,7 +4293,7 @@ $('cal').addEventListener('click',function(e){
 function render_louvor(){
   var V=S.louvor.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
   $('lista-louvor-vs').innerHTML=V.length?V.map(function(v){
-    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+volCultosTags(v)+'</div>'+(can('louvor')?'<div class="row">'+'<button class="btn sec mini" data-act="edit-louvor-v" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-louvor-v" data-id="'+esc(v.id)+'">Tirar da Louvor</button></div>':'')+'</li>';
+    return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+(ehMinistroLouvor(v.id)?' <span class="m">Ministro</span>':'')+volCultosTags(v)+'</div>'+(can('louvor')?'<div class="row">'+'<button class="btn sec mini" data-act="min-louvor-v" data-id="'+esc(v.id)+'" aria-pressed="'+(ehMinistroLouvor(v.id)?'true':'false')+'">'+(ehMinistroLouvor(v.id)?'Ministro ✓':'Marcar como ministro')+'</button>'+'<button class="btn sec mini" data-act="edit-louvor-v" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-louvor-v" data-id="'+esc(v.id)+'">Tirar da Louvor</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
   $('form-louvor-v').parentNode.hidden=!can('louvor');
   $('louvor-v-imp').hidden=!can('cadastros');
@@ -6041,6 +6080,7 @@ document.addEventListener('click',function(e){
   }
   else if(act==='edit-louvor-v'){editStart_louvor(id);}
   else if(act==='del-louvor-v'){del_louvor(id);}
+  else if(act==='min-louvor-v'){var pm=pessoaById(id);if(pm&&can('louvor')){pm.ministroLouvor=!pm.ministroLouvor;changed();}}
   else if(act==='edit-louvor-b'){editBanda_louvor(id);}
   else if(act==='del-louvor-b'){delBanda_louvor(id);}
   else if(act==='del-louvor-x'){S.louvor.exige=S.louvor.exige.filter(function(x){return x.id!==id;});changed();}
@@ -6186,7 +6226,7 @@ $('form-indisp').addEventListener('submit',function(e){
 
 /* escala */
 $('g-cultos').addEventListener('change',function(e){var t=e.target;if(t.value){unchecked[t.value]=!t.checked;}});
-$('cal').addEventListener('change',function(e){var t=e.target;if(t.matches&&t.matches('select[data-key]')){onPick(t.dataset.key,t.value);}else if(t.matches&&t.matches('input[data-oms]')){onToggleOanse(t.getAttribute('data-oms'));}else if(t.matches&&t.matches('input[data-lms]')){onToggleLit(t.getAttribute('data-lms'));}else if(t.matches&&t.matches('input[data-ms-bibkids]')){toggle_bibkids(t.getAttribute('data-ms-bibkids'));}else if(t.matches&&t.matches('input[data-ms-cantina]')){toggle_cantina(t.getAttribute('data-ms-cantina'));}else if(t.matches&&t.matches('input[data-ms-iluminacao]')){toggle_iluminacao(t.getAttribute('data-ms-iluminacao'));}else if(t.matches&&t.matches('input[data-ms-live]')){toggle_live(t.getAttribute('data-ms-live'));}else if(t.matches&&t.matches('select[data-banda-louvor]')){onBanda_louvor(t.getAttribute('data-banda-louvor'),t.value);}else if(t.matches&&t.matches('input[data-ms-louvor]')){toggle_louvor(t.getAttribute('data-ms-louvor'));}else if(t.matches&&t.matches('input[data-ms-parking]')){toggle_parking(t.getAttribute('data-ms-parking'));}else if(t.matches&&t.matches('input[data-ms-projecao]')){toggle_projecao(t.getAttribute('data-ms-projecao'));}else if(t.matches&&t.matches('input[data-ms-recepcao]')){toggle_recepcao(t.getAttribute('data-ms-recepcao'));}else if(t.matches&&t.matches('input[data-ms-som]')){toggle_som(t.getAttribute('data-ms-som'));}});
+$('cal').addEventListener('change',function(e){var t=e.target;if(t.matches&&t.matches('select[data-key]')){onPick(t.dataset.key,t.value);}else if(t.matches&&t.matches('input[data-oms]')){onToggleOanse(t.getAttribute('data-oms'));}else if(t.matches&&t.matches('input[data-lms]')){onToggleLit(t.getAttribute('data-lms'));}else if(t.matches&&t.matches('input[data-ms-bibkids]')){toggle_bibkids(t.getAttribute('data-ms-bibkids'));}else if(t.matches&&t.matches('input[data-ms-cantina]')){toggle_cantina(t.getAttribute('data-ms-cantina'));}else if(t.matches&&t.matches('input[data-ms-iluminacao]')){toggle_iluminacao(t.getAttribute('data-ms-iluminacao'));}else if(t.matches&&t.matches('input[data-ms-live]')){toggle_live(t.getAttribute('data-ms-live'));}else if(t.matches&&t.matches('select[data-ministro-louvor]')){onMinistro_louvor(t.getAttribute('data-ministro-louvor'),t.value);}else if(t.matches&&t.matches('select[data-banda-louvor]')){onBanda_louvor(t.getAttribute('data-banda-louvor'),t.value);}else if(t.matches&&t.matches('input[data-ms-louvor]')){toggle_louvor(t.getAttribute('data-ms-louvor'));}else if(t.matches&&t.matches('input[data-ms-parking]')){toggle_parking(t.getAttribute('data-ms-parking'));}else if(t.matches&&t.matches('input[data-ms-projecao]')){toggle_projecao(t.getAttribute('data-ms-projecao'));}else if(t.matches&&t.matches('input[data-ms-recepcao]')){toggle_recepcao(t.getAttribute('data-ms-recepcao'));}else if(t.matches&&t.matches('input[data-ms-som]')){toggle_som(t.getAttribute('data-ms-som'));}});
 $('form-gerar').addEventListener('submit',function(e){e.preventDefault();gerar();});
 
 /* tema da pregação por data */
