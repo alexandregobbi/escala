@@ -127,6 +127,11 @@ thead th{border-top:0}
 td.num{font-variant-numeric:tabular-nums;font-weight:600}
 textarea.txt{width:100%;min-height:200px;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:10px}
 @media (prefers-reduced-motion:no-preference){.btn{transition:opacity .15s}.btn:hover{opacity:.88}}
+
+#sug-box .sug-back{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
+#sug-box .sug-card{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;max-width:560px;width:100%;max-height:85vh;overflow:auto;padding:20px}
+#sug-box .sug-list{display:grid;gap:10px;margin:12px 0 16px}
+#sug-box .sug-list label{display:flex;gap:10px;align-items:flex-start;padding:8px;border:1px solid var(--line);border-radius:8px}
 </style>
 <style>
 .brand{display:flex;align-items:center;gap:14px}
@@ -264,7 +269,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       </details>
       <label class="l" for="filtro-pessoa" style="margin:0 0 8px;max-width:420px">Filtrar por voluntário<select id="filtro-pessoa"></select></label>
       <div id="cal" class="cal"></div>
-      <div class="hint" id="cal-hint">Troque o pregador direto no calendário. Os cultos seguintes (que não foram ajustados à mão) são recalculados pelas regras.</div>
+      <div class="hint" id="cal-hint">Troque o pregador direto no calendário. Depois da troca, o sistema sugere ajustes nos cultos seguintes para manter o equilíbrio, e você escolhe quais aplicar.</div>
       <div id="texto-box" hidden style="display:flex;flex-direction:column;gap:8px">
         <textarea id="texto" class="txt" readonly aria-label="Escala do mês em texto"></textarea>
         <div class="row"><button class="btn" id="btn-copiar">Copiar texto</button><span id="copiado" class="hint" aria-live="polite"></span></div>
@@ -1572,7 +1577,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     <button class="btn sec mini" id="bk-baixar" type="button">Baixar backup</button>
     <button class="btn sec mini" id="bk-restaurar" type="button">Restaurar backup</button>
     <input type="file" id="bk-arquivo" accept="application/json,.json" hidden>
-    <span class="small muted" id="versao">Versão 2026-11-07 · ministro de louvor</span>
+    <span class="small muted" id="versao">Versão 2026-11-07 · sugestões de equilíbrio</span>
     <span id="bk-msg" aria-live="polite"></span>
   </footer>
 </div>
@@ -2181,13 +2186,127 @@ function textoDoMes(){
   return out.trim();
 }
 
+
+/* ---------- sugestões de troca para manter o equilíbrio ---------- */
+var SUGP=null;
+function sugGrupos(mod){return mod==='preg'?['preg','avisos','visit']:[''];}
+function sugSlots(mod){
+  var out=[];
+  if(mod==='preg'){
+    Object.keys(S.escala).forEach(function(k){
+      var a=k.split('|'),it=S.escala[k];if(!it||!pessoaById(it.p)){return;}
+      out.push({key:k,idx:0,papel:a[2],date:a[0],cid:a[1],pid:it.p,lock:!!it.manual||exigeDe(a[0],a[1],a[2]).length>0});
+    });
+  }else{
+    var E=S[mod].escala;
+    Object.keys(E).forEach(function(k){
+      var a=k.split('|'),it=E[k];if(!it||!cultoById(a[1])){return;}
+      it.ps.forEach(function(id,i){
+        if(!id){return;}
+        var rg=(S[mod].exige||[]).some(function(r){return (r.cid==='*'||r.cid===a[1])&&(!r.sems.length||semOk(r.sems,a[0]))&&r.vids.indexOf(id)>=0;});
+        out.push({key:k,idx:i,papel:'',date:a[0],cid:a[1],pid:id,lock:!!it.fx||!!(it.m&&it.m[i])||rg});
+      });
+    });
+  }
+  return out;
+}
+function sugPool(mod,g){
+  if(mod==='preg'){return S.pessoas.filter(function(p){return p.papeis.indexOf(g)>=0;}).map(function(p){return p.id;});}
+  return S[mod].voluntarios.filter(function(v){return mod!=='louvor'||LOUVOR_MODO!=='ministro'||ehMinistroLouvor(v.id);}).map(function(v){return v.id;});
+}
+function sugIndisp(mod,id,date){return (S[mod].indisp||[]).some(function(i){return i.vid===id&&date>=i.de&&date<=i.ate;});}
+function sugElig(mod,pid,s){
+  if(mod==='preg'){return conflicts(pid,s.date,s.cid,s.papel,S.escala,s.key).length===0;}
+  var it=S[mod].escala[s.key];if(!it||it.ps.indexOf(pid)>=0){return false;}
+  var v=S[mod].voluntarios.find(function(x){return x.id===pid;});
+  if(!v||!volPodeCulto(v,s.cid)||sugIndisp(mod,pid,s.date)){return false;}
+  if(mod==='louvor'&&LOUVOR_MODO==='ministro'&&!ehMinistroLouvor(pid)){return false;}
+  if(outraFuncaoNoCulto(pid,s.date,s.cid,mod).length){return false;}
+  var E=S[mod].escala;
+  return !Object.keys(E).some(function(k){var a=k.split('|');return a[0]===s.date&&E[k].ps.indexOf(pid)>=0;});
+}
+function sugSet(mod,s,pid){
+  if(mod==='preg'){S.escala[s.key]={p:pid,manual:false};}
+  else{var it=S[mod].escala[s.key];it.ps[s.idx]=pid;it.m[s.idx]=false;}
+}
+function sugCalc(mod,key){
+  var date=key.split('|')[0],ym=date.slice(0,7),res=[];
+  var E=mod==='preg'?S.escala:S[mod].escala,orig=JSON.stringify(E);
+  try{
+    sugGrupos(mod).forEach(function(g){
+      for(var n=0;n<8;n++){
+        var slots=sugSlots(mod).filter(function(s){return s.date.slice(0,7)===ym&&(g===''||s.papel===g);});
+        var cnt={};slots.forEach(function(s){cnt[s.pid]=(cnt[s.pid]||0)+1;});
+        var pool=sugPool(mod,g).slice();Object.keys(cnt).forEach(function(id){if(pool.indexOf(id)<0){pool.push(id);}});
+        pool.forEach(function(id){if(cnt[id]==null){cnt[id]=0;}});
+        var desc=pool.slice().sort(function(a,b){return cnt[b]-cnt[a];}),asc=pool.slice().sort(function(a,b){return cnt[a]-cnt[b];});
+        var best=null;
+        for(var i=0;i<desc.length&&!best;i++){
+          var hi=desc[i];
+          var mine=slots.filter(function(s){return s.pid===hi&&!s.lock&&s.date>date;}).sort(function(a,b){return a.date.localeCompare(b.date)||a.cid.localeCompare(b.cid);});
+          for(var j=0;j<mine.length&&!best;j++){
+            for(var q=0;q<asc.length;q++){
+              var lo=asc[q];
+              if(cnt[hi]-cnt[lo]<2){break;}
+              if(lo!==hi&&sugElig(mod,lo,mine[j])){best={s:mine[j],hi:hi,lo:lo,nh:cnt[hi],nl:cnt[lo]};break;}
+            }
+          }
+        }
+        if(!best){break;}
+        sugSet(mod,best.s,best.lo);res.push({mod:mod,key:best.s.key,idx:best.s.idx,papel:best.s.papel,date:best.s.date,cid:best.s.cid,hi:best.hi,lo:best.lo,nh:best.nh,nl:best.nl});
+      }
+    });
+  }finally{
+    var o=JSON.parse(orig);Object.keys(E).forEach(function(k){delete E[k];});Object.keys(o).forEach(function(k){E[k]=o[k];});
+  }
+  return res;
+}
+function sugere(mod,key){
+  var r=[];try{r=sugCalc(mod,key);}catch(e){r=[];}
+  SUGP=r.length?{mod:mod,list:r}:null;
+  if(SUGP){setTimeout(sugMostra,0);}
+}
+function sugNome(id){var p=pessoaById(id);return p?p.nome:'?';}
+function sugMostra(){
+  if(!SUGP){return;}
+  var box=document.getElementById('sug-box');
+  if(!box){box=document.createElement('div');box.id='sug-box';document.body.appendChild(box);}
+  var mm=MINS.find(function(m){return m.k===SUGP.mod;});
+  var tit=SUGP.mod==='preg'?'Pregação, avisos e contato':(mm?mm.nome:SUGP.mod);
+  box.innerHTML='<div class="sug-back"><div class="sug-card" role="dialog" aria-modal="true" aria-label="Sugestões para equilibrar a escala">'
+    +'<h2>Equilibrar a escala?</h2><p class="small muted">Depois da sua mudança, algumas pessoas ficaram com mais escalas que outras em '+esc(tit)+' neste mês. Marque as trocas que quer aplicar:</p>'
+    +'<div class="sug-list">'+SUGP.list.map(function(x,i){
+      var c=cultoById(x.cid);
+      return '<label><input type="checkbox" data-sug="'+i+'" checked> <span><b>'+br(x.date)+'</b> · '+esc(c?cultoLabel(c):'')+(x.papel?' · '+esc(PNOME[x.papel]):'')+'<br>'+esc(sugNome(x.hi))+' → <b>'+esc(sugNome(x.lo))+'</b> <span class="small muted">('+esc(sugNome(x.hi))+' tem '+x.nh+' no mês; '+esc(sugNome(x.lo))+' tem '+x.nl+')</span></span></label>';
+    }).join('')+'</div>'
+    +'<div class="row"><button type="button" class="btn" id="sug-ok">Aplicar selecionadas</button><button type="button" class="btn sec" id="sug-no">Agora não</button></div></div></div>';
+  document.getElementById('sug-no').onclick=sugFecha;
+  document.getElementById('sug-ok').onclick=sugAplica;
+}
+function sugFecha(){SUGP=null;var b=document.getElementById('sug-box');if(b){b.innerHTML='';}}
+function sugAplica(){
+  if(!SUGP){return;}
+  var marc=[];Array.prototype.forEach.call(document.querySelectorAll('#sug-box input[data-sug]'),function(i){if(i.checked){marc.push(+i.getAttribute('data-sug'));}});
+  var n=0,mod=SUGP.mod;
+  SUGP.list.forEach(function(x,i){
+    if(marc.indexOf(i)<0){return;}
+    var cur;
+    if(mod==='preg'){cur=S.escala[x.key];if(!cur||cur.p!==x.hi||cur.manual){return;}S.escala[x.key]={p:x.lo,manual:false};}
+    else{cur=S[mod].escala[x.key];if(!cur||cur.ps[x.idx]!==x.hi||cur.fx||cur.ps.indexOf(x.lo)>=0){return;}cur.ps[x.idx]=x.lo;cur.m[x.idx]=false;}
+    n++;
+  });
+  sugFecha();
+  if(n){S.example=false;touch();render();}
+  setMsg(n?n+' troca(s) aplicada(s) para equilibrar a escala.':'Nenhuma troca aplicada.');
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&SUGP){sugFecha();}});
 function onPick(key,val){
   var a=key.split('|'),date=a[0],cids=selectedCultos();
   if(a[1]!=='*'&&cids.indexOf(a[1])<0){cids.push(a[1]);}
-  if(val===''){delete S.escala[key];}else{S.escala[key]={p:val,manual:true};}
-  var v=generate(date,rangeBounds().ate,cids);
+  var v=[];
+  if(val===''){delete S.escala[key];v=generate(date,date,a[1]==='*'?cids:[a[1]],true);}else{S.escala[key]={p:val,manual:true};sugere('preg',key);}
   S.example=false;touch();render();
-  setMsg('Escala recalculada a partir de '+br(date)+'.'+(v.length?' '+v.length+' espaço(s) ficaram sem pessoa que atenda às regras.':''));
+  setMsg('Escala de '+br(date)+' atualizada.'+(v.length?' '+v.length+' espaço(s) ficaram sem pessoa que atenda às regras.':''));
 }
 function gerar(){
   var de=$('p-de').value,ate=$('p-ate').value,cids=selectedCultos();
@@ -2388,9 +2507,9 @@ function onToggleOanse(key){
   S.oanse.escala[key]={ps:lista,m:lista.map(function(){return true;}),fx:true};
   openMS[key]=1;
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
-  var v=generateOanse(addDays(a[0],1),rangeBounds().ate,cids,false);
+  var v=0;sugere('oanse',key);
   S.example=false;touch();render();restoreMS();
-  setMsg('OANSE de '+br(a[0])+' atualizada; as datas seguintes foram recalculadas.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
+  setMsg('OANSE de '+br(a[0])+' atualizada.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
 }
 function oanseAuto(key){
   var a=key.split('|');
@@ -2748,9 +2867,9 @@ function onToggleLit(key){
   S.lit.escala[key]={ps:lista,m:lista.map(function(){return true;}),fx:true};
   openLMS[key]=1;
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
-  var v=generateLit(addDays(a[0],1),rangeBounds().ate,cids,false);
+  var v=0;sugere('lit',key);
   S.example=false;touch();render();restoreLMS();
-  setMsg('Liturgia de '+br(a[0])+' atualizada; as datas seguintes foram recalculadas.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
+  setMsg('Liturgia de '+br(a[0])+' atualizada.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
 }
 function litAuto(key){
   var a=key.split('|');
@@ -3102,9 +3221,9 @@ function toggle_bibkids(key){
   S.bibkids.escala[key]={ps:lista,m:lista.map(function(){return true;}),fx:true};
   open_bibkids[key]=1;
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
-  var v=generate_bibkids(addDays(a[0],1),rangeBounds().ate,cids,false);
+  var v=0;sugere('bibkids',key);
   S.example=false;touch();render();restore_bibkids();
-  setMsg('Bibkids de '+br(a[0])+' atualizada; as datas seguintes foram recalculadas.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
+  setMsg('Bibkids de '+br(a[0])+' atualizada.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
 }
 function auto_bibkids(key){
   var a=key.split('|');
@@ -3376,9 +3495,9 @@ function toggle_cantina(key){
   S.cantina.escala[key]={ps:lista,m:lista.map(function(){return true;}),fx:true};
   open_cantina[key]=1;
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
-  var v=generate_cantina(addDays(a[0],1),rangeBounds().ate,cids,false);
+  var v=0;sugere('cantina',key);
   S.example=false;touch();render();restore_cantina();
-  setMsg('Cantina de '+br(a[0])+' atualizada; as datas seguintes foram recalculadas.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
+  setMsg('Cantina de '+br(a[0])+' atualizada.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
 }
 function auto_cantina(key){
   var a=key.split('|');
@@ -3650,9 +3769,9 @@ function toggle_iluminacao(key){
   S.iluminacao.escala[key]={ps:lista,m:lista.map(function(){return true;}),fx:true};
   open_iluminacao[key]=1;
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
-  var v=generate_iluminacao(addDays(a[0],1),rangeBounds().ate,cids,false);
+  var v=0;sugere('iluminacao',key);
   S.example=false;touch();render();restore_iluminacao();
-  setMsg('Iluminação de '+br(a[0])+' atualizada; as datas seguintes foram recalculadas.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
+  setMsg('Iluminação de '+br(a[0])+' atualizada.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
 }
 function auto_iluminacao(key){
   var a=key.split('|');
@@ -3924,9 +4043,9 @@ function toggle_live(key){
   S.live.escala[key]={ps:lista,m:lista.map(function(){return true;}),fx:true};
   open_live[key]=1;
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
-  var v=generate_live(addDays(a[0],1),rangeBounds().ate,cids,false);
+  var v=0;sugere('live',key);
   S.example=false;touch();render();restore_live();
-  setMsg('Live de '+br(a[0])+' atualizada; as datas seguintes foram recalculadas.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
+  setMsg('Live de '+br(a[0])+' atualizada.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
 }
 function auto_live(key){
   var a=key.split('|');
@@ -4254,9 +4373,9 @@ function toggle_louvor(key){
   if(bAtual&&bandaPorId(bAtual)){S.louvor.escala[key].b=bAtual;}
   open_louvor[key]=1;
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
-  var v=generate_louvor(addDays(a[0],1),rangeBounds().ate,cids,false);
+  var v=0;sugere('louvor',key);
   S.example=false;touch();render();restore_louvor();
-  setMsg('Louvor de '+br(a[0])+' atualizada; as datas seguintes foram recalculadas.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
+  setMsg('Louvor de '+br(a[0])+' atualizada.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
 }
 function onMinistro_louvor(key,id){
   var a=key.split('|');
@@ -4264,9 +4383,9 @@ function onMinistro_louvor(key,id){
   if(!vById_louvor(id)){return;}
   S.louvor.escala[key]={ps:[id],m:[true],fx:true};
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
-  var v=generate_louvor(addDays(a[0],1),rangeBounds().ate,cids,false);
+  var v=0;sugere('louvor',key);
   S.example=false;touch();render();restore_louvor();
-  setMsg('Ministro de louvor de '+br(a[0])+' definido; as datas seguintes foram recalculadas.'+(v?' '+v+' culto(s) ficaram sem ministro.':''));
+  setMsg('Ministro de louvor de '+br(a[0])+' definido.'+(v?' '+v+' culto(s) ficaram sem ministro.':''));
 }
 function auto_louvor(key){
   var a=key.split('|');
@@ -4431,9 +4550,9 @@ function onBanda_louvor(key,id){
   var ps=b.membros.filter(function(x){return !!vById_louvor(x);});
   S.louvor.escala[key]={ps:ps,m:ps.map(function(){return true;}),fx:true,b:id};
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
-  var v=generate_louvor(addDays(a[0],1),rangeBounds().ate,cids,false);
+  var v=0;sugere('louvor',key);
   S.example=false;touch();render();restore_louvor();
-  setMsg('Banda '+b.nome+' escalada em '+br(a[0])+'; as datas seguintes foram recalculadas.'+(v?' '+v+' culto(s) ficaram sem banda.':''));
+  setMsg('Banda '+b.nome+' escalada em '+br(a[0])+'.'+(v?' '+v+' culto(s) ficaram sem banda.':''));
 }
 function resetBanda_louvor(){
   edit_banda=null;bandaMarc=null;$('form-louvor-b').reset();
@@ -4610,9 +4729,9 @@ function toggle_parking(key){
   S.parking.escala[key]={ps:lista,m:lista.map(function(){return true;}),fx:true};
   open_parking[key]=1;
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
-  var v=generate_parking(addDays(a[0],1),rangeBounds().ate,cids,false);
+  var v=0;sugere('parking',key);
   S.example=false;touch();render();restore_parking();
-  setMsg('Parking de '+br(a[0])+' atualizada; as datas seguintes foram recalculadas.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
+  setMsg('Parking de '+br(a[0])+' atualizada.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
 }
 function auto_parking(key){
   var a=key.split('|');
@@ -4884,9 +5003,9 @@ function toggle_projecao(key){
   S.projecao.escala[key]={ps:lista,m:lista.map(function(){return true;}),fx:true};
   open_projecao[key]=1;
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
-  var v=generate_projecao(addDays(a[0],1),rangeBounds().ate,cids,false);
+  var v=0;sugere('projecao',key);
   S.example=false;touch();render();restore_projecao();
-  setMsg('Projeção de '+br(a[0])+' atualizada; as datas seguintes foram recalculadas.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
+  setMsg('Projeção de '+br(a[0])+' atualizada.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
 }
 function auto_projecao(key){
   var a=key.split('|');
@@ -5158,9 +5277,9 @@ function toggle_recepcao(key){
   S.recepcao.escala[key]={ps:lista,m:lista.map(function(){return true;}),fx:true};
   open_recepcao[key]=1;
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
-  var v=generate_recepcao(addDays(a[0],1),rangeBounds().ate,cids,false);
+  var v=0;sugere('recepcao',key);
   S.example=false;touch();render();restore_recepcao();
-  setMsg('Recepção de '+br(a[0])+' atualizada; as datas seguintes foram recalculadas.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
+  setMsg('Recepção de '+br(a[0])+' atualizada.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
 }
 function auto_recepcao(key){
   var a=key.split('|');
@@ -5432,9 +5551,9 @@ function toggle_som(key){
   S.som.escala[key]={ps:lista,m:lista.map(function(){return true;}),fx:true};
   open_som[key]=1;
   var cids=selectedCultos();if(cids.indexOf(a[1])<0){cids.push(a[1]);}
-  var v=generate_som(addDays(a[0],1),rangeBounds().ate,cids,false);
+  var v=0;sugere('som',key);
   S.example=false;touch();render();restore_som();
-  setMsg('Som de '+br(a[0])+' atualizada; as datas seguintes foram recalculadas.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
+  setMsg('Som de '+br(a[0])+' atualizada.'+(v?' '+v+' vaga(s) ficaram sem voluntário.':''));
 }
 function auto_som(key){
   var a=key.split('|');
