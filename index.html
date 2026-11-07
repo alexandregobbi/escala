@@ -4289,7 +4289,7 @@ $('cal').addEventListener('click',function(e){
 
 /* aba Louvor */
 function render_louvor(){
-  var V=S.louvor.voluntarios.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
+  var V=S.louvor.voluntarios.slice().sort(function(a,b){return (ehMinistroLouvor(b.id)-ehMinistroLouvor(a.id))||a.nome.localeCompare(b.nome);});
   $('lista-louvor-vs').innerHTML=V.length?V.map(function(v){
     return '<li><div class="main"><b>'+esc(v.nome)+'</b>'+(ehMinistroLouvor(v.id)?' <span class="m">Ministro</span>':'')+volCultosTags(v)+'</div>'+(can('louvor')?'<div class="row">'+'<button class="btn sec mini" data-act="min-louvor-v" data-id="'+esc(v.id)+'" aria-pressed="'+(ehMinistroLouvor(v.id)?'true':'false')+'">'+(ehMinistroLouvor(v.id)?'Ministro ✓':'Marcar como ministro')+'</button>'+'<button class="btn sec mini" data-act="edit-louvor-v" data-id="'+esc(v.id)+'">Editar</button>'+'<button class="btn danger mini" data-act="del-louvor-v" data-id="'+esc(v.id)+'">Tirar da Louvor</button></div>':'')+'</li>';
   }).join(''):'<li class="empty">Nenhum voluntário cadastrado ainda. Adicione um nome ou importe uma lista.</li>';
@@ -4302,7 +4302,7 @@ function render_louvor(){
     return vagasHTML('louvor',c,'data-mvaga');
   }).join(''):'<p class="empty">Cadastre cultos na aba Cultos.</p>';
   var ym=view.y+'-'+pad(view.m+1);
-  distMeses('louvor','louvor-v-dist',V);
+  distMeses('louvor','louvor-v-dist',LOUVOR_MODO==='ministro'?V.filter(function(v){return ehMinistroLouvor(v.id);}).concat(V.filter(function(v){return !ehMinistroLouvor(v.id);})):V);
   $('louvor-v-mes').textContent='';
   $('louvor-vagas-lista').parentNode.hidden=true;
   renderBandas_louvor();renderRegras_louvor();renderGerarMod('louvor');
