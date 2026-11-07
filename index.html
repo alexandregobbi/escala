@@ -2267,6 +2267,15 @@ function sugere(mod,key){
   var r=[];try{r=sugCalc(mod,key);}catch(e){r=[];}
   SUGP=r.length?{mod:mod,list:r}:null;
   if(SUGP){setTimeout(sugMostra,0);}
+  else{setTimeout(function(){
+    try{
+      var ym=key.split('|')[0].slice(0,7),g=sugGrupos(mod,key)[0],cnt={};
+      sugSlots(mod).filter(function(x){return x.date.slice(0,7)===ym&&(g===''||x.papel===g);}).forEach(function(x){cnt[x.pid]=(cnt[x.pid]||0)+1;});
+      sugPool(mod,g).forEach(function(id){if(cnt[id]==null){cnt[id]=0;}});
+      var txt=Object.keys(cnt).sort(function(x,y){return cnt[y]-cnt[x];}).map(function(id){return sugNome(id)+' '+cnt[id];}).join(', ');
+      setMsg(($('msg').textContent||'')+' Sem sugestões de troca (nenhuma troca possível nas datas seguintes deste mês). Contagem no mês: '+txt+'.');
+    }catch(e){}
+  },0);}
 }
 function sugNome(id){var p=pessoaById(id);return p?p.nome:'?';}
 function sugMostra(){
