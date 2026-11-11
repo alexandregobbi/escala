@@ -2008,10 +2008,13 @@ function generate(from,to,cids,keep){
     if(!keep&&a[0]>=from&&a[0]<=to&&!it.manual&&sel){return;}
     if((a[1]==='*'||cultoById(a[1]))&&pessoaById(it.p)){e[k]=it;}
   });
-  var cnt={},tot={};PAPEIS.forEach(function(x){cnt[x]={};});
+  /* equilíbrio por culto: pregação e avisos contam separadamente em cada culto; contato com visitantes conta no total (não tem culto) */
+  var cnt={},tot={};
+  function ck(papel,cid){return papel==='visit'?'visit':papel+'|'+cid;}
   Object.keys(e).forEach(function(k){
-    var p=k.split('|')[2],id=e[k].p;
-    cnt[p][id]=(cnt[p][id]||0)+1;tot[id]=(tot[id]||0)+1;
+    var a=k.split('|'),c2=ck(a[2],a[1]),id=e[k].p;
+    cnt[c2]=cnt[c2]||{};
+    cnt[c2][id]=(cnt[c2][id]||0)+1;tot[id]=(tot[id]||0)+1;
   });
   var slots=slotsIn(from,to,cids).filter(function(s){return inRanges(s.date);}),vazios=[],n=S.pessoas.length,i=0;
   /* pregação e avisos primeiro; contato com visitantes por último (é o único que considera famílias) */
@@ -2025,8 +2028,9 @@ function generate(from,to,cids,keep){
     if(!cand.length){vazios.push(s);return;}
     if(s.papel==='visit'&&S.familias.length){
       var serv=servindoNoDia(s.date,e);
-      var mn=Math.min.apply(null,S.pessoas.filter(function(p){return p.papeis.indexOf('visit')>=0;}).map(function(p){return cnt.visit[p.id]||0;}));
-      var par=cand.filter(function(p){return (cnt.visit[p.id]||0)<=mn+1&&famScore('p:'+p.id,serv)>0;});
+      var CV=cnt.visit||{};
+      var mn=Math.min.apply(null,S.pessoas.filter(function(p){return p.papeis.indexOf('visit')>=0;}).map(function(p){return CV[p.id]||0;}));
+      var par=cand.filter(function(p){return (CV[p.id]||0)<=mn+1&&famScore('p:'+p.id,serv)>0;});
       if(par.length){cand=par;}
     }
     function gap(pid){
@@ -2035,7 +2039,8 @@ function generate(from,to,cids,keep){
       return dn-m;
     }
     cand.sort(function(a,b){
-      var ca=cnt[s.papel][a.id]||0,cb=cnt[s.papel][b.id]||0;
+      var CC=cnt[ck(s.papel,s.cid)]||{};
+      var ca=CC[a.id]||0,cb=CC[b.id]||0;
       if(ca!==cb){return ca-cb;}
       var ta=tot[a.id]||0,tb=tot[b.id]||0;
       if(ta!==tb){return ta-tb;}
@@ -2045,7 +2050,7 @@ function generate(from,to,cids,keep){
     });
     var pick=cand[0];
     e[s.key]={p:pick.id,manual:false};
-    cnt[s.papel][pick.id]=(cnt[s.papel][pick.id]||0)+1;
+    var c3=ck(s.papel,s.cid);cnt[c3]=cnt[c3]||{};cnt[c3][pick.id]=(cnt[c3][pick.id]||0)+1;
     tot[pick.id]=(tot[pick.id]||0)+1;
   });
   S.escala=e;
@@ -2223,8 +2228,8 @@ function sugSlots(mod){
   }
   return out;
 }
-function sugPool(mod,g){
-  if(mod==='preg'){return S.pessoas.filter(function(p){return p.papeis.indexOf(g)>=0&&(g==='visit'||p.funcao==='Presbítero');}).map(function(p){return p.id;});}
+function sugPool(mod,g,cid){
+  if(mod==='preg'){return S.pessoas.filter(function(p){return p.papeis.indexOf(g)>=0&&(g==='visit'||(p.funcao==='Presbítero'&&(!cid||p.cultos.indexOf(cid)>=0)));}).map(function(p){return p.id;});}
   return S[mod].voluntarios.filter(function(v){return mod!=='louvor'||LOUVOR_MODO!=='ministro'||ehMinistroLouvor(v.id);}).map(function(v){return v.id;});
 }
 function sugIndisp(mod,id,date){return (S[mod].indisp||[]).some(function(i){return i.vid===id&&date>=i.de&&date<=i.ate;});}
@@ -2246,11 +2251,12 @@ function sugCalc(mod,key){
   var date=key.split('|')[0],ym=date.slice(0,7),res=[];
   var E=mod==='preg'?S.escala:S[mod].escala,orig=JSON.stringify(E);
   try{
+    var cidG=(mod==='preg'&&key.split('|')[2]!=='visit')?key.split('|')[1]:'';
     sugGrupos(mod,key).forEach(function(g){
       for(var n=0;n<8;n++){
-        var slots=sugSlots(mod).filter(function(s){return s.date.slice(0,7)===ym&&(g===''||s.papel===g);});
+        var slots=sugSlots(mod).filter(function(s){return s.date.slice(0,7)===ym&&(g===''||s.papel===g)&&(!cidG||s.cid===cidG);});
         var cnt={};slots.forEach(function(s){cnt[s.pid]=(cnt[s.pid]||0)+1;});
-        var pool=sugPool(mod,g).slice();Object.keys(cnt).forEach(function(id){if(pool.indexOf(id)<0){pool.push(id);}});
+        var pool=sugPool(mod,g,cidG).slice();Object.keys(cnt).forEach(function(id){if(pool.indexOf(id)<0){pool.push(id);}});
         pool.forEach(function(id){if(cnt[id]==null){cnt[id]=0;}});
         var desc=pool.slice().sort(function(a,b){return cnt[b]-cnt[a];}),asc=pool.slice().sort(function(a,b){return cnt[a]-cnt[b];});
         var best=null;
@@ -2280,9 +2286,9 @@ function sugere(mod,key){
   if(SUGP){setTimeout(sugMostra,0);}
   else{setTimeout(function(){
     try{
-      var ym=key.split('|')[0].slice(0,7),g=sugGrupos(mod,key)[0],cnt={};
-      sugSlots(mod).filter(function(x){return x.date.slice(0,7)===ym&&(g===''||x.papel===g);}).forEach(function(x){cnt[x.pid]=(cnt[x.pid]||0)+1;});
-      sugPool(mod,g).forEach(function(id){if(cnt[id]==null){cnt[id]=0;}});
+      var ym=key.split('|')[0].slice(0,7),g=sugGrupos(mod,key)[0],cnt={},cg=(mod==='preg'&&g!=='visit')?key.split('|')[1]:'';
+      sugSlots(mod).filter(function(x){return x.date.slice(0,7)===ym&&(g===''||x.papel===g)&&(!cg||x.cid===cg);}).forEach(function(x){cnt[x.pid]=(cnt[x.pid]||0)+1;});
+      sugPool(mod,g,cg).forEach(function(id){if(cnt[id]==null){cnt[id]=0;}});
       var txt=Object.keys(cnt).sort(function(x,y){return cnt[y]-cnt[x];}).map(function(id){return sugNome(id)+' '+cnt[id];}).join(', ');
       setMsg(($('msg').textContent||'')+' Sem sugestões de troca (nenhuma troca possível nas datas seguintes deste mês). Contagem no mês: '+txt+'.');
       SUGP={mod:mod,list:[],info:txt,papel:g};sugMostra();
@@ -2301,7 +2307,7 @@ function sugMostra(){
   }
   var tit=SUGP.mod==='preg'?(PNOME[SUGP.list[0].papel]||'').toLowerCase():(mm?mm.nome:SUGP.mod);
   box.innerHTML='<div class="sug-back"><div class="sug-card" role="dialog" aria-modal="true" aria-label="Sugestões para equilibrar a escala">'
-    +'<h2>Equilibrar a escala?</h2><p class="small muted">Depois da sua mudança, algumas pessoas ficaram com mais escalas que outras ('+esc(tit)+') neste mês. '+(SUGP.mod==='preg'?(SUGP.list[0].papel==='visit'?'O contato é equilibrado entre todos os marcados com essa função.':'Aqui o equilíbrio é entre presbíteros.'):'')+' Marque as trocas que quer aplicar:</p>'
+    +'<h2>Equilibrar a escala?</h2><p class="small muted">Depois da sua mudança, algumas pessoas ficaram com mais escalas que outras ('+esc(tit)+') neste mês. '+(SUGP.mod==='preg'?(SUGP.list[0].papel==='visit'?'O contato é equilibrado entre todos os marcados com essa função.':'Aqui o equilíbrio é entre presbíteros, dentro do mesmo culto.'):'')+' Marque as trocas que quer aplicar:</p>'
     +'<div class="sug-list">'+SUGP.list.map(function(x,i){
       var c=cultoById(x.cid);
       return '<label><input type="checkbox" data-sug="'+i+'" checked> <span><b>'+br(x.date)+'</b>'+(c?' · '+esc(cultoLabel(c)):'')+(x.papel?' · '+esc(PNOME[x.papel]):'')+'<br>'+esc(sugNome(x.hi))+' → <b>'+esc(sugNome(x.lo))+'</b> <span class="small muted">('+esc(sugNome(x.hi))+' tem '+x.nh+' no mês; '+esc(sugNome(x.lo))+' tem '+x.nl+')</span></span></label>';
