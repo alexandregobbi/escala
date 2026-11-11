@@ -2019,7 +2019,8 @@ function generate(from,to,cids,keep){
   var slots=slotsIn(from,to,cids).filter(function(s){return inRanges(s.date);}),vazios=[],n=S.pessoas.length,i=0;
   /* pregação e avisos primeiro; contato com visitantes por último (é o único que considera famílias) */
   slots=slots.map(function(s,ix){return {s:s,ix:ix+1};});
-  slots=slots.filter(function(o){return o.s.papel!=='visit';}).concat(slots.filter(function(o){return o.s.papel==='visit';}));
+  /* ordem: todas as pregações do período, depois os avisos, depois o contato; assim o equilíbrio da pregação tem preferência e os avisos usam quem sobrar em cada culto */
+  slots=['preg','avisos','visit'].reduce(function(r,pp){return r.concat(slots.filter(function(o){return o.s.papel===pp;}));},[]).concat(slots.filter(function(o){return ['preg','avisos','visit'].indexOf(o.s.papel)<0;}));
   slots.forEach(function(o){
     var s=o.s;i=o.ix;
     if(e[s.key]){return;}
