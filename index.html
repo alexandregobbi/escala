@@ -296,7 +296,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
       <form class="f" id="form-todos">
         <label class="l full" for="ga-mes">Mês da escala<input type="month" id="ga-mes" required></label><input type="hidden" id="ga-de"><input type="hidden" id="ga-ate">
         <p class="hint full">Só completa os espaços vazios: nada que já esteja preenchido é alterado.</p><input type="checkbox" id="ga-manter" checked hidden>
-        <div class="row full"><button class="btn" type="submit">Gerar todas as escalas</button><button class="btn danger" type="button" id="ga-apagar">Apagar todas as escalas, exceto o mês escolhido</button></div>
+        <div class="row full"><button class="btn" type="submit">Gerar todas as escalas</button><button class="btn danger" type="button" id="ga-apagar">Apagar todas as escalas, exceto o mês escolhido</button><button class="btn danger" type="button" id="ga-apagar-mes">Apagar todas as escalas do mês escolhido</button></div>
       </form>
       <div class="hint" id="ga-msg" aria-live="polite"></div>
     </div>
@@ -6066,6 +6066,19 @@ $('ga-apagar').addEventListener('click',function(){
   del(S.escala);MINS.forEach(function(m){del(S[m.k].escala);});
   S.example=false;touch();render();
   $('ga-msg').textContent='Escalas apagadas: '+n+' registro(s) fora de '+nome+'. Apenas '+nome+' foi mantido.';
+});
+
+$('ga-apagar-mes').addEventListener('click',function(){
+  if(!ehAdminTotal()){return;}
+  aplicaMes('ga');
+  var ym=$('ga-mes').value,out=$('ga-msg');
+  if(!/^\d{4}-\d{2}$/.test(ym)){out.textContent='Escolha o mês.';return;}
+  var nome=MESES[+ym.slice(5,7)-1]+' de '+ym.slice(0,4);
+  if(!window.confirm('Apagar TODAS as escalas de '+nome+' (pregação, avisos, contato e todos os ministérios, inclusive ajustes manuais)? Os outros meses não são alterados. Isso não pode ser desfeito.')){return;}
+  var n=0,del=function(E){Object.keys(E).forEach(function(k){if(k.slice(0,7)===ym){delete E[k];n++;}});};
+  del(S.escala);MINS.forEach(function(m){del(S[m.k].escala);});
+  S.example=false;touch();render();
+  $('ga-msg').textContent='Escalas de '+nome+' apagadas: '+n+' registro(s). Os outros meses não foram alterados.';
 });
 
 /* total de escalas de cada voluntário, por mês */
