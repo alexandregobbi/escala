@@ -2027,6 +2027,14 @@ function generate(from,to,cids,keep){
     var dn=dnum(s.date);
     var cand=S.pessoas.filter(function(p){return conflicts(p.id,s.date,s.cid,s.papel,e,null).length===0;});
     if(!cand.length){vazios.push(s);return;}
+    /* pregação: prefere quem ainda não prega em outro culto no mesmo dia (as regras definidas continuam valendo, pois já filtraram os candidatos) */
+    if(s.papel==='preg'&&cand.length>1){
+      var diaLivre=cand.filter(function(p){
+        for(var k3 in e){var a3=k3.split('|');if(a3[0]===s.date&&a3[2]==='preg'&&a3[1]!==s.cid&&e[k3].p===p.id){return false;}}
+        return true;
+      });
+      if(diaLivre.length){cand=diaLivre;}
+    }
     /* evita a mesma pessoa em semanas seguidas na mesma função, quando há alternativa com carga parecida */
     if(cand.length>1){
       var Cn=cnt[ck(s.papel,s.cid)]||{};
