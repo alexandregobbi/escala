@@ -345,7 +345,7 @@ footer.bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(
     </div>
 
     <h2 style="margin:6px 0 0">Regras da pregação, avisos e contato</h2>
-    <div class="notice">A escala é sempre equilibrada: pregação e avisos são distribuídos por igual entre quem participa de cada culto. Só pastores podem ser escalados em dois cultos no mesmo dia (por exemplo, manhã e noite), e nunca em cultos no mesmo horário. As regras abaixo são as exceções.</div>
+    <div class="notice">A escala é sempre equilibrada: pregação e avisos são distribuídos por igual entre quem participa de cada culto. Ninguém é escalado em dois cultos no mesmo dia; a única exceção é quando uma regra configurada abaixo exige a pessoa (ou a função) nos dois cultos. Nunca em cultos no mesmo horário.</div>
     <div class="grid2">
       <div class="panel">
         <h2>Exigir função em um culto</h2>
@@ -1986,7 +1986,8 @@ function conflicts(pid,date,cid,papel,escala,ignoreKey){
     var a=k.split('|');
     if(a[2]==='visit'||k===ignoreKey||a[0]!==date||a[1]===cid||escala[k].p!==pid){return;}
     var o=cultoById(a[1]);
-    if(p.funcao!=='Pastor'){out.push('Só pastor pode ter dois cultos no mesmo dia');}
+    var porRegra=exigeDe(date,cid,papel).some(function(e){return e.pid===pid||(e.func&&e.func===p.funcao);});
+    if(!porRegra){out.push('Já serve em outro culto neste dia (só por regra configurada)');}
     else if(o&&ch&&o.hora===ch.hora){out.push('Horário coincide com outro culto neste dia');}
   });}
   var xs=exigeDe(date,cid,papel);
@@ -2494,7 +2495,7 @@ function generateOanse(from,to,cids,keep){
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
           var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!oanseIndisp(v.id,d)&&volPodeCulto(v,c.id)&&outraFuncaoNoCulto(v.id,d,c.id,'oanse').length===0;});
           var livres=cand.filter(function(v){return !emDia[v.id];});
-          if(livres.length){cand=livres;}
+          cand=livres; /* ninguém serve em dois cultos no mesmo dia, salvo por regra (exigência) */
           /* evita a mesma pessoa em semanas seguidas na mesma função, quando há alternativa com carga parecida */
           if(cand.length>1){
             var pmn=Math.min.apply(null,cand.map(function(v){return tot[v.id]||0;}));
@@ -2860,7 +2861,7 @@ function generateLit(from,to,cids,keep){
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
           var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!litIndisp(v.id,d)&&volPodeCulto(v,c.id)&&outraFuncaoNoCulto(v.id,d,c.id,'lit').length===0;});
           var livres=cand.filter(function(v){return !emDia[v.id];});
-          if(livres.length){cand=livres;}
+          cand=livres; /* ninguém serve em dois cultos no mesmo dia, salvo por regra (exigência) */
           /* evita a mesma pessoa em semanas seguidas na mesma função, quando há alternativa com carga parecida */
           if(cand.length>1){
             var pmn=Math.min.apply(null,cand.map(function(v){return tot[v.id]||0;}));
@@ -3220,7 +3221,7 @@ function generate_bibkids(from,to,cids,keep){
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
           var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!indisp_bibkids(v.id,d)&&volPodeCulto(v,c.id)&&outraFuncaoNoCulto(v.id,d,c.id,'bibkids').length===0;});
           var livres=cand.filter(function(v){return !emDia[v.id];});
-          if(livres.length){cand=livres;}
+          cand=livres; /* ninguém serve em dois cultos no mesmo dia, salvo por regra (exigência) */
           /* evita a mesma pessoa em semanas seguidas na mesma função, quando há alternativa com carga parecida */
           if(cand.length>1){
             var pmn=Math.min.apply(null,cand.map(function(v){return tot[v.id]||0;}));
@@ -3500,7 +3501,7 @@ function generate_cantina(from,to,cids,keep){
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
           var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!indisp_cantina(v.id,d)&&volPodeCulto(v,c.id)&&outraFuncaoNoCulto(v.id,d,c.id,'cantina').length===0;});
           var livres=cand.filter(function(v){return !emDia[v.id];});
-          if(livres.length){cand=livres;}
+          cand=livres; /* ninguém serve em dois cultos no mesmo dia, salvo por regra (exigência) */
           /* evita a mesma pessoa em semanas seguidas na mesma função, quando há alternativa com carga parecida */
           if(cand.length>1){
             var pmn=Math.min.apply(null,cand.map(function(v){return tot[v.id]||0;}));
@@ -3780,7 +3781,7 @@ function generate_iluminacao(from,to,cids,keep){
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
           var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!indisp_iluminacao(v.id,d)&&volPodeCulto(v,c.id)&&outraFuncaoNoCulto(v.id,d,c.id,'iluminacao').length===0;});
           var livres=cand.filter(function(v){return !emDia[v.id];});
-          if(livres.length){cand=livres;}
+          cand=livres; /* ninguém serve em dois cultos no mesmo dia, salvo por regra (exigência) */
           /* evita a mesma pessoa em semanas seguidas na mesma função, quando há alternativa com carga parecida */
           if(cand.length>1){
             var pmn=Math.min.apply(null,cand.map(function(v){return tot[v.id]||0;}));
@@ -4060,7 +4061,7 @@ function generate_live(from,to,cids,keep){
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
           var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!indisp_live(v.id,d)&&volPodeCulto(v,c.id)&&outraFuncaoNoCulto(v.id,d,c.id,'live').length===0;});
           var livres=cand.filter(function(v){return !emDia[v.id];});
-          if(livres.length){cand=livres;}
+          cand=livres; /* ninguém serve em dois cultos no mesmo dia, salvo por regra (exigência) */
           /* evita a mesma pessoa em semanas seguidas na mesma função, quando há alternativa com carga parecida */
           if(cand.length>1){
             var pmn=Math.min.apply(null,cand.map(function(v){return tot[v.id]||0;}));
@@ -4372,7 +4373,7 @@ function generate_louvor(from,to,cids,keep){
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
           var cand=VM.filter(function(v){return it.ps.indexOf(v.id)<0&&!indisp_louvor(v.id,d)&&volPodeCulto(v,c.id)&&outraFuncaoNoCulto(v.id,d,c.id,'louvor').length===0;});
           var livres=cand.filter(function(v){return !emDia[v.id];});
-          if(livres.length){cand=livres;}
+          cand=livres; /* ninguém serve em dois cultos no mesmo dia, salvo por regra (exigência) */
           /* evita a mesma pessoa em semanas seguidas na mesma função, quando há alternativa com carga parecida */
           if(cand.length>1){
             var pmn=Math.min.apply(null,cand.map(function(v){return tot[v.id]||0;}));
@@ -4758,7 +4759,7 @@ function generate_parking(from,to,cids,keep){
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
           var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!indisp_parking(v.id,d)&&volPodeCulto(v,c.id)&&outraFuncaoNoCulto(v.id,d,c.id,'parking').length===0;});
           var livres=cand.filter(function(v){return !emDia[v.id];});
-          if(livres.length){cand=livres;}
+          cand=livres; /* ninguém serve em dois cultos no mesmo dia, salvo por regra (exigência) */
           /* evita a mesma pessoa em semanas seguidas na mesma função, quando há alternativa com carga parecida */
           if(cand.length>1){
             var pmn=Math.min.apply(null,cand.map(function(v){return tot[v.id]||0;}));
@@ -5038,7 +5039,7 @@ function generate_projecao(from,to,cids,keep){
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
           var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!indisp_projecao(v.id,d)&&volPodeCulto(v,c.id)&&outraFuncaoNoCulto(v.id,d,c.id,'projecao').length===0;});
           var livres=cand.filter(function(v){return !emDia[v.id];});
-          if(livres.length){cand=livres;}
+          cand=livres; /* ninguém serve em dois cultos no mesmo dia, salvo por regra (exigência) */
           /* evita a mesma pessoa em semanas seguidas na mesma função, quando há alternativa com carga parecida */
           if(cand.length>1){
             var pmn=Math.min.apply(null,cand.map(function(v){return tot[v.id]||0;}));
@@ -5318,7 +5319,7 @@ function generate_recepcao(from,to,cids,keep){
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
           var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!indisp_recepcao(v.id,d)&&volPodeCulto(v,c.id)&&outraFuncaoNoCulto(v.id,d,c.id,'recepcao').length===0;});
           var livres=cand.filter(function(v){return !emDia[v.id];});
-          if(livres.length){cand=livres;}
+          cand=livres; /* ninguém serve em dois cultos no mesmo dia, salvo por regra (exigência) */
           /* evita a mesma pessoa em semanas seguidas na mesma função, quando há alternativa com carga parecida */
           if(cand.length>1){
             var pmn=Math.min.apply(null,cand.map(function(v){return tot[v.id]||0;}));
@@ -5598,7 +5599,7 @@ function generate_som(from,to,cids,keep){
           Object.keys(e).forEach(function(k){var a=k.split('|');if(a[0]===d&&a[1]!==c.id){e[k].ps.forEach(function(id){if(id){emDia[id]=1;}});}});
           var cand=V.filter(function(v){return it.ps.indexOf(v.id)<0&&!indisp_som(v.id,d)&&volPodeCulto(v,c.id)&&outraFuncaoNoCulto(v.id,d,c.id,'som').length===0;});
           var livres=cand.filter(function(v){return !emDia[v.id];});
-          if(livres.length){cand=livres;}
+          cand=livres; /* ninguém serve em dois cultos no mesmo dia, salvo por regra (exigência) */
           /* evita a mesma pessoa em semanas seguidas na mesma função, quando há alternativa com carga parecida */
           if(cand.length>1){
             var pmn=Math.min.apply(null,cand.map(function(v){return tot[v.id]||0;}));
